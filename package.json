@@ -1,0 +1,1 @@
+{"name":"witlock-workspace","private":true,"version":"0.1.0","workspaces":["web"],"scripts":{"cli:version":"genlayer --version","test":"python -m pytest -q tests","web:dev":"npm --workspace web run dev","web:build":"npm --workspace web run build"},"devDependencies":{"genlayer":"0.39.1"}}
