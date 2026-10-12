@@ -16,9 +16,16 @@ from datetime import datetime
 import json
 
 
-MAX_TASKS = 4
+MAX_TASKS = 2
 MAX_SOURCE_BYTES = 2048
 MAX_DOSSIER_CHARS = 16000
+MAX_SOURCE_COORDINATE_CHARS = 240
+MAX_SOURCE_PATH_CHARS = 160
+MAX_SOURCE_REVISION_CHARS = 64
+MAX_TASK_QUESTION_CHARS = 240
+MAX_CLAIM_CHARS = 400
+MAX_APPEAL_BASIS_CHARS = 400
+MAX_APPEAL_JSON_CHARS = 3500
 
 
 class Witlock(gl.Contract):
@@ -103,7 +110,7 @@ class Witlock(gl.Contract):
     def _source(self, value: str) -> bool:
         return (
             isinstance(value, str)
-            and 1 <= len(value) <= 400
+            and 1 <= len(value) <= MAX_SOURCE_COORDINATE_CHARS
             and value == value.strip()
             and " " not in value
             and (
@@ -203,7 +210,7 @@ class Witlock(gl.Contract):
         repository = parts[1]
         commit = parts[2]
         path = "/".join(parts[3:])
-        if not self._key(owner, 64) or not self._key(repository, 100) or not self._bounded(path, 1, 300):
+        if not self._key(owner, 64) or not self._key(repository, 100) or not self._bounded(path, 1, MAX_SOURCE_PATH_CHARS):
             return None
         if len(commit) != 40 or any(char not in "0123456789abcdef" for char in commit):
             return None
@@ -281,6 +288,17 @@ class Witlock(gl.Contract):
             return {"ok": False, "status": "SOURCE_RETRIEVAL_FAILURE"}
 
     def _classification_budget(self, records: list, appeal_grounds) -> bool:
+        observation_probe = {
+            "ok": True,
+            "status": "VERIFIED",
+            "source_class": "GITHUB_RAW_COMMIT",
+            "repository": "x" * 165,
+            "commit": "c" * 40,
+            "path": "p" * MAX_SOURCE_PATH_CHARS,
+            "digest": "d" * 64,
+            "content": "x" * MAX_SOURCE_BYTES,
+            "content_size": MAX_SOURCE_BYTES,
+        }
         dossier = {
             "agreement": "x" * 64,
             "criteria": [],
@@ -290,10 +308,12 @@ class Witlock(gl.Contract):
         for record in records:
             bounded = dict(record)
             bounded["content"] = "x" * MAX_SOURCE_BYTES
+            bounded["independent_observation"] = observation_probe
             dossier["criteria"].append(bounded)
         if isinstance(appeal_grounds, dict) and appeal_grounds:
             appeal_probe = dict(appeal_grounds)
             appeal_probe["content"] = "x" * MAX_SOURCE_BYTES
+            appeal_probe["independent_observation"] = observation_probe
             dossier["appeal_grounds"] = appeal_probe
         return len(json.dumps(dossier, sort_keys=True)) <= MAX_DOSSIER_CHARS
 
@@ -435,10 +455,24 @@ class Witlock(gl.Contract):
                 assessed["independent_observation"] = observation
                 assessed_records.append(assessed)
             assessed_appeal = appeal_grounds
+            observations_ok = all(
+                isinstance(record.get("independent_observation"), dict)
+                and record["independent_observation"].get("ok", False)
+                for record in assessed_records
+            )
             if isinstance(appeal_grounds, dict) and appeal_grounds:
                 assessed_appeal = dict(appeal_grounds)
                 assessed_appeal["independent_observation"] = self._observe_source(
                     key + ":" + appeal_grounds["task_id"], appeal_grounds
+                )
+                observations_ok = observations_ok and assessed_appeal["independent_observation"].get("ok", False)
+            if not observations_ok:
+                return json.dumps(
+                    {
+                        "answers": {record["id"]: "INCONCLUSIVE" for record in records},
+                        "source_observations_ok": False,
+                    },
+                    sort_keys=True,
                 )
             dossier = json.dumps(
                 {
@@ -474,6 +508,8 @@ class Witlock(gl.Contract):
             parsed = json.loads(result) if isinstance(result, str) else result
             if not isinstance(parsed, dict) or not isinstance(parsed.get("answers"), dict):
                 return self._inconclusive_decision("CONSENSUS_SCHEMA")
+            if parsed.get("source_observations_ok") is False:
+                return self._inconclusive_decision("SOURCE_OBSERVATION")
             if isinstance(result, str) and len(result) > 4096:
                 return self._inconclusive_decision("CONSENSUS_RESULT_SIZE")
             return self._decision_from_answers(agreement, parsed["answers"])
@@ -549,7 +585,7 @@ class Witlock(gl.Contract):
             if not self._key(task["id"], 20) or task["id"] in identifiers:
                 self._reject("TASK_ID")
             identifiers.append(task["id"])
-            if not self._bounded(task["question"], 20, 400):
+            if not self._bounded(task["question"], 20, MAX_TASK_QUESTION_CHARS):
                 self._reject("TASK_QUESTION")
             if type(task["weight"]) is not int or not 1 <= task["weight"] <= 100:
                 self._reject("TASK_WEIGHT")
@@ -712,11 +748,11 @@ class Witlock(gl.Contract):
             self._reject("ATTESTATION_ID")
         if not self._digest(digest) or not self._digest(provenance_hash):
             self._reject("ATTESTATION_DIGEST")
-        if not self._source(source) or not self._bounded(source_revision, 1, 160):
+        if not self._source(source) or not self._bounded(source_revision, 1, MAX_SOURCE_REVISION_CHARS):
             self._reject("SOURCE_COORDINATE")
         if not self._retrieval_method(retrieval_method) or int(retrieved_at) <= 0 or int(retrieved_at) > self._now():
             self._reject("SOURCE_RETRIEVAL")
-        if not self._bounded(claim, 1, 1200):
+        if not self._bounded(claim, 1, MAX_CLAIM_CHARS):
             self._reject("CLAIM_BOUNDS")
         if int(expires_at) != 0 and int(expires_at) < self._now():
             self._reject("ATTESTATION_EXPIRED")
@@ -781,11 +817,14 @@ class Witlock(gl.Contract):
                 sort_keys=True,
             )
 
-        observed_raw = gl.eq_principle.prompt_comparative(
-            observe,
-            "Validators must independently fetch the same immutable source and agree on every observation field exactly.",
-        )
-        observation = json.loads(observed_raw) if isinstance(observed_raw, str) else observed_raw
+        try:
+            observed_raw = gl.eq_principle.prompt_comparative(
+                observe,
+                "Validators must independently fetch the same immutable source and agree on every observation field exactly.",
+            )
+            observation = json.loads(observed_raw) if isinstance(observed_raw, str) else observed_raw
+        except Exception:
+            observation = {"ok": False, "status": "SOURCE_VERIFICATION_CONSENSUS_FAILURE"}
         if not isinstance(observation, dict) or not observation.get("ok", False):
             attestation["source_verified"] = False
             attestation["source_verification_status"] = (
@@ -977,7 +1016,7 @@ class Witlock(gl.Contract):
         self._require_party(agreement)
         if not isinstance(grounds_json, str):
             grounds_json = json.dumps(grounds_json, sort_keys=True)
-        if self._now() > agreement["appeal_deadline"] or not self._bounded(grounds_json, 20, 5000):
+        if self._now() > agreement["appeal_deadline"] or not self._bounded(grounds_json, 20, MAX_APPEAL_JSON_CHARS):
             self._reject("APPEAL_DEADLINE")
         grounds = self._parse(grounds_json, "APPEAL_GROUNDS_JSON")
         if set(grounds) != {
@@ -998,15 +1037,15 @@ class Witlock(gl.Contract):
             self._reject("APPEAL_TASK")
         if type(grounds["challenged_version"]) is not int or grounds["challenged_version"] != int(agreement["decision_version"]):
             self._reject("APPEAL_VERSION")
-        if not self._bounded(grounds["basis"], 20, 1200):
+        if not self._bounded(grounds["basis"], 20, MAX_APPEAL_BASIS_CHARS):
             self._reject("APPEAL_BASIS")
         if not self._digest(grounds["digest"]) or not self._digest(grounds["provenance_hash"]):
             self._reject("APPEAL_DIGEST")
-        if not self._source(grounds["source"]) or not self._bounded(grounds["source_revision"], 1, 160):
+        if not self._source(grounds["source"]) or not self._bounded(grounds["source_revision"], 1, MAX_SOURCE_REVISION_CHARS):
             self._reject("APPEAL_SOURCE")
         if not self._retrieval_method(grounds["retrieval_method"]) or type(grounds["retrieved_at"]) is not int or grounds["retrieved_at"] <= 0 or grounds["retrieved_at"] > self._now():
             self._reject("APPEAL_RETRIEVAL")
-        if not self._bounded(grounds["claim"], 1, 1200):
+        if not self._bounded(grounds["claim"], 1, MAX_CLAIM_CHARS):
             self._reject("APPEAL_CLAIM")
         if grounds["provenance_hash"] != self._provenance_digest(
             key + ":" + grounds["task_id"],
@@ -1061,11 +1100,14 @@ class Witlock(gl.Contract):
                 self._observe_source(key + ":" + task_id, grounds),
                 sort_keys=True,
             )
-        observed_raw = gl.eq_principle.prompt_comparative(
-            observe,
-            "Validators must independently retrieve the appeal source and agree on every observation field exactly.",
-        )
-        observation = json.loads(observed_raw) if isinstance(observed_raw, str) else observed_raw
+        try:
+            observed_raw = gl.eq_principle.prompt_comparative(
+                observe,
+                "Validators must independently retrieve the appeal source and agree on every observation field exactly.",
+            )
+            observation = json.loads(observed_raw) if isinstance(observed_raw, str) else observed_raw
+        except Exception:
+            observation = {"ok": False, "status": "APPEAL_SOURCE_CONSENSUS_FAILURE"}
         if not isinstance(observation, dict) or not observation.get("ok", False):
             agreement["appeal_authenticated"] = False
             agreement["appeal_verification_status"] = (

@@ -91,7 +91,16 @@ def activate(direct_vm, agreement, provider):
         agreement.accept_agreement("agreement-1")
 
 
-def publish_and_verify(direct_vm, agreement, issuer, verifier, key="agreement-1", task_id="source", attestation_id="att-1"):
+def publish_and_verify(
+    direct_vm,
+    agreement,
+    issuer,
+    verifier,
+    key="agreement-1",
+    task_id="source",
+    attestation_id="att-1",
+    claim="The source supports the criterion.",
+):
     source_digest = digest(SOURCE_BODY)
     source_provenance = provenance(key + ":" + task_id, SOURCE_URL, SOURCE_COMMIT, source_digest)
     with direct_vm.prank(issuer):
@@ -104,7 +113,7 @@ def publish_and_verify(direct_vm, agreement, issuer, verifier, key="agreement-1"
             SOURCE_COMMIT,
             "HTTPS_GET",
             BASE_TIMESTAMP,
-            "The source supports the criterion.",
+            claim,
             source_provenance,
             0,
         )
@@ -172,6 +181,25 @@ def test_monolith_freezes_terms_and_requires_provider_acceptance(
     assert state["status"] == "ACTIVE"
     assert state["terms"]["tasks"][0]["issuer"] == address_hex(direct_charlie)
     assert state["terms"]["tasks"][0]["verifier"] == address_hex(direct_dana)
+
+
+@pytest.mark.direct
+def test_correlated_issuer_and_verifier_nomination_is_rejected(
+    direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie
+):
+    agreement = direct_deploy("contracts/Witlock.py", sdk_version=SDK_VERSION)
+    direct_vm.warp("2026-01-01T00:00:00Z")
+    correlated_terms = terms(address_hex(direct_charlie), address_hex(direct_charlie))
+    with direct_vm.expect_revert("WL_VERIFIER_NOT_INDEPENDENT"):
+        create(
+            direct_vm,
+            agreement,
+            direct_alice,
+            direct_bob,
+            direct_charlie,
+            direct_charlie,
+            terms_value=correlated_terms,
+        )
 
 
 @pytest.mark.direct
@@ -395,6 +423,28 @@ def test_false_issuer_claim_does_not_override_source_assessment(
 
 
 @pytest.mark.direct
+def test_source_mutation_after_verification_fails_closed_during_adjudication(
+    direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, direct_dana
+):
+    agreement = direct_deploy("contracts/Witlock.py", sdk_version=SDK_VERSION)
+    direct_vm.warp("2026-01-01T00:00:00Z")
+    create(direct_vm, agreement, direct_alice, direct_bob, direct_charlie, direct_dana)
+    activate(direct_vm, agreement, direct_bob)
+    publish_and_verify(direct_vm, agreement, direct_charlie, direct_dana)
+    submit_and_authenticate(direct_vm, agreement, direct_alice, direct_charlie)
+    with direct_vm.prank(direct_alice):
+        agreement.acknowledge_delivery("agreement-1")
+        agreement.seal_agreement("agreement-1")
+    direct_vm.clear_mocks()
+    mock_source(direct_vm, SOURCE_URL, SOURCE_COMMIT, SOURCE_BODY + " changed after admission")
+    direct_vm.mock_llm("Classify each frozen criterion", json.dumps({"answers": {"source": "PASS"}}))
+    agreement.adjudicate("agreement-1")
+    decision = json.loads(agreement.get_decision("agreement-1"))
+    assert decision["result"] == "INCONCLUSIVE"
+    assert decision["failure_code"] == "SOURCE_OBSERVATION"
+
+
+@pytest.mark.direct
 def test_appeal_source_mutation_blocks_resolution(
     direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, direct_dana
 ):
@@ -449,6 +499,8 @@ def test_adjudication_and_resolved_appeal_can_finalize(
     agreement.adjudicate("agreement-1")
     open_authenticated_appeal(direct_vm, agreement, direct_alice, direct_dana)
     direct_vm.clear_mocks()
+    mock_source(direct_vm, SOURCE_URL, SOURCE_COMMIT, SOURCE_BODY)
+    mock_source(direct_vm, APPEAL_URL, APPEAL_COMMIT, APPEAL_BODY)
     direct_vm.mock_llm("Classify each frozen criterion", json.dumps({"answers": {"source": "FAIL"}}))
     agreement.resolve_appeal("agreement-1")
 
@@ -582,7 +634,7 @@ def test_task_limit_prevents_unreachable_dossier_combinations(
 ):
     agreement = direct_deploy("contracts/Witlock.py", sdk_version=SDK_VERSION)
     direct_vm.warp("2026-01-01T00:00:00Z")
-    long_terms = terms(address_hex(direct_charlie), address_hex(direct_dana), 5)
+    long_terms = terms(address_hex(direct_charlie), address_hex(direct_dana), 3)
     with direct_vm.expect_revert("WL_TASKS"):
         create(
             direct_vm,
@@ -593,6 +645,62 @@ def test_task_limit_prevents_unreachable_dossier_combinations(
             direct_dana,
             terms_value=long_terms,
         )
+
+
+@pytest.mark.direct
+def test_maximum_permitted_case_reaches_seal_and_judgment(
+    direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, direct_dana
+):
+    agreement = direct_deploy("contracts/Witlock.py", sdk_version=SDK_VERSION)
+    direct_vm.warp("2026-01-01T00:00:00Z")
+    max_terms = terms(address_hex(direct_charlie), address_hex(direct_dana), 2)
+    for task in max_terms["tasks"]:
+        task["question"] = "q" * 240
+    create(
+        direct_vm,
+        agreement,
+        direct_alice,
+        direct_bob,
+        direct_charlie,
+        direct_dana,
+        terms_value=max_terms,
+    )
+    activate(direct_vm, agreement, direct_bob)
+    publish_and_verify(
+        direct_vm,
+        agreement,
+        direct_charlie,
+        direct_dana,
+        task_id="source0",
+        attestation_id="att-0",
+        claim="c" * 400,
+    )
+    publish_and_verify(
+        direct_vm,
+        agreement,
+        direct_charlie,
+        direct_dana,
+        task_id="source1",
+        attestation_id="att-1",
+        claim="c" * 400,
+    )
+    submit_and_authenticate(
+        direct_vm, agreement, direct_alice, direct_charlie, task_id="source0", attestation_id="att-0"
+    )
+    submit_and_authenticate(
+        direct_vm, agreement, direct_alice, direct_charlie, task_id="source1", attestation_id="att-1"
+    )
+    with direct_vm.prank(direct_alice):
+        agreement.acknowledge_delivery("agreement-1")
+        agreement.seal_agreement("agreement-1")
+    direct_vm.mock_llm(
+        "Classify each frozen criterion",
+        json.dumps({"answers": {"source0": "PASS", "source1": "PASS"}}),
+    )
+    agreement.adjudicate("agreement-1")
+    state = json.loads(agreement.get_agreement("agreement-1"))
+    assert state["status"] == "APPEAL_WINDOW"
+    assert json.loads(agreement.get_decision("agreement-1"))["result"] == "APPROVED"
 
 
 @pytest.mark.direct
