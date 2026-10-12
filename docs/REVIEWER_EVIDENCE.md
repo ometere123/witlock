@@ -24,7 +24,7 @@ The live source observation records the immutable GitHub commit, repository, pat
 - 34 passed Python/Direct Mode tests.
 - GenVM lint/check, frontend typecheck, frontend transaction tests, Next production build, StudioNet preflight, and npm audit with 0 vulnerabilities.
 - Route smoke covered the public and dynamic App Router routes.
-- The Chrome profile exposes an injected EIP-1193 wallet on chain 0xf22f; no browser-signed write is recorded yet.
-- Finalized transaction handling uses FINALIZED and successful execution checks, preserves failed finalized receipts, recovers pending entries, and links receipts to the StudioNet explorer.
+- The Chrome profile exposed an injected EIP-1193 wallet on chain 0xf22f. Browser creation transaction https://explorer-studio.genlayer.com/tx/0xef85a36028a4dc8bad7468de3ec4c71e66769fe08f2b9da585321bc1399ccd9c finalized with MAJORITY_AGREE and four successful validator executions; readback confirms browser-proof-20261012.
+- Finalized transaction handling uses the SDK FINISHED_WITH_RETURN enum and the pinned StudioNet validator execution shape, preserves failed finalized receipts, recovers pending entries, and links receipts to the StudioNet explorer.
 
 genlayer trace is unavailable because the approved RPC does not implement gen_dbg_traceTransaction. Earlier NO_MAJORITY deployments and the old contract address remain historical.

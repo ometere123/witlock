@@ -42,6 +42,8 @@ The current source is deployed at [`0x825478432dFECd321C5E5C193829Ad1bAd88043a`]
 
 Live StudioNet readbacks prove `APPROVED` 100, `PARTIAL` 50, `REJECTED` 0, and `INCONCLUSIVE` 0. The approved case also records a separately authenticated and resolved appeal at decision version 2. Custody remains disabled, so the live cases use zero-value agreements and report decision allocation only. See [docs/LIVE_PROOF.md](docs/LIVE_PROOF.md), [artifacts/live-61999/cases.json](artifacts/live-61999/cases.json), and the sanitized [deployment manifest](artifacts/live-61999/manifest.json).
 
+The injected-wallet browser proof created `browser-proof-20261012` from the connected StudioNet wallet and finalized transaction [`0xef85a36028a4dc8bad7468de3ec4c71e66769fe08f2b9da585321bc1399ccd9c`](https://explorer-studio.genlayer.com/tx/0xef85a36028a4dc8bad7468de3ec4c71e66769fe08f2b9da585321bc1399ccd9c) with `MAJORITY_AGREE`.
+
 ## Local verification
 
 ```powershell

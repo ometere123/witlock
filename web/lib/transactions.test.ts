@@ -23,6 +23,19 @@ describe('GenLayer receipt classification', () => {
     })).toBe(true);
   });
 
+  it('accepts the pinned StudioNet receipt shape with successful validator execution', () => {
+    expect(isSuccessfulFinalizedReceipt({
+      statusName: TransactionStatus.FINALIZED,
+      result_name: 'MAJORITY_AGREE',
+      consensus_data: {
+        validators: [
+          { vote: 'agree', execution_result: 'SUCCESS', genvm_result: { raw_error: null } },
+          { vote: 'agree', execution_result: 'SUCCESS', genvm_result: { raw_error: null } },
+        ],
+      },
+    })).toBe(true);
+  });
+
   it('rejects finalized execution errors and generic SUCCESS labels', () => {
     expect(isSuccessfulFinalizedReceipt({
       statusName: TransactionStatus.FINALIZED,
@@ -31,6 +44,15 @@ describe('GenLayer receipt classification', () => {
     expect(isSuccessfulFinalizedReceipt({
       statusName: TransactionStatus.FINALIZED,
       execution_result: 'SUCCESS',
+    })).toBe(false);
+    expect(isSuccessfulFinalizedReceipt({
+      statusName: TransactionStatus.FINALIZED,
+      result_name: 'MAJORITY_AGREE',
+      consensus_data: {
+        validators: [
+          { vote: 'agree', execution_result: 'ERROR', genvm_result: { raw_error: 'execution failed' } },
+        ],
+      },
     })).toBe(false);
   });
 });

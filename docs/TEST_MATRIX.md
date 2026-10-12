@@ -14,7 +14,7 @@
 | Current live deployment | StudioNet receipt | Proven; FINALIZED, MAJORITY_AGREE, leader SUCCESS |
 | Current source parity | deployed code and SHA-256 comparison | Proven; exact 62,629-byte match |
 | Live verdicts | sanitized live-61999 case ledger | Proven; APPROVED, PARTIAL, REJECTED, INCONCLUSIVE |
-| Browser wallet | Chrome injected provider | Chain 0xf22f detected; browser-signed write not recorded |
+| Browser wallet | Chrome injected provider | Chain 0xf22f detected; browser-proof-20261012 finalized with MAJORITY_AGREE and four successful validator executions |
 | Payment/recovery | custody and transfer fault evidence | Custody disabled; no transfer claim |
 
 The negative suite covers unauthorized parties, issuer substitution, correlated issuer/verifier nomination, missing independent verification, altered source bytes, mutable branches, appeal-source mutation, evidence after dispute or acknowledgement, premature sealing, malformed consensus, reachable maximum dossier bounds, oversized results, appeal expiry, resolved-appeal finalization, draft expiry, payment substitution, and custody rejection.

@@ -1,12 +1,160 @@
 {
-  "network": {"name":"GenLayer StudioNet stable","chain_id":61999,"rpc":"https://studio.genlayer.com/api","explorer":"https://explorer-studio.genlayer.com"},
+  "network": {
+    "name": "GenLayer StudioNet stable",
+    "chain_id": 61999,
+    "rpc": "https://studio.genlayer.com/api",
+    "explorer": "https://explorer-studio.genlayer.com"
+  },
   "contract": "0x825478432dFECd321C5E5C193829Ad1bAd88043a",
-  "source": {"git_sha":"14315fa82ef6d6f5e2c077de51c93f266801b1cb","sha256":"AB446841A8A16276ED30A431264DEEC015E87751FF594AE92392ECFACB2F7F35","exact_deployed_match":true},
-  "receipt_profile": {"status":"FINALIZED","result":"MAJORITY_AGREE","leader_execution":"SUCCESS","rounds":1,"validator_agree_count":3,"validator_idle_count":2},
+  "source": {
+    "git_sha": "14315fa82ef6d6f5e2c077de51c93f266801b1cb",
+    "sha256": "AB446841A8A16276ED30A431264DEEC015E87751FF594AE92392ECFACB2F7F35",
+    "exact_deployed_match": true
+  },
+  "receipt_profile": {
+    "status": "FINALIZED",
+    "result": "MAJORITY_AGREE",
+    "leader_execution": "SUCCESS",
+    "rounds": 1,
+    "validator_agree_count": 3,
+    "validator_idle_count": 2
+  },
   "cases": [
-    {"id":"live-cli-string-test","verdict":"APPROVED","score":100,"answers":{"source":"PASS"},"decision_version":2,"status":"APPEAL_WINDOW","appeal_status":"RESOLVED","appeal_authenticated":true,"appeal_verification_status":"VERIFIED","source_verified":true,"evidence_authenticated":true,"transactions":{"create":"0xa39d6b078a861a3e9d2751faa46998ad3cb8255848ef048649ffbc385587d5ce","accept":"0xe43017a4a4e46afb6426fb8a20747a209f541c354c2644dd7fb425f3cd5df509","publish":"0x00a8b72fd262afd9e5ea3c7eb13c7ae94550a27475fb911a243adaca49fcd8a1","verify":"0x79488c124f35d02dc86cecdf956f72bd425f38ba64bbf44fd9bd485d8c7b6a3a","submit":"0x614e0885d0db00f9d1d4ad6af57021571d4d3b5dad022a5e2830d938f3b3a514","authenticate":"0xc185c7f0a3759d39f0f4a38bc9e28bbee5625217fbf48f90370df17484f72093","acknowledge":"0x23de741bba379d890ad13e9a8e9b90509787cb7a10186914089b37006b5b9f25","seal":"0xc6199907b63ea5279cf32dd7bab30e9bf37f0b444a78c07928477750e8a56125","adjudicate":"0x9f54f0e863d35531084faccb52bcd547376e593413178672069bb41b38ab6e21","appeal_open":"0x13f8395b9bd369c58ce06e1ef7d28a8864a71ef78c9afbb06954f4f8aa244178","appeal_authenticate":"0x75728a3d86fbcdcfb8ab62aa11c6a8ad4b3b54c0582ee536f061fa297b60a3eb","appeal_resolve":"0xd3e8e6e961387923b1f0b91b4bd6c27a764be0cf876075d2e0e9a05107e1ee48"},"source_observation":{"url":"https://raw.githubusercontent.com/ometere123/witlock/38edb83c9fa4fcdf94e9147a9d11b61412d966f2/web/app/layout.tsx","content_size":407,"sha256":"8ef0926d47ea523a8a3a99b604b10231a23ec96586ac91e4c1e51e9ec83fe563","source_verified":true,"authenticated":true}},
-    {"id":"live-rejected-clear-20261012","verdict":"REJECTED","score":0,"answers":{"source":"FAIL"},"decision_version":1,"status":"APPEAL_WINDOW","appeal_status":"NONE","source_verified":true,"evidence_authenticated":true,"transactions":{"create":"0xabfde824c1c2c41be0bb5eb3fd5a125050b5112407336829a21b1777f3af5630","accept":"0x22df8439f7cd502203830d12a6755d7cc5f9c47d03390318a034a53dfdc8bf2b","publish":"0x09fd7ad9242dc3cbcc75db2fb27b1eaa21846cbf7b2c04f7fd895e996a608fb2","verify":"0x383e68bfb64503667d1617c5f6af8a76e4025caea1aa3af325b367e2415ae90d","submit":"0x5b88df055ec85d05c25abacae4c716c8559704896d8746084a938b4f3f889d67","authenticate":"0x3630e75772296d14e43d7001e95d3bb354ff9248f04b1505bef6dc7f4adf7869","acknowledge":"0x330b6a7d49cefdb132f16025edae25e2e16e924a72ec8cad843b665980d2f2c5","seal":"0x1ccaeca3b81e6d3c3ae434affc002a273150251c2031a9e786870b61bd701555","adjudicate":"0x5bae470baae074bf9c9adbcf78616e4e0546a90a094821b454aee2b58ed8e40d"}},
-    {"id":"live-partial-clear-20261012","verdict":"PARTIAL","score":50,"answers":{"shell":"PASS","literal":"FAIL"},"decision_version":1,"status":"APPEAL_WINDOW","appeal_status":"NONE","source_verified":true,"evidence_authenticated":true,"transactions":{"create":"0x9b06048262999416e12f8670e60a0ef97ebd44e8d30d9342dada38fac60dcdea","accept":"0xef776b6f0709140a3591e4f0a8501ee93a5ea1f6b65b524e4f58314b6fc1f311","shell_publish":"0x49c4a7195485d2726581b700b4c35f4ca3cd829d2583173ae07c259229f7b32d","shell_verify":"0xa9a84e2ac4e47d6ec7afe23fec72f0db9bf6e1c450c0a06c4fe17048abd6ab1c","shell_submit":"0x7828d566e5a79c7fb28be7014f962d267a42546c35863484985b4ad7b2674208","shell_authenticate":"0x3eaef8174acaaba03d9e20fa8cb80172d8374d783e2a1b017e483c82b224479a","literal_publish":"0x804e4e97b0a6ddd12551bb4ce1157e9091b08d31c71ffcb080f6d55e9d32ffe2","literal_verify":"0xd494a383a0a65492513c84d809fe12ce8f6b45a84f0a1998bca0f8712a30db2d","literal_submit":"0xe054b6f310db3720923ced806f58f17d80e227e54e1b1581735acf71b96fa30a","literal_authenticate":"0xe6efa48af2d0861fa35504e0855aafd3616b64c4caa45c6798c09c2b46ef48dc","acknowledge":"0xfe41e264e3414c8c4e16e7766aa18f4929c228f45c618cca1839bf6aa664cffb","seal":"0x346cebce575aa0abbf7f1a7471971c76f6d688ccc21e457084beed6ec9cbec6a","adjudicate":"0xc1b7f7bdd9b98828efc9ce9f2ec33379171a6426283a1a37edd2cbd59a0266ab"}},
-    {"id":"live-rejected-20261012","verdict":"INCONCLUSIVE","score":0,"answers":{"source":"INCONCLUSIVE"},"decision_version":1,"status":"APPEAL_WINDOW","appeal_status":"NONE","source_verified":true,"evidence_authenticated":true,"reason":"All evidence was authenticated; the live adjudicator returned INCONCLUSIVE for the negative claim rather than forcing a FAIL.","transactions":{"create":"0x3a4f3e223a973fdb196a018be7e6822e7f97fbcb82e0b9cec3773e58dc1335e9","accept":"0x535e40e83760ad5590678324f998c1db76e4a542d9a560cbe19cae8b655ac9b0","publish":"0x1a958f8ac0f4ecce9d26117463d37da3ddeb79bcaf20ec16020c58ef6cda38f1","verify":"0xe347828989582a0d0b10c551835b4a505976e1d33d28c50f92695f21b9845524","submit":"0x1f66f577274b082a963dd07d03d0e34adc70b6de0580e65a69769868bc31f1fa","authenticate":"0x3a5a9ac940485868e2381c8164dd992b465e9be8eb7c31eeea29371782b3637f","acknowledge":"0xd258e651250e05b0f310bc1df337e762c2216991a296d162e4016ff19c63ff0e","seal":"0x79de9ff24ee15b4e199c60f72c59d50853ce67b1807f0fbdc80f1ed06d640d2e","adjudicate":"0x7cdce8a3ef5f642946e495bef7b5b5d8e692db9fd325c8242fdc49a4559a2d47"}}
-  ]
+    {
+      "id": "live-cli-string-test",
+      "verdict": "APPROVED",
+      "score": 100,
+      "answers": {
+        "source": "PASS"
+      },
+      "decision_version": 2,
+      "status": "APPEAL_WINDOW",
+      "appeal_status": "RESOLVED",
+      "appeal_authenticated": true,
+      "appeal_verification_status": "VERIFIED",
+      "source_verified": true,
+      "evidence_authenticated": true,
+      "transactions": {
+        "create": "0xa39d6b078a861a3e9d2751faa46998ad3cb8255848ef048649ffbc385587d5ce",
+        "accept": "0xe43017a4a4e46afb6426fb8a20747a209f541c354c2644dd7fb425f3cd5df509",
+        "publish": "0x00a8b72fd262afd9e5ea3c7eb13c7ae94550a27475fb911a243adaca49fcd8a1",
+        "verify": "0x79488c124f35d02dc86cecdf956f72bd425f38ba64bbf44fd9bd485d8c7b6a3a",
+        "submit": "0x614e0885d0db00f9d1d4ad6af57021571d4d3b5dad022a5e2830d938f3b3a514",
+        "authenticate": "0xc185c7f0a3759d39f0f4a38bc9e28bbee5625217fbf48f90370df17484f72093",
+        "acknowledge": "0x23de741bba379d890ad13e9a8e9b90509787cb7a10186914089b37006b5b9f25",
+        "seal": "0xc6199907b63ea5279cf32dd7bab30e9bf37f0b444a78c07928477750e8a56125",
+        "adjudicate": "0x9f54f0e863d35531084faccb52bcd547376e593413178672069bb41b38ab6e21",
+        "appeal_open": "0x13f8395b9bd369c58ce06e1ef7d28a8864a71ef78c9afbb06954f4f8aa244178",
+        "appeal_authenticate": "0x75728a3d86fbcdcfb8ab62aa11c6a8ad4b3b54c0582ee536f061fa297b60a3eb",
+        "appeal_resolve": "0xd3e8e6e961387923b1f0b91b4bd6c27a764be0cf876075d2e0e9a05107e1ee48"
+      },
+      "source_observation": {
+        "url": "https://raw.githubusercontent.com/ometere123/witlock/38edb83c9fa4fcdf94e9147a9d11b61412d966f2/web/app/layout.tsx",
+        "content_size": 407,
+        "sha256": "8ef0926d47ea523a8a3a99b604b10231a23ec96586ac91e4c1e51e9ec83fe563",
+        "source_verified": true,
+        "authenticated": true
+      }
+    },
+    {
+      "id": "live-rejected-clear-20261012",
+      "verdict": "REJECTED",
+      "score": 0,
+      "answers": {
+        "source": "FAIL"
+      },
+      "decision_version": 1,
+      "status": "APPEAL_WINDOW",
+      "appeal_status": "NONE",
+      "source_verified": true,
+      "evidence_authenticated": true,
+      "transactions": {
+        "create": "0xabfde824c1c2c41be0bb5eb3fd5a125050b5112407336829a21b1777f3af5630",
+        "accept": "0x22df8439f7cd502203830d12a6755d7cc5f9c47d03390318a034a53dfdc8bf2b",
+        "publish": "0x09fd7ad9242dc3cbcc75db2fb27b1eaa21846cbf7b2c04f7fd895e996a608fb2",
+        "verify": "0x383e68bfb64503667d1617c5f6af8a76e4025caea1aa3af325b367e2415ae90d",
+        "submit": "0x5b88df055ec85d05c25abacae4c716c8559704896d8746084a938b4f3f889d67",
+        "authenticate": "0x3630e75772296d14e43d7001e95d3bb354ff9248f04b1505bef6dc7f4adf7869",
+        "acknowledge": "0x330b6a7d49cefdb132f16025edae25e2e16e924a72ec8cad843b665980d2f2c5",
+        "seal": "0x1ccaeca3b81e6d3c3ae434affc002a273150251c2031a9e786870b61bd701555",
+        "adjudicate": "0x5bae470baae074bf9c9adbcf78616e4e0546a90a094821b454aee2b58ed8e40d"
+      }
+    },
+    {
+      "id": "live-partial-clear-20261012",
+      "verdict": "PARTIAL",
+      "score": 50,
+      "answers": {
+        "shell": "PASS",
+        "literal": "FAIL"
+      },
+      "decision_version": 1,
+      "status": "APPEAL_WINDOW",
+      "appeal_status": "NONE",
+      "source_verified": true,
+      "evidence_authenticated": true,
+      "transactions": {
+        "create": "0x9b06048262999416e12f8670e60a0ef97ebd44e8d30d9342dada38fac60dcdea",
+        "accept": "0xef776b6f0709140a3591e4f0a8501ee93a5ea1f6b65b524e4f58314b6fc1f311",
+        "shell_publish": "0x49c4a7195485d2726581b700b4c35f4ca3cd829d2583173ae07c259229f7b32d",
+        "shell_verify": "0xa9a84e2ac4e47d6ec7afe23fec72f0db9bf6e1c450c0a06c4fe17048abd6ab1c",
+        "shell_submit": "0x7828d566e5a79c7fb28be7014f962d267a42546c35863484985b4ad7b2674208",
+        "shell_authenticate": "0x3eaef8174acaaba03d9e20fa8cb80172d8374d783e2a1b017e483c82b224479a",
+        "literal_publish": "0x804e4e97b0a6ddd12551bb4ce1157e9091b08d31c71ffcb080f6d55e9d32ffe2",
+        "literal_verify": "0xd494a383a0a65492513c84d809fe12ce8f6b45a84f0a1998bca0f8712a30db2d",
+        "literal_submit": "0xe054b6f310db3720923ced806f58f17d80e227e54e1b1581735acf71b96fa30a",
+        "literal_authenticate": "0xe6efa48af2d0861fa35504e0855aafd3616b64c4caa45c6798c09c2b46ef48dc",
+        "acknowledge": "0xfe41e264e3414c8c4e16e7766aa18f4929c228f45c618cca1839bf6aa664cffb",
+        "seal": "0x346cebce575aa0abbf7f1a7471971c76f6d688ccc21e457084beed6ec9cbec6a",
+        "adjudicate": "0xc1b7f7bdd9b98828efc9ce9f2ec33379171a6426283a1a37edd2cbd59a0266ab"
+      }
+    },
+    {
+      "id": "live-rejected-20261012",
+      "verdict": "INCONCLUSIVE",
+      "score": 0,
+      "answers": {
+        "source": "INCONCLUSIVE"
+      },
+      "decision_version": 1,
+      "status": "APPEAL_WINDOW",
+      "appeal_status": "NONE",
+      "source_verified": true,
+      "evidence_authenticated": true,
+      "reason": "All evidence was authenticated; the live adjudicator returned INCONCLUSIVE for the negative claim rather than forcing a FAIL.",
+      "transactions": {
+        "create": "0x3a4f3e223a973fdb196a018be7e6822e7f97fbcb82e0b9cec3773e58dc1335e9",
+        "accept": "0x535e40e83760ad5590678324f998c1db76e4a542d9a560cbe19cae8b655ac9b0",
+        "publish": "0x1a958f8ac0f4ecce9d26117463d37da3ddeb79bcaf20ec16020c58ef6cda38f1",
+        "verify": "0xe347828989582a0d0b10c551835b4a505976e1d33d28c50f92695f21b9845524",
+        "submit": "0x1f66f577274b082a963dd07d03d0e34adc70b6de0580e65a69769868bc31f1fa",
+        "authenticate": "0x3a5a9ac940485868e2381c8164dd992b465e9be8eb7c31eeea29371782b3637f",
+        "acknowledge": "0xd258e651250e05b0f310bc1df337e762c2216991a296d162e4016ff19c63ff0e",
+        "seal": "0x79de9ff24ee15b4e199c60f72c59d50853ce67b1807f0fbdc80f1ed06d640d2e",
+        "adjudicate": "0x7cdce8a3ef5f642946e495bef7b5b5d8e692db9fd325c8242fdc49a4559a2d47"
+      }
+    }
+  ],
+  "browser_proof": {
+    "case_id": "browser-proof-20261012",
+    "transaction": "0xef85a36028a4dc8bad7468de3ec4c71e66769fe08f2b9da585321bc1399ccd9c",
+    "from": "0x81301dd9c3605a7da743d87b803156d8445620b0",
+    "contract": "0x825478432dFECd321C5E5C193829Ad1bAd88043a",
+    "status": "FINALIZED",
+    "result": "MAJORITY_AGREE",
+    "tx_execution_hash": "0xe05c9716de423d7953d58415f1a3733740d04162d9ff48399ea52d328cd5dd64",
+    "rounds": 1,
+    "validator_count": 4,
+    "validator_execution": "SUCCESS",
+    "agreement_readback": {
+      "id": "browser-proof-20261012",
+      "status": "DRAFT",
+      "requester": "0x81301dd9c3605a7da743d87b803156d8445620b0",
+      "provider": "0xa7eeae0e93793e3146cb14b0700251b8b0ebadfb",
+      "revision": 1,
+      "decision_version": 0,
+      "appeal_status": "NONE",
+      "custody_enabled": false
+    }
+  }
 }

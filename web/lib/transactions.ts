@@ -102,10 +102,30 @@ function receiptField(receipt: Record<string, unknown>, ...names: string[]): str
   return '';
 }
 
+function hasSuccessfulStudioConsensus(receipt: Record<string, unknown>): boolean {
+  const resultName = receiptField(receipt, 'resultName', 'result_name');
+  if (resultName !== 'MAJORITY_AGREE') return false;
+
+  const consensus = receipt.consensus_data;
+  if (!consensus || typeof consensus !== 'object') return false;
+  const validators = (consensus as { validators?: unknown }).validators;
+  if (!Array.isArray(validators) || validators.length === 0) return false;
+
+  return validators.every((validator) => {
+    if (!validator || typeof validator !== 'object') return false;
+    const record = validator as { execution_result?: unknown; genvm_result?: unknown };
+    if (record.execution_result !== 'SUCCESS') return false;
+    if (!record.genvm_result || typeof record.genvm_result !== 'object') return true;
+    const genvmResult = record.genvm_result as Record<string, unknown>;
+    return !genvmResult.raw_error && !genvmResult.error_code && !genvmResult.error_description;
+  });
+}
+
 export function isSuccessfulFinalizedReceipt(receipt: Record<string, unknown>): boolean {
   const status = receiptField(receipt, 'statusName', 'status_name');
   const execution = receiptField(receipt, 'txExecutionResultName', 'tx_execution_result_name');
-  return status === TransactionStatus.FINALIZED && execution === ExecutionResult.FINISHED_WITH_RETURN;
+  if (status !== TransactionStatus.FINALIZED) return false;
+  return execution === ExecutionResult.FINISHED_WITH_RETURN || hasSuccessfulStudioConsensus(receipt);
 }
 
 async function assertWallet(account: string): Promise<void> {

@@ -22,4 +22,4 @@ Audit date: 2026-10-12. The canonical contract, route-first frontend, and curren
 - GenVM schema: 37 methods, 13 views, 24 writes, zero constructor parameters
 - Dependency audit: 0 vulnerabilities
 
-Browser wallet account and chain detection were observed on 0xf22f; a browser-signed write is not recorded. Native custody and transfer recovery remain disabled and unclaimed. The sanitized evidence is in artifacts/live-61999/manifest.json and artifacts/live-61999/cases.json.
+Browser wallet account and chain detection were observed on 0xf22f, and browser-proof-20261012 was created through injected-wallet signing with a FINALIZED, MAJORITY_AGREE receipt. Native custody and transfer recovery remain disabled and unclaimed. The sanitized evidence is in artifacts/live-61999/manifest.json and artifacts/live-61999/cases.json.

@@ -1,6 +1,6 @@
 {
   "project": "WITLOCK",
-  "status": "CURRENT_SOURCE_DEPLOYED_AND_LIVE_CASES_VERIFIED",
+  "status": "CURRENT_SOURCE_DEPLOYED_LIVE_CASES_AND_BROWSER_WRITE_VERIFIED",
   "network": {
     "name": "GenLayer StudioNet stable",
     "chain_id": 61999,
@@ -23,17 +23,149 @@
     "deployed_source_bytes": 62629
   },
   "deployment_attempts": [
-    {"transaction":"0x20ef208035dd7c080fafc78759477335f575dda6962750eec7cc0de4539c3d24","source":"current bounded-dossier source","status":"FINALIZED","execution":"UNKNOWN","consensus_result":"NO_MAJORITY","consensus_data":null,"contract":null,"lifecycle":{"stored_status":"Finalized","resolution_action":"NoOp","decision_id":null,"decision_active":false}},
-    {"transaction":"0x85a76d80e00c0fa97d290cb71d98b36009c2131c98c53f09cc287c133d257171","source":"prior current source with response-body normalization","status":"FINALIZED","execution":"UNKNOWN","consensus_result":"NO_MAJORITY","consensus_data":null,"contract":null},
-    {"transaction":"0xaf8744c306dec999ac3861c9da45af53f7f47e889dc08bc35797e9db28bebde0","source":"prior current source with repository identity check","status":"FINALIZED","execution":"UNKNOWN","consensus_result":"NO_MAJORITY","consensus_data":null,"contract":null},
-    {"transaction":"0xcb4b0ab413314360f6a636df82add34218efdd06cc4f69223f5c8b44899c8514","source":"pre-repository-identity-check source","status":"FINALIZED","execution":"UNKNOWN","consensus_result":"NO_MAJORITY","consensus_data":null,"contract":null},
-    {"transaction":"0x4b94eba2f3c6b2842a3851a9181bd98bb8af91996dad753aa2cf0db08a72c159","source":"pre-hashing-fix current source","status":"FINALIZED","execution":"UNKNOWN","consensus_result":"NO_MAJORITY","consensus_data":null,"contract":null},
-    {"transaction":"0x12b6e36941ddcf9472b360138ffb85eb52418a6a153c2d8fc355a43186109bca","source":"exact superseded control source","status":"FINALIZED","execution":"UNKNOWN","consensus_result":"NO_MAJORITY","consensus_data":null,"contract":null},
-    {"transaction":"0x2fb0f9f120d7531f76101472248b44899a7e2380049690f0d92fb5fb89d6a2d8","source":"current bounded-dossier source via repository-local CLI 0.39.1 built-in studionet","status":"FINALIZED","execution":"SUCCESS","consensus_result":"MAJORITY_AGREE","consensus_data":{"validator_agree_count":3,"validator_idle_count":2,"rounds":1,"leader_execution_result":"SUCCESS"},"contract":"0x825478432dFECd321C5E5C193829Ad1bAd88043a","deployed_source_sha256":"AB446841A8A16276ED30A431264DEEC015E87751FF594AE92392ECFACB2F7F35","deployed_source_bytes":62629,"schema_parity":{"methods":37,"view_methods":13,"write_methods":24,"constructor_params":0},"trace":"NOT_AVAILABLE_METHOD_NOT_FOUND"}
+    {
+      "transaction": "0x20ef208035dd7c080fafc78759477335f575dda6962750eec7cc0de4539c3d24",
+      "source": "current bounded-dossier source",
+      "status": "FINALIZED",
+      "execution": "UNKNOWN",
+      "consensus_result": "NO_MAJORITY",
+      "consensus_data": null,
+      "contract": null,
+      "lifecycle": {
+        "stored_status": "Finalized",
+        "resolution_action": "NoOp",
+        "decision_id": null,
+        "decision_active": false
+      }
+    },
+    {
+      "transaction": "0x85a76d80e00c0fa97d290cb71d98b36009c2131c98c53f09cc287c133d257171",
+      "source": "prior current source with response-body normalization",
+      "status": "FINALIZED",
+      "execution": "UNKNOWN",
+      "consensus_result": "NO_MAJORITY",
+      "consensus_data": null,
+      "contract": null
+    },
+    {
+      "transaction": "0xaf8744c306dec999ac3861c9da45af53f7f47e889dc08bc35797e9db28bebde0",
+      "source": "prior current source with repository identity check",
+      "status": "FINALIZED",
+      "execution": "UNKNOWN",
+      "consensus_result": "NO_MAJORITY",
+      "consensus_data": null,
+      "contract": null
+    },
+    {
+      "transaction": "0xcb4b0ab413314360f6a636df82add34218efdd06cc4f69223f5c8b44899c8514",
+      "source": "pre-repository-identity-check source",
+      "status": "FINALIZED",
+      "execution": "UNKNOWN",
+      "consensus_result": "NO_MAJORITY",
+      "consensus_data": null,
+      "contract": null
+    },
+    {
+      "transaction": "0x4b94eba2f3c6b2842a3851a9181bd98bb8af91996dad753aa2cf0db08a72c159",
+      "source": "pre-hashing-fix current source",
+      "status": "FINALIZED",
+      "execution": "UNKNOWN",
+      "consensus_result": "NO_MAJORITY",
+      "consensus_data": null,
+      "contract": null
+    },
+    {
+      "transaction": "0x12b6e36941ddcf9472b360138ffb85eb52418a6a153c2d8fc355a43186109bca",
+      "source": "exact superseded control source",
+      "status": "FINALIZED",
+      "execution": "UNKNOWN",
+      "consensus_result": "NO_MAJORITY",
+      "consensus_data": null,
+      "contract": null
+    },
+    {
+      "transaction": "0x2fb0f9f120d7531f76101472248b44899a7e2380049690f0d92fb5fb89d6a2d8",
+      "source": "current bounded-dossier source via repository-local CLI 0.39.1 built-in studionet",
+      "status": "FINALIZED",
+      "execution": "SUCCESS",
+      "consensus_result": "MAJORITY_AGREE",
+      "consensus_data": {
+        "validator_agree_count": 3,
+        "validator_idle_count": 2,
+        "rounds": 1,
+        "leader_execution_result": "SUCCESS"
+      },
+      "contract": "0x825478432dFECd321C5E5C193829Ad1bAd88043a",
+      "deployed_source_sha256": "AB446841A8A16276ED30A431264DEEC015E87751FF594AE92392ECFACB2F7F35",
+      "deployed_source_bytes": 62629,
+      "schema_parity": {
+        "methods": 37,
+        "view_methods": 13,
+        "write_methods": 24,
+        "constructor_params": 0
+      },
+      "trace": "NOT_AVAILABLE_METHOD_NOT_FOUND"
+    }
   ],
-  "network_probe": {"command":"npx --no-install genlayer network info; npx --no-install genlayer account","result":"StudioNet stable 61999 reachable; active account and live consensus receipts available","contract":"0x825478432dFECd321C5E5C193829Ad1bAd88043a"},
-  "superseded_historical_contract": {"contract":"0x4D39aBdF8F574B44Ff178CBf974042a36D70c9A0","source_sha256":"E71CF73539EB4A552C5CE120C29227F5197E89CE288DF09E344D5B93F64E8A81","status":"NOT_CURRENT_SOURCE_PARITY"},
-  "local_verification": {"direct_mode_tests":34,"genvm_methods":37,"genvm_views":13,"genvm_writes":24,"constructor_params":0,"npm_audit_vulnerabilities":0,"browser_injected_provider":"DETECTED_ON_CHAIN_0xF22F","browser_signed_write":"NOT_RECORDED"},
-  "custody": {"enabled":false,"real_transfer_proof":"NOT_ATTEMPTED","recipient_delivery_proof":"NOT_ATTEMPTED","ambiguous_transfer_recovery":"NOT_ATTEMPTED"},
-  "receipt_profile": {"status":"FINALIZED","result":"MAJORITY_AGREE","leader_execution":"SUCCESS","rounds":1,"verified_for":["deployment","approved.create","approved.appeal_resolve","rejected.adjudicate","partial.adjudicate"],"idle_validator_errors":"Some validators report CONSENSUS_VALIDATOR_QUORUM_REACHED after majority; these are cancellation-after-quorum records."}
+  "network_probe": {
+    "command": "npx --no-install genlayer network info; npx --no-install genlayer account",
+    "result": "StudioNet stable 61999 reachable; active account and live consensus receipts available",
+    "contract": "0x825478432dFECd321C5E5C193829Ad1bAd88043a"
+  },
+  "superseded_historical_contract": {
+    "contract": "0x4D39aBdF8F574B44Ff178CBf974042a36D70c9A0",
+    "source_sha256": "E71CF73539EB4A552C5CE120C29227F5197E89CE288DF09E344D5B93F64E8A81",
+    "status": "NOT_CURRENT_SOURCE_PARITY"
+  },
+  "local_verification": {
+    "direct_mode_tests": 34,
+    "genvm_methods": 37,
+    "genvm_views": 13,
+    "genvm_writes": 24,
+    "constructor_params": 0,
+    "npm_audit_vulnerabilities": 0,
+    "browser_injected_provider": "DETECTED_ON_CHAIN_0xF22F",
+    "browser_signed_write": {
+      "case_id": "browser-proof-20261012",
+      "transaction": "0xef85a36028a4dc8bad7468de3ec4c71e66769fe08f2b9da585321bc1399ccd9c",
+      "from": "0x81301dd9c3605a7da743d87b803156d8445620b0",
+      "contract": "0x825478432dFECd321C5E5C193829Ad1bAd88043a",
+      "status": "FINALIZED",
+      "result": "MAJORITY_AGREE",
+      "tx_execution_hash": "0xe05c9716de423d7953d58415f1a3733740d04162d9ff48399ea52d328cd5dd64",
+      "rounds": 1,
+      "validator_count": 4,
+      "validator_execution": "SUCCESS",
+      "agreement_readback": {
+        "id": "browser-proof-20261012",
+        "status": "DRAFT",
+        "requester": "0x81301dd9c3605a7da743d87b803156d8445620b0",
+        "provider": "0xa7eeae0e93793e3146cb14b0700251b8b0ebadfb",
+        "revision": 1,
+        "decision_version": 0,
+        "appeal_status": "NONE",
+        "custody_enabled": false
+      }
+    }
+  },
+  "custody": {
+    "enabled": false,
+    "real_transfer_proof": "NOT_ATTEMPTED",
+    "recipient_delivery_proof": "NOT_ATTEMPTED",
+    "ambiguous_transfer_recovery": "NOT_ATTEMPTED"
+  },
+  "receipt_profile": {
+    "status": "FINALIZED",
+    "result": "MAJORITY_AGREE",
+    "leader_execution": "SUCCESS",
+    "rounds": 1,
+    "verified_for": [
+      "deployment",
+      "approved.create",
+      "approved.appeal_resolve",
+      "rejected.adjudicate",
+      "partial.adjudicate"
+    ],
+    "idle_validator_errors": "Some validators report CONSENSUS_VALIDATOR_QUORUM_REACHED after majority; these are cancellation-after-quorum records."
+  }
 }

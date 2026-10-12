@@ -33,7 +33,7 @@ The approved case proves the live path through create, acceptance, issuer public
 - GenVM lint/check: 37 methods, 13 views, 24 writes, zero constructor parameters.
 - Frontend typecheck, transaction tests, production build, dependency audit, and StudioNet preflight pass.
 - Route smoke covered /, /new, /explore, /workspace, /activity, /verification, /guide, and the dynamic agreement, evidence, review, and settlement routes.
-- The Chrome profile exposes an injected EIP-1193 wallet on chain 0xf22f. A browser-signed write is still not recorded; the live lifecycle evidence was produced with repository-local CLI accounts.
+- The Chrome profile exposed an injected EIP-1193 wallet on chain 0xf22f. Browser creation transaction https://explorer-studio.genlayer.com/tx/0xef85a36028a4dc8bad7468de3ec4c71e66769fe08f2b9da585321bc1399ccd9c finalized with MAJORITY_AGREE; the authoritative readback is browser-proof-20261012 in DRAFT with the browser account as requester.
 
 genlayer trace is preserved as a limitation: the StudioNet RPC returned method-not-found for gen_dbg_traceTransaction. The full sanitized records are in artifacts/live-61999/manifest.json and artifacts/live-61999/cases.json.
 
