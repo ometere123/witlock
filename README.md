@@ -38,11 +38,9 @@ Each workflow page reads the relevant finalized state and keeps invalid actions 
 
 ## Current StudioNet deployment
 
-No current-source deployment address exists. The contract source is pinned at Git SHA `14315fa82ef6d6f5e2c077de51c93f266801b1cb`; `contracts/Witlock.py` is 62,629 bytes with SHA-256 `AB446841A8A16276ED30A431264DEEC015E87751FF594AE92392ECFACB2F7F35`.
+The current source is deployed at [`0x825478432dFECd321C5E5C193829Ad1bAd88043a`](https://explorer-studio.genlayer.com/address/0x825478432dFECd321C5E5C193829Ad1bAd88043a) from contract commit `14315fa82ef6d6f5e2c077de51c93f266801b1cb`. The 62,629-byte on-chain source has SHA-256 `AB446841A8A16276ED30A431264DEEC015E87751FF594AE92392ECFACB2F7F35`, matching the repository byte-for-byte. Deployment transaction: [`0x2fb0f9f120d7531f76101472248b44899a7e2380049690f0d92fb5fb89d6a2d8`](https://explorer-studio.genlayer.com/tx/0x2fb0f9f120d7531f76101472248b44899a7e2380049690f0d92fb5fb89d6a2d8), finalized with `MAJORITY_AGREE`, one round, and successful leader execution.
 
-The latest current-source deployment attempt `0x20ef2080…c3d24` finalized with `NO_MAJORITY`, zero rounds, null consensus data, and no contract address. The lifecycle readback stored `Finalized` with `NoOp` and no decision ID. Earlier current-source attempts reached the same pre-consensus boundary. The StudioNet balance probe reports that consensus contracts are unavailable. The old contract at `0x4D39aBdF8F574B44Ff178CBf974042a36D70c9A0` is superseded and must not be used as parity evidence for this source.
-
-The current environment example therefore leaves `NEXT_PUBLIC_WITLOCK_CONTRACT` empty until a fresh deployment returns `FINALIZED` with `FINISHED_WITH_RETURN`. See [docs/LIVE_PROOF.md](docs/LIVE_PROOF.md) and the sanitized [deployment manifest](artifacts/live-61999/manifest.json) for the exact evidence boundary.
+Live StudioNet readbacks prove `APPROVED` 100, `PARTIAL` 50, `REJECTED` 0, and `INCONCLUSIVE` 0. The approved case also records a separately authenticated and resolved appeal at decision version 2. Custody remains disabled, so the live cases use zero-value agreements and report decision allocation only. See [docs/LIVE_PROOF.md](docs/LIVE_PROOF.md), [artifacts/live-61999/cases.json](artifacts/live-61999/cases.json), and the sanitized [deployment manifest](artifacts/live-61999/manifest.json).
 
 ## Local verification
 

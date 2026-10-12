@@ -1,27 +1,25 @@
 # Implementation audit
 
-Audit date: 2026-10-12. The repository was audited against the handoff and revalidated locally. Current StudioNet deployment proof is blocked by the network reporting no consensus contracts.
+Audit date: 2026-10-12. The canonical contract, route-first frontend, and current StudioNet deployment were audited and revalidated.
 
-| Severity | Original defect | Remediation | Verification |
+| Severity | Defect | Remediation | Verification |
 | --- | --- | --- | --- |
-| Critical | Two deployable contracts made parity and custody boundaries ambiguous | One canonical `Witlock` monolith owns policy, evidence, adjudication, appeals, audit, and guarded settlement accounting | local source and GenVM check |
-| Critical | Custody and transfer recovery were unproven | Hard false custody gate, zero-value-only path, explicit payment scaffolding, authenticated delivery evidence, ambiguity state, no blind retry | Direct Mode suite; live transfer remains unproven |
-| High | Evidence hash and issuer publication were treated as sufficient provenance | Immutable raw GitHub commit retrieval, byte digest comparison, provenance commitment, GitHub commit identity check, and independent verifier consensus | 34 Direct Mode tests |
-| High | Provider evidence could be locked out by requester acknowledgement or dispute | Evidence submission/authentication stays open through `ACTIVE`, `DELIVERED`, and `REVIEW` until delivery deadline | Direct Mode regression tests |
-| High | Resolved appeals could not be finalized and expiry could erase a ruling | Explicit appeal status; resolution returns to `APPEAL_WINDOW`; finalization accepts `RESOLVED`; expiry preserves the prior ruling | Direct Mode appeal tests |
-| High | Consensus failures could revert unpredictably or truncate dossiers | Bounded full dossier, strict labels, independent source observations, failed-closed `INCONCLUSIVE`, and pre-seal budget check | Direct Mode adversarial tests |
-| High | Legal input bounds exceeded the real dossier budget once observations and appeal evidence were included | Reduced the enabled class to two criteria, bounded source/question/claim/appeal fields, and included worst-case observation payloads in pre-seal and appeal budget checks | Maximum-permitted two-criterion lifecycle test |
-| Medium | Frontend reported writes without finalized successful receipts | Injected EIP-1193 account/chain guards, multiple pending transaction recovery, `FINALIZED` plus SDK `ExecutionResult.FINISHED_WITH_RETURN`, saved failed receipts, guided role/state consoles | frontend tests, typecheck, build |
+| Critical | Multiple deployable contracts made parity and custody boundaries ambiguous | One canonical Witlock monolith owns policy, evidence, adjudication, appeals, audit, and guarded settlement accounting | source and GenVM schema check |
+| Critical | Custody and transfer recovery were unproven | Hard false custody gate, zero-value-only path, explicit payment scaffolding, authenticated delivery evidence, and ambiguity state | Direct Mode suite; custody remains disabled |
+| High | Evidence hash alone did not prove provenance | Immutable raw GitHub commit retrieval, byte digest comparison, provenance commitment, commit identity check, and independent verifier consensus | 34 Direct Mode tests and live source observations |
+| High | Consensus failures could truncate dossiers or invent labels | Bounded full dossier, strict labels, comparative consensus, and failed-closed INCONCLUSIVE mapping | Direct Mode adversarial tests and live inconclusive case |
+| Medium | Frontend reported writes before finality | Injected wallet guards, finalized receipt polling, execution-result checks, pending recovery, and guided route/state consoles | frontend tests, typecheck, build, route smoke |
 
 ## Current verification
 
-- Git SHA: `14315fa82ef6d6f5e2c077de51c93f266801b1cb`
-- Source SHA-256: `AB446841A8A16276ED30A431264DEEC015E87751FF594AE92392ECFACB2F7F35`
+- Current contract: 0x825478432dFECd321C5E5C193829Ad1bAd88043a
+- Deployment: 0x2fb0f9f120d7531f76101472248b44899a7e2380049690f0d92fb5fb89d6a2d8
+- Source commit: 14315fa82ef6d6f5e2c077de51c93f266801b1cb
+- Source SHA-256: AB446841A8A16276ED30A431264DEEC015E87751FF594AE92392ECFACB2F7F35
+- Local and deployed source: 62,629 bytes
+- Live readbacks: APPROVED, PARTIAL, REJECTED, INCONCLUSIVE
 - Local suite: 34 passed
-- GenVM schema check: 37 methods, 13 views, 24 writes, zero constructor parameters
+- GenVM schema: 37 methods, 13 views, 24 writes, zero constructor parameters
 - Dependency audit: 0 vulnerabilities
-- Current contract address: none claimed
 
-## External limitation
-
-The current-source deployment attempt and earlier controls finalized `NO_MAJORITY` with no consensus data. The network probe says no consensus contracts are deployed. A successful current-source deployment, live cases, current-source parity, browser signing, and successful finalization therefore remain `NOT PROVEN` until the StudioNet consensus layer is restored.
+Browser wallet account and chain detection were observed on 0xf22f; a browser-signed write is not recorded. Native custody and transfer recovery remain disabled and unclaimed. The sanitized evidence is in artifacts/live-61999/manifest.json and artifacts/live-61999/cases.json.

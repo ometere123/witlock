@@ -10,4 +10,5 @@ __pycache__/
 artifacts/live-61999/*
 !artifacts/live-61999/
 !artifacts/live-61999/manifest.json
+!artifacts/live-61999/cases.json
 .venv/

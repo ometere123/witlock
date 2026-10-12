@@ -1,19 +1,30 @@
 # Reviewer evidence
 
-## Proven locally
+## Repository and deployment
 
-- One canonical deployable source: `contracts/Witlock.py`, class `Witlock`.
-- Repository-local CLI `0.39.1`, `genlayer-js` `1.1.8`, StudioNet chain `61999`, and approved RPC.
-- `34 passed` Python/Direct Mode tests, GenVM lint/check, frontend typecheck, frontend transaction tests, Next production build, StudioNet preflight, and `npm audit --audit-level=moderate` with 0 vulnerabilities.
-- The source-verification tests exercise actual mocked `gl.nondet.web.get` retrieval and fail closed on altered bytes, mutable branches, mismatched commit identity, and mutated appeal sources.
-- The frontend uses SDK `TransactionStatus.FINALIZED` and `ExecutionResult.FINISHED_WITH_RETURN`, retains failed finalized receipts, recovers multiple pending entries, and routes writes through guided role/state consoles.
+- One canonical deployable source: contracts/Witlock.py, class Witlock.
+- Repository-local CLI 0.39.1, genlayer-js 1.1.8, StudioNet stable chain 61999, and https://studio.genlayer.com/api.
+- Current contract: https://explorer-studio.genlayer.com/address/0x825478432dFECd321C5E5C193829Ad1bAd88043a.
+- Deployment: https://explorer-studio.genlayer.com/tx/0x2fb0f9f120d7531f76101472248b44899a7e2380049690f0d92fb5fb89d6a2d8, FINALIZED, MAJORITY_AGREE, leader SUCCESS.
+- Exact source parity: 62,629 bytes and SHA-256 AB446841A8A16276ED30A431264DEEC015E87751FF594AE92392ECFACB2F7F35; deployed source commit 14315fa82ef6d6f5e2c077de51c93f266801b1cb.
 
-## Live boundary
+## Live lifecycle
 
-No current contract address is claimed. The latest current-source deployment `0x20ef2080…c3d24`, prior current-source deployments, and earlier controls finalized `NO_MAJORITY` with no consensus data. The StudioNet balance probe reports no consensus contracts deployed. The superseded address `0x4D39aBdF8F574B44Ff178CBf974042a36D70c9A0` is not source parity evidence for the current source.
+The sanitized case ledger in artifacts/live-61999/cases.json links lifecycle transactions and readbacks for all four required verdicts:
 
-The Chrome profile exposes an injected EIP-1193 wallet on chain `0xf22f`, but no browser transaction is claimed because StudioNet has no current consensus layer and the environment example intentionally leaves the contract address empty.
+- APPROVED 100 with a verified, resolved appeal at version 2.
+- REJECTED 0 with a critical FAIL.
+- PARTIAL 50 with one PASS and one FAIL.
+- INCONCLUSIVE 0 with authenticated evidence and an explicit inconclusive adjudicator result.
 
-Native GEN custody, recipient-side delivery, ambiguous-transfer recovery, current-source deployment, live source retrieval, live APPROVED/PARTIAL/REJECTED/INCONCLUSIVE cases, and successful current-source finalization remain `NOT PROVEN`.
+The live source observation records the immutable GitHub commit, repository, path, content size, and digest. The nominated issuer and independent verifier are distinct public accounts. custody_enabled=false; no native transfer or recipient-delivery proof is claimed.
 
-The sanitized record is [`artifacts/live-61999/manifest.json`](../artifacts/live-61999/manifest.json).
+## Local and browser verification
+
+- 34 passed Python/Direct Mode tests.
+- GenVM lint/check, frontend typecheck, frontend transaction tests, Next production build, StudioNet preflight, and npm audit with 0 vulnerabilities.
+- Route smoke covered the public and dynamic App Router routes.
+- The Chrome profile exposes an injected EIP-1193 wallet on chain 0xf22f; no browser-signed write is recorded yet.
+- Finalized transaction handling uses FINALIZED and successful execution checks, preserves failed finalized receipts, recovers pending entries, and links receipts to the StudioNet explorer.
+
+genlayer trace is unavailable because the approved RPC does not implement gen_dbg_traceTransaction. Earlier NO_MAJORITY deployments and the old contract address remain historical.
