@@ -4,7 +4,7 @@
 
 - One canonical deployable source: `contracts/Witlock.py`, class `Witlock`.
 - Repository-local CLI `0.39.1`, `genlayer-js` `1.1.8`, StudioNet chain `61999`, and approved RPC.
-- `27 passed` Python/Direct Mode tests, GenVM lint/check, frontend typecheck, frontend transaction tests, Next production build, StudioNet preflight, and `npm audit --audit-level=moderate` with 0 vulnerabilities.
+- `31 passed` Python/Direct Mode tests, GenVM lint/check, frontend typecheck, frontend transaction tests, Next production build, StudioNet preflight, and `npm audit --audit-level=moderate` with 0 vulnerabilities.
 - The source-verification tests exercise actual mocked `gl.nondet.web.get` retrieval and fail closed on altered bytes, mutable branches, mismatched commit identity, and mutated appeal sources.
 - The frontend uses SDK `TransactionStatus.FINALIZED` and `ExecutionResult.FINISHED_WITH_RETURN`, retains failed finalized receipts, recovers multiple pending entries, and routes writes through guided role/state consoles.
 

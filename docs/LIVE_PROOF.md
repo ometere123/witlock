@@ -2,9 +2,9 @@
 
 ## Current status
 
-A fresh StudioNet proof for the current source is **blocked by the network state**. The current source is Git SHA `96edcdbbd1025541b5d00d5b6d82ecd28b46ab55`; `contracts/Witlock.py` is 60,059 bytes and hashes to `F9E08ADA6D39E083B681221B05489E3A45E18E9A96FE455B2E05F6ABFC82188`.
+A fresh StudioNet proof for the current source is **blocked by the network state**. The current source is Git SHA `2882e1fc17e07f36d389e028551a1aa7eec58761`; `contracts/Witlock.py` is 60,447 bytes and hashes to `5A22F179E7D41CA12A501C0C2443AAF3C5FC088AF230DC7190B6542E9595D58D`.
 
-The exact deployment attempts were:
+The exact pre-identity-check deployment attempts were:
 
 - `0xcb4b0ab413314360f6a636df82add34218efdd06cc4f69223f5c8b44899c8514`: `FINALIZED`, `NO_MAJORITY`, `consensus_data=null`, no contract address.
 - `0x4b94eba2f3c6b2842a3851a9181bd98bb8af91996dad753aa2cf0db08a72c159`: `FINALIZED`, `NO_MAJORITY`, `consensus_data=null`, no contract address.
@@ -15,7 +15,7 @@ The StudioNet balance probe reports that no consensus contracts are deployed. Be
 ## What is proven locally
 
 - GenVM lint/check: 37 methods, 13 views, 24 writes, zero constructor parameters.
-- Direct Mode suite: 27 tests passed, including actual mocked `gl.nondet.web.get` retrieval, immutable GitHub commit validation, altered-byte rejection, mutable-branch rejection, appeal-source mutation rejection, dossier budget enforcement, and idempotent finalization.
+- Direct Mode suite: 31 tests passed, including actual mocked `gl.nondet.web.get` retrieval, immutable GitHub commit validation, altered-byte rejection, mutable-branch rejection, appeal-source mutation rejection, dossier budget enforcement, and idempotent finalization.
 - Frontend typecheck, transaction tests, production build, dependency audit, and StudioNet preflight pass.
 - The Chrome browser profile exposes an injected EIP-1193 wallet and reports chain `0xf22f`; no browser transaction is claimed because no current contract is configured and StudioNet has no consensus contracts available.
 - Custody remains disabled in the contract and environment configuration.

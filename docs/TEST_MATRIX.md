@@ -2,7 +2,7 @@
 
 | Area | Command or evidence | Result |
 | --- | --- | --- |
-| Policy and invariants | `python -m pytest -q tests` | 27 passed |
+| Policy and invariants | `python -m pytest -q tests` | 31 passed |
 | Direct Mode lifecycle/adversarial suite | `python -m pytest -q tests/test_contracts_direct.py` | Passed; immutable retrieval, evidence authority, appeals, consensus, size, finalization replay, and custody attacks |
 | Python syntax | `python -m compileall -q contracts policy` | Passed |
 | GenVM lint | `python scripts/genvm_lint.py lint contracts/Witlock.py --json` | Passed, 3 checks |

@@ -11,16 +11,16 @@
     "genlayer_js": "1.1.8"
   },
   "source": {
-    "git_sha": "96edcdbbd1025541b5d00d5b6d82ecd28b46ab55",
+    "git_sha": "2882e1fc17e07f36d389e028551a1aa7eec58761",
     "path": "contracts/Witlock.py",
-    "bytes": 60059,
-    "sha256": "F9E08ADA6D39E083B681221B05489E3A45E18E9A96FE455B2E05F6ABFC82188",
+    "bytes": 60447,
+    "sha256": "5A22F179E7D41CA12A501C0C2443AAF3C5FC088AF230DC7190B6542E9595D58D",
     "exact_deployed_match": false
   },
   "deployment_attempts": [
     {
       "transaction": "0xcb4b0ab413314360f6a636df82add34218efdd06cc4f69223f5c8b44899c8514",
-      "source": "current runtime-safe hashing source",
+      "source": "pre-repository-identity-check source",
       "status": "FINALIZED",
       "execution": "UNKNOWN",
       "consensus_result": "NO_MAJORITY",
@@ -56,7 +56,7 @@
     "status": "NOT_CURRENT_SOURCE_PARITY"
   },
   "local_verification": {
-    "direct_mode_tests": 27,
+    "direct_mode_tests": 31,
     "genvm_methods": 37,
     "genvm_views": 13,
     "genvm_writes": 24,
