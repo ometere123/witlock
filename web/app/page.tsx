@@ -8,53 +8,6 @@ import { readPendingTransactions, recoverPendingTransactions, submitWrite, Trans
 type Tab = 'overview' | 'create' | 'inspect' | 'actions' | 'verification';
 type Criterion = { id: string; question: string; weight: number; critical: boolean; issuer: string; verifier: string };
 
-const WRITE_METHODS = [
-  'accept_agreement', 'acknowledge_delivery', 'adjudicate', 'authenticate_appeal',
-  'authenticate_evidence', 'begin_payment', 'confirm_payment_delivery', 'create_agreement',
-  'expire_appeal', 'expire_draft', 'finalize_decision', 'finalize_inconclusive', 'fund_agreement',
-  'mark_payment_ambiguous', 'open_appeal', 'open_dispute', 'post_operator_bond',
-  'publish_attestation', 'reconcile_payment', 'resolve_appeal', 'seal_agreement',
-  'submit_evidence', 'timeout_delivery', 'verify_attestation_source',
-];
-
-const ACTION_EXAMPLES: Record<string, string> = {
-  accept_agreement: '["WL-2026-001"]',
-  acknowledge_delivery: '["WL-2026-001"]',
-  adjudicate: '["WL-2026-001"]',
-  authenticate_appeal: '["WL-2026-001","64-lowercase-digest","64-lowercase-digest"]',
-  authenticate_evidence: '["WL-2026-001","source","64-lowercase-digest"]',
-  begin_payment: '["WL-2026-001","PROVIDER"]',
-  confirm_payment_delivery: '["WL-2026-001",1,"64-lowercase-receipt","64-lowercase-delivery-evidence"]',
-  expire_appeal: '["WL-2026-001"]',
-  expire_draft: '["WL-2026-001"]',
-  finalize_decision: '["WL-2026-001"]',
-  finalize_inconclusive: '["WL-2026-001"]',
-  fund_agreement: '["WL-2026-001"]',
-  mark_payment_ambiguous: '["WL-2026-001",1,"64-lowercase-incident-digest"]',
-  open_appeal: '["WL-2026-001","{\\"task_id\\":\\"source\\",\\"challenged_version\\":1,\\"basis\\":\\"A bounded contradiction requires review.\\",\\"digest\\":\\"64-lowercase-digest\\",\\"source\\":\\"https://appeal.example/review/1\\",\\"source_revision\\":\\"rev-1\\",\\"retrieval_method\\":\\"HTTPS_GET\\",\\"retrieved_at\\":1767225600,\\"claim\\":\\"The source contradicts the ruling.\\",\\"provenance_hash\\":\\"64-lowercase-digest\\"}"]',
-  open_dispute: '["WL-2026-001","64-lowercase-reason-digest"]',
-  publish_attestation: '["WL-2026-001","source","att-1","64-lowercase-digest","https://issuer.example/release/1","commit-1","HTTPS_GET",1767225600,"The source supports the criterion.","64-lowercase-provenance",0]',
-  reconcile_payment: '["WL-2026-001",1,"64-lowercase-receipt"]',
-  resolve_appeal: '["WL-2026-001"]',
-  seal_agreement: '["WL-2026-001"]',
-  submit_evidence: '["WL-2026-001","source","att-1"]',
-  timeout_delivery: '["WL-2026-001"]',
-  verify_attestation_source: '["WL-2026-001","source","att-1","64-lowercase-digest","64-lowercase-provenance"]',
-};
-
-const BIGINT_FIELDS: Record<string, number[]> = {
-  create_agreement: [4, 5, 6, 7, 8],
-  publish_attestation: [7, 10],
-  authenticate_appeal: [],
-  confirm_payment_delivery: [1],
-  mark_payment_ambiguous: [1],
-  reconcile_payment: [1],
-};
-
-function normalizeArgs(method: string, raw: unknown[]): unknown[] {
-  return raw.map((value, index) => BIGINT_FIELDS[method]?.includes(index) ? BigInt(value as string | number) : value);
-}
-
 function short(value: string): string {
   return value.length > 18 ? `${value.slice(0, 10)}…${value.slice(-6)}` : value;
 }
@@ -72,8 +25,6 @@ export default function Home() {
   const [operator, setOperator] = useState('');
   const [commitment, setCommitment] = useState('');
   const [lookup, setLookup] = useState('');
-  const [actionMethod, setActionMethod] = useState(WRITE_METHODS[0]);
-  const [actionArgs, setActionArgs] = useState(ACTION_EXAMPLES[WRITE_METHODS[0]]);
   const [acceptDeadline, setAcceptDeadline] = useState(() => Math.floor(Date.now() / 1000) + 86400);
   const [deliveryDeadline, setDeliveryDeadline] = useState(() => Math.floor(Date.now() / 1000) + 604800);
   const [appealDeadline, setAppealDeadline] = useState(() => Math.floor(Date.now() / 1000) + 691200);
@@ -171,13 +122,6 @@ export default function Home() {
     finally { setBusy(false); }
   }
 
-  async function runAction() {
-    try {
-      const parsed = JSON.parse(actionArgs);
-      if (!Array.isArray(parsed)) throw new Error('Arguments must be a JSON array.');
-      await write(actionMethod, normalizeArgs(actionMethod, parsed));
-    } catch (error) { setMsg((error as Error).message); setBusy(false); }
-  }
 
   async function recover() {
     setBusy(true); setMsg('Recovering the persisted transaction and waiting for finality…');
@@ -196,7 +140,7 @@ export default function Home() {
       {tab === 'overview' && <><h3>System status</h3><p className="muted">This client writes only through the injected EIP-1193 wallet and refuses writes on any network other than StudioNet 61999.</p><div className="line"><span>Chain ID</span><strong>{CHAIN_ID}</strong></div><div className="line"><span>Custody</span><strong style={{ color: '#ef968f' }}>DISABLED</strong></div><div className="line"><span>Contract</span><strong className="mono">{CONTRACT || 'NOT CONFIGURED'}</strong></div><div className="line"><span>Wallet</span><strong className="mono">{account || 'NOT CONNECTED'}</strong></div><div className="line"><span>Provider network</span><strong className="mono">{chain || 'UNKNOWN'}</strong></div>{pending.length > 0 && <div className="warning">{pending.length} pending transaction{pending.length === 1 ? '' : 's'} persisted locally: {pending.map((item) => short(item.hash)).join(', ')}. <button className="button alt" onClick={recover} disabled={busy}>Recover receipts</button></div>}</>}
       {tab === 'create' && <><h3>Create agreement</h3><p className="muted">Zero-value creation freezes the parties, independent source verifiers, criteria, and deadlines. Funding and bonds remain unavailable while custody is disabled.</p><div className="field"><label>Case ID</label><input value={caseId} onChange={(event) => setCaseId(event.target.value)} placeholder="WL-2026-001"/></div><div className="field"><label>Provider wallet</label><input value={operator} onChange={(event) => setOperator(event.target.value)} placeholder="0x..."/></div><div className="field"><label>Agreement SHA-256 commitment</label><input value={commitment} onChange={(event) => setCommitment(event.target.value)} placeholder="64 lowercase hex characters"/></div><div className="grid"><div className="field"><label>Accept deadline · Unix seconds</label><input type="number" value={acceptDeadline} onChange={(event) => setAcceptDeadline(Number(event.target.value))}/></div><div className="field"><label>Delivery deadline · Unix seconds</label><input type="number" value={deliveryDeadline} onChange={(event) => setDeliveryDeadline(Number(event.target.value))}/></div><div className="field"><label>Appeal deadline · Unix seconds</label><input type="number" value={appealDeadline} onChange={(event) => setAppealDeadline(Number(event.target.value))}/></div></div><div className="line"><h3>Criteria · {totalWeight} / 100</h3><button className="button alt" disabled={criteria.length >= 4} onClick={() => setCriteria((current) => [...current, { id: '', question: '', weight: 0, critical: false, issuer: '', verifier: '' }])}><Plus size={14}/> Add</button></div>{criteria.map((criterion, index) => <div className="card" key={`${criterion.id}-${index}`} style={{ margin: '15px 0' }}><div className="line"><span>CRITERION {index + 1}</span><button className="button alt" onClick={() => setCriteria((current) => current.filter((_, itemIndex) => itemIndex !== index))}>Remove</button></div><div className="field"><label>ID</label><input value={criterion.id} onChange={(event) => changeCriterion(index, { id: event.target.value })}/></div><div className="field"><label>Question</label><textarea value={criterion.question} onChange={(event) => changeCriterion(index, { question: event.target.value })}/></div><div className="grid"><div className="field"><label>Weight</label><input type="number" min="1" max="100" value={criterion.weight} onChange={(event) => changeCriterion(index, { weight: Number(event.target.value) })}/></div><div className="field"><label>Nominated issuer</label><input value={criterion.issuer} onChange={(event) => changeCriterion(index, { issuer: event.target.value })} placeholder="0x..."/></div><div className="field"><label>Independent verifier</label><input value={criterion.verifier} onChange={(event) => changeCriterion(index, { verifier: event.target.value })} placeholder="0x..."/></div></div><label><input type="checkbox" checked={criterion.critical} onChange={(event) => changeCriterion(index, { critical: event.target.checked })}/> Critical criterion</label></div>)}<p><button className="button" disabled={!ready || busy} onClick={createCase}>Submit agreement</button></p></>}
       {tab === 'inspect' && <><h3>Case explorer</h3><p className="muted">Reads are read-only. Use the lifecycle action desk for wallet writes and inspect each finalized transaction below.</p><div className="field"><label>Case ID</label><input value={lookup} onChange={(event) => setLookup(event.target.value)} placeholder="WL-2026-001"/></div><button className="button" disabled={!lookup || busy} onClick={inspect}><Search size={14}/> Read case state</button><pre className="code">{result || 'No case queried'}</pre></>}
-      {tab === 'actions' && <><h3>Lifecycle action desk</h3><p className="muted">Every write is wallet/network guarded, persisted before waiting, and accepted only after FINALIZED plus execution FINISHED_WITH_RETURN. Role authorization is enforced by the monolith.</p><div className="field"><label>Method</label><select value={actionMethod} onChange={(event) => { const method = event.target.value; setActionMethod(method); setActionArgs(ACTION_EXAMPLES[method] || '["WL-2026-001"]'); }}>{WRITE_METHODS.map((method) => <option key={method} value={method}>{method}</option>)}</select></div><div className="field"><label>Arguments · JSON array</label><textarea value={actionArgs} onChange={(event) => setActionArgs(event.target.value)} rows={7}/></div><p className="muted small-copy">Use exact contract schema. Appeal grounds require task ID, challenged decision version, bounded basis, source coordinate, content digest, and independent verifier authentication. Payment methods remain custody-gated.</p><button className="button" disabled={!ready || busy} onClick={runAction}>Run {actionMethod}</button></>}
+      {tab === 'actions' && <><h3>Guided case workflow</h3><p className="muted">Choose a case to open the state-aware console. It presents only the role and lifecycle actions relevant to each route, while every write remains wallet/network guarded and is accepted only after FINALIZED plus execution FINISHED_WITH_RETURN.</p><div className="field"><label>Case ID</label><input value={lookup} onChange={(event) => setLookup(event.target.value)} placeholder="WL-2026-001"/></div><div className="grid"><a className="button" href={lookup ? `/agreement/${encodeURIComponent(lookup)}` : '#'} aria-disabled={!lookup}>Agreement state</a><a className="button" href={lookup ? `/evidence/${encodeURIComponent(lookup)}` : '#'} aria-disabled={!lookup}>Evidence admission</a><a className="button" href={lookup ? `/review/${encodeURIComponent(lookup)}` : '#'} aria-disabled={!lookup}>Review and appeal</a><a className="button" href={lookup ? `/settlement/${encodeURIComponent(lookup)}` : '#'} aria-disabled={!lookup}>Settlement readback</a></div><p className="muted small-copy">Payment actions remain visibly disabled because native custody is disabled. The console reads finalized agreement, evidence, decision, history, settlement, and accounting state before showing next actions.</p></>}
       {tab === 'verification' && <><h3>Verification checklist</h3>{[['Chain', String(CHAIN_ID)], ['RPC', RPC], ['Wallet network', chain || 'INCONCLUSIVE'], ['Contract', CONTRACT || 'NONE'], ['Custody', 'DISABLED'], ['Source parity', 'See deployment manifest'], ['Finalized execution', 'Required for every write'], ['Recipient receipt', 'NOT VERIFIED — payment disabled']].map(([key, value]) => <div className="line" key={key}><span>{key}</span><span className="mono">{value}</span></div>)}<p><a className="button alt" href={EXPLORER} target="_blank" rel="noreferrer">StudioNet explorer ↗</a></p></>}
       {msg && <p className="notice">{msg}</p>}{receipt && <div className="success"><strong>{receipt.method || 'Transaction'} · {receipt.status} · {receipt.execution}</strong><br/><a href={receipt.explorer} target="_blank" rel="noreferrer">View finalized transaction ↗</a></div>}
     </div></div></section>
