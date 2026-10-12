@@ -9,7 +9,8 @@
 | GenVM semantic/schema | `python scripts/genvm_lint.py check contracts/Witlock.py --json` | one constructorless `Witlock`, 31 methods |
 | Network preflight | `npm run cli:version; npm run preflight` | CLI 0.39.1 and StudioNet 61999 |
 | Frontend | `npm run web:typecheck; npm run web:build` | installed SDK compatibility and production build |
-| Live validator agreement | StudioNet receipt and explorer evidence | not recorded |
+| Live deployment validator agreement | StudioNet receipt and explorer evidence | finalized, `SUCCESS`, five `AGREE` votes; see `docs/LIVE_PROOF.md` |
+| Live agreement lifecycle | target-network agreement, evidence, adjudication, appeal receipts | not recorded |
 | Browser wallet lifecycle | injected EIP-1193 browser run | not recorded |
 | Payment/recovery | real transfer and child fault evidence | custody intentionally blocked |
 

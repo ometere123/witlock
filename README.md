@@ -19,6 +19,12 @@ Native GEN custody is contained behind `custody_enabled() == False`. Non-zero fu
 - `genlayer-js` `1.1.8`
 - Next.js App Router and injected EIP-1193 wallet
 
+## Current StudioNet deployment
+
+- Contract: `0x2581346995cd24dD38889F3b0c7638803DD9d3C3`
+- Deployment transaction: `0x8e9a2d5293937f774a1e2bf9574e94e26411668074bdd7471dee32cb2972936a`
+- Deployment and source-parity evidence: [docs/LIVE_PROOF.md](docs/LIVE_PROOF.md)
+
 ## Local verification
 
 ```powershell

@@ -1,0 +1,46 @@
+{
+  "deployed_source_git_sha": "b9204ef",
+  "network": {
+    "name": "GenLayer StudioNet stable",
+    "chain_id": 61999,
+    "chain_hex": "0xF22F",
+    "rpc": "https://studio.genlayer.com/api",
+    "explorer": "https://explorer-studio.genlayer.com"
+  },
+  "tooling": {
+    "genlayer_cli": "0.39.1",
+    "genlayer_js": "1.1.8"
+  },
+  "deployer_account": "0x0d5540e0aD4B92Aa0ad4e5F1b8cD645ee1E363E7",
+  "contract": "0x2581346995cd24dD38889F3b0c7638803DD9d3C3",
+  "contract_source_sha256": "5EB2C4ADA4A78C22AC484E974FC5D457F042624661876422099CB04B07BBCF95",
+  "deployed_source_sha256": "5EB2C4ADA4A78C22AC484E974FC5D457F042624661876422099CB04B07BBCF95",
+  "source_bytes": 33227,
+  "deployment_transaction": "0x8e9a2d5293937f774a1e2bf9574e94e26411668074bdd7471dee32cb2972936a",
+  "deployment_status": "FINALIZED",
+  "execution_result": "SUCCESS",
+  "consensus": {
+    "rounds": 1,
+    "votes": ["AGREE", "AGREE", "AGREE", "AGREE", "AGREE"]
+  },
+  "schema": {
+    "constructor_parameters": 0,
+    "method_count": 31,
+    "source_parity": "EXACT_BYTE_MATCH"
+  },
+  "live_reads": {
+    "contract_info": {
+      "name": "WITLOCK",
+      "version": "monolith-v1",
+      "chain_id": 61999,
+      "custody_enabled": false
+    },
+    "custody_enabled": false
+  },
+  "proof_links": {
+    "contract": "https://explorer-studio.genlayer.com/address/0x2581346995cd24dD38889F3b0c7638803DD9d3C3",
+    "transaction": "https://explorer-studio.genlayer.com/tx/0x8e9a2d5293937f774a1e2bf9574e94e26411668074bdd7471dee32cb2972936a"
+  },
+  "lifecycle_proof": "NOT_RECORDED",
+  "payment_and_recovery_proof": "NOT_RECORDED"
+}

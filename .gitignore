@@ -6,5 +6,7 @@ __pycache__/
 .pytest_cache/
 *.pyc
 .artifacts/
-artifacts/live-61999/
+artifacts/live-61999/*
+!artifacts/live-61999/
+!artifacts/live-61999/manifest.json
 .venv/
