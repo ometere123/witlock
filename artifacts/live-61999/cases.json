@@ -155,6 +155,8 @@
       "decision_version": 0,
       "appeal_status": "NONE",
       "custody_enabled": false
-    }
+    },
+    "consensus_agree_count": 5,
+    "leader_execution": "SUCCESS"
   }
 }
