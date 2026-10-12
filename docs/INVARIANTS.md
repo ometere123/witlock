@@ -14,4 +14,4 @@
 12. **Accounting conservation:** `funded = confirmed_paid + in_flight + unresolved + remaining`, with no negative component.
 13. **No ambiguous retry:** an unresolved payment attempt cannot be silently retried or marked paid.
 
-The live proof demonstrates the zero-value evidence and adjudication invariants. It does not prove native-token transfer or recovery invariants because the custody gate remains disabled.
+The Direct Mode suite demonstrates the zero-value evidence and adjudication invariants locally. A current-source StudioNet proof is not recorded because fresh deployment has no consensus round; native-token transfer and recovery remain unproven because the custody gate is disabled.

@@ -25,4 +25,4 @@
 | `PAYMENT_PENDING` | `reconcile_payment` | permissionless | authenticated delivery evidence and matching receipt; no boolean caller claim | `RECONCILED` |
 | `PAYMENT_PENDING` | `mark_payment_ambiguous` | permissionless | transfer deadline elapsed and incident hash | `UNRESOLVED`, no re-credit or blind retry |
 
-The current live case reached `FINAL_DECISION` with `appeal_status=FINALIZED` and `BLOCKED_INCONCLUSIVE` zero-value settlement. Custody is disabled, so payment transitions are intentionally unreachable. No public method can change frozen recipients or policy.
+The state transitions are covered by Direct Mode tests. A historical superseded case reached `FINAL_DECISION` with `appeal_status=FINALIZED` and `BLOCKED_INCONCLUSIVE` zero-value settlement, but no current-source live case is claimed while StudioNet consensus is unavailable. Custody is disabled, so payment transitions are intentionally unreachable. No public method can change frozen recipients or policy.
