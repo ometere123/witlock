@@ -225,7 +225,9 @@ class Witlock(gl.Contract):
             if int(response.status) != 200:
                 return {"ok": False, "status": "SOURCE_HTTP_" + str(int(response.status))}
             body = response.body
-            if not isinstance(body, bytes):
+            if isinstance(body, str):
+                body = body.encode("utf-8")
+            elif not isinstance(body, bytes):
                 body = bytes(body)
             if len(body) == 0 or len(body) > MAX_SOURCE_BYTES:
                 return {"ok": False, "status": "SOURCE_CONTENT_BOUNDS"}
@@ -249,7 +251,9 @@ class Witlock(gl.Contract):
             if int(commit_response.status) != 200:
                 return {"ok": False, "status": "GITHUB_COMMIT_NOT_FOUND"}
             commit_body = commit_response.body
-            if not isinstance(commit_body, bytes):
+            if isinstance(commit_body, str):
+                commit_body = commit_body.encode("utf-8")
+            elif not isinstance(commit_body, bytes):
                 commit_body = bytes(commit_body)
             if len(commit_body) == 0 or len(commit_body) > MAX_SOURCE_BYTES:
                 return {"ok": False, "status": "GITHUB_COMMIT_RESPONSE_BOUNDS"}
