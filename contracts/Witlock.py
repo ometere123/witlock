@@ -256,6 +256,12 @@ class Witlock(gl.Contract):
             commit_record = json.loads(commit_body.decode("utf-8"))
             if not isinstance(commit_record, dict) or commit_record.get("sha") != coordinates["commit"]:
                 return {"ok": False, "status": "GITHUB_COMMIT_IDENTITY_MISMATCH"}
+            expected_html_url = (
+                "https://github.com/" + coordinates["owner"] + "/"
+                + coordinates["repository"] + "/commit/" + coordinates["commit"]
+            )
+            if commit_record.get("url") != api_url or commit_record.get("html_url") != expected_html_url:
+                return {"ok": False, "status": "GITHUB_REPOSITORY_IDENTITY_MISMATCH"}
             return {
                 "ok": True,
                 "status": "VERIFIED",

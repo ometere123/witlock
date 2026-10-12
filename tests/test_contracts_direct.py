@@ -40,7 +40,19 @@ def provenance(subject: str, source: str, revision: str, source_digest: str) -> 
 def mock_source(direct_vm, source: str, revision: str, content: str) -> None:
     direct_vm.mock_web(re.escape(source), {"status": 200, "body": content})
     api_url = "https://api.github.com/repos/ometere123/witlock/git/commits/" + revision
-    direct_vm.mock_web(re.escape(api_url), {"status": 200, "body": json.dumps({"sha": revision})})
+    direct_vm.mock_web(
+        re.escape(api_url),
+        {
+            "status": 200,
+            "body": json.dumps(
+                {
+                    "sha": revision,
+                    "url": api_url,
+                    "html_url": "https://github.com/ometere123/witlock/commit/" + revision,
+                }
+            ),
+        },
+    )
 
 
 def terms(issuer: str, verifier: str, count: int = 1) -> dict:
@@ -101,11 +113,20 @@ def publish_and_verify(direct_vm, agreement, issuer, verifier, key="agreement-1"
         agreement.verify_attestation_source(key, task_id, attestation_id, source_digest, source_provenance)
 
 
-def submit_and_authenticate(direct_vm, agreement, requester, issuer, key="agreement-1", task_id="source", attestation_id="att-1"):
+def submit_and_authenticate(
+    direct_vm,
+    agreement,
+    requester,
+    issuer,
+    key="agreement-1",
+    task_id="source",
+    attestation_id="att-1",
+    observed_digest=None,
+):
     with direct_vm.prank(requester):
         agreement.submit_evidence(key, task_id, attestation_id)
     with direct_vm.prank(issuer):
-        agreement.authenticate_evidence(key, task_id, digest(SOURCE_BODY))
+        agreement.authenticate_evidence(key, task_id, observed_digest or digest(SOURCE_BODY))
 
 
 def open_authenticated_appeal(direct_vm, agreement, requester, verifier, key="agreement-1"):
@@ -218,7 +239,7 @@ def test_source_verifier_is_independent_and_required_before_authentication(
     mock_source(direct_vm, SOURCE_URL, SOURCE_COMMIT, SOURCE_BODY)
     with direct_vm.prank(direct_dana):
         agreement.verify_attestation_source("agreement-1", "source", "att-1", source_digest, source_provenance)
-    submit_and_authenticate(direct_vm, agreement, direct_alice, direct_charlie)
+    submit_and_authenticate(direct_vm, agreement, direct_alice, direct_charlie, observed_digest=source_digest)
     assert json.loads(agreement.get_evidence("agreement-1", "source"))["source_verified"] is True
 
 
@@ -269,6 +290,108 @@ def test_mutable_branch_and_missing_commit_are_not_independent_source_proof(
     attestation = json.loads(agreement.get_attestation("agreement-1", "source", "att-1"))
     assert attestation["source_verified"] is False
     assert attestation["source_verification_status"] == "SOURCE_NOT_IMMUTABLE_GITHUB_COMMIT"
+
+
+@pytest.mark.direct
+def test_missing_commit_redirect_and_oversized_source_fail_closed(
+    direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, direct_dana
+):
+    agreement = direct_deploy("contracts/Witlock.py", sdk_version=SDK_VERSION)
+    direct_vm.warp("2026-01-01T00:00:00Z")
+    create(direct_vm, agreement, direct_alice, direct_bob, direct_charlie, direct_dana)
+    activate(direct_vm, agreement, direct_bob)
+    source_digest = digest(SOURCE_BODY)
+    source_provenance = provenance("agreement-1:source", SOURCE_URL, SOURCE_COMMIT, source_digest)
+    with direct_vm.prank(direct_charlie):
+        agreement.publish_attestation(
+            "agreement-1", "source", "att-1", source_digest, SOURCE_URL, SOURCE_COMMIT,
+            "HTTPS_GET", BASE_TIMESTAMP, "The source supports the criterion.", source_provenance, 0,
+        )
+
+    direct_vm.mock_web(re.escape(SOURCE_URL), {"status": 200, "body": SOURCE_BODY})
+    api_url = "https://api.github.com/repos/ometere123/witlock/git/commits/" + SOURCE_COMMIT
+    direct_vm.mock_web(re.escape(api_url), {"status": 404, "body": "missing"})
+    with direct_vm.prank(direct_dana):
+        agreement.verify_attestation_source("agreement-1", "source", "att-1", source_digest, source_provenance)
+    attestation = json.loads(agreement.get_attestation("agreement-1", "source", "att-1"))
+    assert attestation["source_verification_status"] == "GITHUB_COMMIT_NOT_FOUND"
+
+    direct_vm.clear_mocks()
+    direct_vm.mock_web(re.escape(SOURCE_URL), {"status": 302, "body": SOURCE_BODY})
+    with direct_vm.prank(direct_dana):
+        agreement.verify_attestation_source("agreement-1", "source", "att-1", source_digest, source_provenance)
+    attestation = json.loads(agreement.get_attestation("agreement-1", "source", "att-1"))
+    assert attestation["source_verification_status"] == "SOURCE_HTTP_302"
+
+    direct_vm.clear_mocks()
+    direct_vm.mock_web(re.escape(SOURCE_URL), {"status": 200, "body": "x" * 2049})
+    with direct_vm.prank(direct_dana):
+        agreement.verify_attestation_source("agreement-1", "source", "att-1", source_digest, source_provenance)
+    attestation = json.loads(agreement.get_attestation("agreement-1", "source", "att-1"))
+    assert attestation["source_verification_status"] == "SOURCE_CONTENT_BOUNDS"
+
+
+@pytest.mark.direct
+def test_github_commit_repository_identity_mismatch_fails_closed(
+    direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, direct_dana
+):
+    agreement = direct_deploy("contracts/Witlock.py", sdk_version=SDK_VERSION)
+    direct_vm.warp("2026-01-01T00:00:00Z")
+    create(direct_vm, agreement, direct_alice, direct_bob, direct_charlie, direct_dana)
+    activate(direct_vm, agreement, direct_bob)
+    source_digest = digest(SOURCE_BODY)
+    source_provenance = provenance("agreement-1:source", SOURCE_URL, SOURCE_COMMIT, source_digest)
+    with direct_vm.prank(direct_charlie):
+        agreement.publish_attestation(
+            "agreement-1", "source", "att-1", source_digest, SOURCE_URL, SOURCE_COMMIT,
+            "HTTPS_GET", BASE_TIMESTAMP, "The source supports the criterion.", source_provenance, 0,
+        )
+    direct_vm.mock_web(re.escape(SOURCE_URL), {"status": 200, "body": SOURCE_BODY})
+    api_url = "https://api.github.com/repos/ometere123/witlock/git/commits/" + SOURCE_COMMIT
+    direct_vm.mock_web(
+        re.escape(api_url),
+        {
+            "status": 200,
+            "body": json.dumps(
+                {
+                    "sha": SOURCE_COMMIT,
+                    "url": "https://api.github.com/repos/other/repository/git/commits/" + SOURCE_COMMIT,
+                    "html_url": "https://github.com/other/repository/commit/" + SOURCE_COMMIT,
+                }
+            ),
+        },
+    )
+    with direct_vm.prank(direct_dana):
+        agreement.verify_attestation_source("agreement-1", "source", "att-1", source_digest, source_provenance)
+    attestation = json.loads(agreement.get_attestation("agreement-1", "source", "att-1"))
+    assert attestation["source_verification_status"] == "GITHUB_REPOSITORY_IDENTITY_MISMATCH"
+
+
+@pytest.mark.direct
+def test_false_issuer_claim_does_not_override_source_assessment(
+    direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, direct_dana
+):
+    agreement = direct_deploy("contracts/Witlock.py", sdk_version=SDK_VERSION)
+    direct_vm.warp("2026-01-01T00:00:00Z")
+    create(direct_vm, agreement, direct_alice, direct_bob, direct_charlie, direct_dana)
+    activate(direct_vm, agreement, direct_bob)
+    source_digest = digest(APPEAL_BODY)
+    source_provenance = provenance("agreement-1:source", APPEAL_URL, APPEAL_COMMIT, source_digest)
+    with direct_vm.prank(direct_charlie):
+        agreement.publish_attestation(
+            "agreement-1", "source", "att-1", source_digest, APPEAL_URL, APPEAL_COMMIT,
+            "HTTPS_GET", BASE_TIMESTAMP, "This issuer claim falsely says the criterion passed.", source_provenance, 0,
+        )
+    mock_source(direct_vm, APPEAL_URL, APPEAL_COMMIT, APPEAL_BODY)
+    with direct_vm.prank(direct_dana):
+        agreement.verify_attestation_source("agreement-1", "source", "att-1", source_digest, source_provenance)
+    submit_and_authenticate(direct_vm, agreement, direct_alice, direct_charlie, observed_digest=source_digest)
+    with direct_vm.prank(direct_alice):
+        agreement.acknowledge_delivery("agreement-1")
+        agreement.seal_agreement("agreement-1")
+    direct_vm.mock_llm("Classify each frozen criterion", json.dumps({"answers": {"source": "FAIL"}}))
+    agreement.adjudicate("agreement-1")
+    assert json.loads(agreement.get_decision("agreement-1"))["result"] == "REJECTED"
 
 
 @pytest.mark.direct
@@ -343,6 +466,30 @@ def test_adjudication_and_resolved_appeal_can_finalize(
     revision = state["revision"]
     agreement.finalize_decision("agreement-1")
     assert json.loads(agreement.get_agreement("agreement-1"))["revision"] == revision
+
+
+@pytest.mark.direct
+def test_unauthorized_evidence_and_premature_sealing_are_rejected(
+    direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, direct_dana
+):
+    agreement = direct_deploy("contracts/Witlock.py", sdk_version=SDK_VERSION)
+    direct_vm.warp("2026-01-01T00:00:00Z")
+    create(direct_vm, agreement, direct_alice, direct_bob, direct_charlie, direct_dana)
+    activate(direct_vm, agreement, direct_bob)
+    publish_and_verify(direct_vm, agreement, direct_charlie, direct_dana)
+    with direct_vm.expect_revert("WL_PARTY_REQUIRED"):
+        with direct_vm.prank(direct_dana):
+            agreement.submit_evidence("agreement-1", "source", "att-1")
+    with direct_vm.prank(direct_alice):
+        agreement.acknowledge_delivery("agreement-1")
+        agreement.submit_evidence("agreement-1", "source", "att-1")
+        with direct_vm.expect_revert("WL_EVIDENCE_INCOMPLETE"):
+            agreement.seal_agreement("agreement-1")
+    with direct_vm.prank(direct_charlie):
+        agreement.authenticate_evidence("agreement-1", "source", digest(SOURCE_BODY))
+    with direct_vm.prank(direct_alice):
+        agreement.seal_agreement("agreement-1")
+    assert json.loads(agreement.get_agreement("agreement-1"))["status"] == "SEALED"
 
 
 @pytest.mark.direct
