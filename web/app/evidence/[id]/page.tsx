@@ -1,4 +1,5 @@
 import { RouteCard, RouteShell, StatusRow } from '@/app/_components/RouteShell';
+import CaseConsole from '@/app/_components/CaseConsole';
 
 export default async function EvidencePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -14,5 +15,6 @@ export default async function EvidencePage({ params }: { params: Promise<{ id: s
         <p className="muted">The monolith attestation authenticates a wallet publication. It does not prove that the wallet is independent, that a domain belongs to the issuer, or that the claim is factually true.</p>
       </RouteCard>
     </section>
+    <CaseConsole caseId={id} surface="evidence" />
   </RouteShell>;
 }

@@ -23,4 +23,5 @@ jobs:
       - run: npm audit --audit-level=moderate
       - run: npm run cli:version
       - run: npm run preflight
+      - run: npm run web:test
       - run: npm run web:build

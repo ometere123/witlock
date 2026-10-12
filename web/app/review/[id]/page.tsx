@@ -1,4 +1,5 @@
 import { RouteCard, RouteShell, StatusRow } from '@/app/_components/RouteShell';
+import CaseConsole from '@/app/_components/CaseConsole';
 
 export default async function ReviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -14,5 +15,6 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
         <p className="muted">One party may submit one reason digest before the frozen appeal deadline. Resolving the appeal reruns the bounded consensus task and preserves the earlier decision in history.</p>
       </RouteCard>
     </section>
+    <CaseConsole caseId={id} surface="review" />
   </RouteShell>;
 }

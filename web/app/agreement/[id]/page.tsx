@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { RouteCard, RouteShell, StatusRow } from '@/app/_components/RouteShell';
+import CaseConsole from '@/app/_components/CaseConsole';
 
 export default async function AgreementPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -16,5 +17,6 @@ export default async function AgreementPage({ params }: { params: Promise<{ id: 
         <Link className="button alt" href={`/review/${id}`}>Open review</Link>
       </RouteCard>
     </section>
+    <CaseConsole caseId={id} surface="agreement" />
   </RouteShell>;
 }

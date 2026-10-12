@@ -1,4 +1,5 @@
 import { RouteCard, RouteShell, StatusRow, DisabledAction } from '@/app/_components/RouteShell';
+import CaseConsole from '@/app/_components/CaseConsole';
 
 export default async function SettlementPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -14,5 +15,6 @@ export default async function SettlementPage({ params }: { params: Promise<{ id:
         <p className="muted">An accepted or finalized parent transaction cannot prove that an asynchronous child transfer succeeded or reached its recipient. WITLOCK will not retry ambiguous transfers or recreate missing funds in accounting.</p>
       </RouteCard>
     </section>
+    <CaseConsole caseId={id} surface="settlement" />
   </RouteShell>;
 }

@@ -13,11 +13,13 @@
     "contracts:check": "python scripts/genvm_lint.py check contracts/Witlock.py --json",
     "web:dev": "npm --workspace web run dev",
     "web:typecheck": "npm --workspace web run typecheck",
-    "web:build": "npm --workspace web run build"
+    "web:build": "npm --workspace web run build",
+    "web:test": "vitest run web/lib/transactions.test.ts"
   },
   "devDependencies": {
     "esbuild": "0.28.2",
-    "genlayer": "0.39.1"
+    "genlayer": "0.39.1",
+    "vitest": "4.1.11"
   },
   "overrides": {
     "vitest": "4.1.11",
