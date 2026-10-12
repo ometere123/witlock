@@ -11,7 +11,7 @@
 | Dependency security | `npm ci; npm audit --audit-level=moderate` | Passed; 0 vulnerabilities |
 | Frontend transaction behavior | `npm run web:test` | Passed; SDK success enum, failed execution, and multiple pending recovery |
 | Frontend | `npm run web:typecheck; npm run web:build` | Passed on Next.js 16.4.0 |
-| Current live deployment | StudioNet receipts | NOT PROVEN; fresh attempts finalized `NO_MAJORITY`, `consensus_data=null` |
+| Current live deployment | StudioNet receipts | NOT PROVEN; current-source attempt finalized `NO_MAJORITY`, `consensus_data=null` |
 | Current source parity | `genlayer code` plus SHA-256 comparison | NOT PROVEN; no current contract address |
 | Browser wallet | Chrome injected provider | Account and chain detection visible on `0xf22f`; live browser signing NOT PROVEN |
 | Payment/recovery | Custody and transfer fault evidence | Custody disabled; recipient delivery and recovery not claimed |

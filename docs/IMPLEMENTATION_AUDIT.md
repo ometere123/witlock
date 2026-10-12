@@ -23,4 +23,4 @@ Audit date: 2026-10-12. The repository was audited against the handoff and reval
 
 ## External limitation
 
-Fresh deployment attempts finalized `NO_MAJORITY` with no consensus data, including an exact old-source control attempt. The network probe says no consensus contracts are deployed. A successful current-source deployment, live cases, current-source parity, browser signing, and successful finalization therefore remain `NOT PROVEN` until the StudioNet consensus layer is restored.
+The current-source deployment attempt and earlier controls finalized `NO_MAJORITY` with no consensus data. The network probe says no consensus contracts are deployed. A successful current-source deployment, live cases, current-source parity, browser signing, and successful finalization therefore remain `NOT PROVEN` until the StudioNet consensus layer is restored.

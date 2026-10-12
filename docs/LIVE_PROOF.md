@@ -4,7 +4,11 @@
 
 A fresh StudioNet proof for the current source is **blocked by the network state**. The current source is Git SHA `2882e1fc17e07f36d389e028551a1aa7eec58761`; `contracts/Witlock.py` is 60,447 bytes and hashes to `5A22F179E7D41CA12A501C0C2443AAF3C5FC088AF230DC7190B6542E9595D58D`.
 
-The exact pre-identity-check deployment attempts were:
+The exact current-source deployment attempt was:
+
+- `0xaf8744c306dec999ac3861c9da45af53f7f47e889dc08bc35797e9db28bebde0`: `FINALIZED`, `NO_MAJORITY`, zero rounds, `consensus_data=null`, no contract address. The CLI classified leader execution as `UNKNOWN`; the advanced lifecycle query returned `NoOp` and no decision ID, and `genlayer trace` was unavailable because the RPC returned `Method not found`.
+
+The earlier pre-identity-check deployment attempts were:
 
 - `0xcb4b0ab413314360f6a636df82add34218efdd06cc4f69223f5c8b44899c8514`: `FINALIZED`, `NO_MAJORITY`, `consensus_data=null`, no contract address.
 - `0x4b94eba2f3c6b2842a3851a9181bd98bb8af91996dad753aa2cf0db08a72c159`: `FINALIZED`, `NO_MAJORITY`, `consensus_data=null`, no contract address.

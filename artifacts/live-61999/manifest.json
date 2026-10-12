@@ -19,6 +19,15 @@
   },
   "deployment_attempts": [
     {
+      "transaction": "0xaf8744c306dec999ac3861c9da45af53f7f47e889dc08bc35797e9db28bebde0",
+      "source": "current source with repository identity check",
+      "status": "FINALIZED",
+      "execution": "UNKNOWN",
+      "consensus_result": "NO_MAJORITY",
+      "consensus_data": null,
+      "contract": null
+    },
+    {
       "transaction": "0xcb4b0ab413314360f6a636df82add34218efdd06cc4f69223f5c8b44899c8514",
       "source": "pre-repository-identity-check source",
       "status": "FINALIZED",

@@ -2,7 +2,7 @@
 
 `contracts/Witlock.py` is the only canonical deployable source. The current source is Git SHA `2882e1fc17e07f36d389e028551a1aa7eec58761`, 60,447 bytes, SHA-256 `5A22F179E7D41CA12A501C0C2443AAF3C5FC088AF230DC7190B6542E9595D58D`.
 
-There is no current deployed contract to compare. Fresh StudioNet deployment attempts `0xcb4b0ab413314360f6a636df82add34218efdd06cc4f69223f5c8b44899c8514` and `0x4b94eba2f3c6b2842a3851a9181bd98bb8af91996dad753aa2cf0db08a72c159` finalized `NO_MAJORITY` with `consensus_data=null`; the network probe reports no consensus contracts deployed. Source parity therefore remains `NOT PROVEN` for the current source.
+There is no current deployed contract to compare. The current source attempt `0xaf8744c306dec999ac3861c9da45af53f7f47e889dc08bc35797e9db28bebde0` finalized `NO_MAJORITY` with `consensus_data=null`; two earlier pre-identity-check attempts reached the same result. The network probe reports no consensus contracts deployed. Source parity therefore remains `NOT PROVEN` for the current source.
 
 Once StudioNet consensus is available, reproduce the comparison with:
 
