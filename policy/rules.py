@@ -1,7 +1,7 @@
-"""Deterministic WITLOCK policy helpers used by tests and review tooling.
+"""Pure deterministic models for the WITLOCK monolith.
 
-These functions model agreement validation and scoring only. They do not move
-GEN, authorize withdrawals, or stand in for GenVM execution.
+The helpers mirror validation and allocation rules used by the contract. They
+never stand in for GenVM execution, consensus, or payment delivery.
 """
 
 from hashlib import sha256
@@ -9,16 +9,9 @@ import json
 
 
 STATUSES = {
-    "DRAFT",
-    "ACTIVE",
-    "SEALED",
-    "APPROVED",
-    "PARTIAL",
-    "REJECTED",
-    "INCONCLUSIVE",
-    "TIMED_OUT",
-    "EXPIRED",
-    "APPEALED",
+    "DRAFT", "FUNDED", "ACTIVE", "DELIVERED", "REVIEW", "SEALED", "DECIDED",
+    "APPEAL_WINDOW", "APPEALED", "FINAL_DECISION", "PAYMENT_PENDING",
+    "RECONCILED", "EXPIRED", "INCONCLUSIVE", "BLOCKED",
 }
 
 
@@ -76,31 +69,29 @@ def validate_terms(terms):
 
 
 def validate_attestation(attestation, task, parties, expected_subject):
-    required = {"issuer", "subject", "digest", "claim", "source", "registry_key"}
-    if not isinstance(attestation, dict) or set(attestation) != required:
+    required = {
+        "issuer", "subject", "digest", "source", "source_revision", "claim",
+        "provenance_hash",
+    }
+    if not isinstance(attestation, dict) or not required.issubset(attestation):
         raise ValueError("attestation schema")
+    issuer = attestation["issuer"].lower()
     if not _address(attestation["issuer"]):
         raise ValueError("issuer address")
-    if not isinstance(attestation["subject"], str):
-        raise ValueError("subject")
-    issuer = attestation["issuer"].lower()
     if issuer != task["issuer"].lower() or issuer in {party.lower() for party in parties}:
         raise ValueError("issuer authorization")
     if attestation["subject"] != expected_subject:
         raise ValueError("subject")
-    if not isinstance(attestation["digest"], str) or len(attestation["digest"]) != 64 or any(
-        char not in "0123456789abcdef" for char in attestation["digest"]
-    ):
-        raise ValueError("digest")
-    if (
-        not isinstance(attestation["claim"], str)
-        or not isinstance(attestation["source"], str)
-        or not 1 <= len(attestation["claim"]) <= 800
-        or not 1 <= len(attestation["source"]) <= 400
-    ):
-        raise ValueError("bounds")
-    if not _key(attestation["registry_key"], 96):
-        raise ValueError("registry key")
+    for field in ("digest", "provenance_hash"):
+        value = attestation[field]
+        if not isinstance(value, str) or len(value) != 64 or any(char not in "0123456789abcdef" for char in value):
+            raise ValueError("digest")
+    if not isinstance(attestation["source"], str) or not 1 <= len(attestation["source"]) <= 400:
+        raise ValueError("source")
+    if not isinstance(attestation["source_revision"], str) or not 1 <= len(attestation["source_revision"]) <= 160:
+        raise ValueError("source revision")
+    if not isinstance(attestation["claim"], str) or not 1 <= len(attestation["claim"]) <= 1200:
+        raise ValueError("claim")
     return True
 
 
@@ -108,27 +99,33 @@ def decide(terms, answers):
     validate_terms(terms)
     if set(answers) != {task["id"] for task in terms["tasks"]}:
         raise ValueError("result set")
-    if any(value not in ("PASS", "FAIL", "UNKNOWN") for value in answers.values()):
+    if any(value not in ("PASS", "FAIL", "INCONCLUSIVE") for value in answers.values()):
         raise ValueError("result label")
     if any(task["critical"] and answers[task["id"]] == "FAIL" for task in terms["tasks"]):
         return {"status": "REJECTED", "score": 0}
-    if "UNKNOWN" in answers.values():
+    if "INCONCLUSIVE" in answers.values():
         return {"status": "INCONCLUSIVE", "score": 0}
     score = sum(task["weight"] for task in terms["tasks"] if answers[task["id"]] == "PASS")
     return {"status": "APPROVED" if score == 100 else ("PARTIAL" if score else "REJECTED"), "score": score}
 
 
-def allocate(deposit, score):
-    """Arithmetic-only allocation model; custody remains disabled in WITLOCK."""
-    if not isinstance(deposit, int) or deposit < 0 or not isinstance(score, int) or not 0 <= score <= 100:
+def allocate(funded, score):
+    """Exact integer allocation used by the contract's decision record."""
+    if not isinstance(funded, int) or funded < 0 or not isinstance(score, int) or not 0 <= score <= 100:
         raise ValueError("amount")
-    operator = deposit * score // 100
-    return {"operator": operator, "client": deposit - operator}
+    provider = funded * score // 100
+    return {"provider": provider, "requester": funded - provider}
+
+
+def conservation(accounting):
+    funded = accounting["funded"]
+    accounted = accounting["confirmed_paid"] + accounting["in_flight"] + accounting["unresolved"] + accounting["remaining"]
+    return funded == accounted and all(value >= 0 for value in accounting.values() if isinstance(value, int))
 
 
 def timeout_status(status, now, accept_deadline, delivery_deadline):
     if status == "DRAFT" and now > accept_deadline:
         return "EXPIRED"
-    if status == "ACTIVE" and now > delivery_deadline:
-        return "TIMED_OUT"
+    if status in ("ACTIVE", "DELIVERED") and now > delivery_deadline:
+        return "REVIEW"
     raise ValueError("timeout not available")

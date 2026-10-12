@@ -1,14 +1,14 @@
 # Invariants
 
-1. **Frozen policy:** a case key, parties, task set, issuer addresses, weights, critical flags, digests, and deadlines are immutable after `create_case`.
-2. **Role separation:** requester, provider, and each nominated issuer must be distinct.
-3. **Bounded input:** keys, questions, claims, sources, evidence JSON, task count, and dossier size have explicit limits.
-4. **Issuer binding:** `authenticate_evidence` is accepted only from the nominated issuer and only when the registry record matches issuer, subject, digest, source, and claim exactly.
-5. **No evidence replay:** a registry key can be used once across the agreement engine.
-6. **Deterministic economics:** score and status are calculated from frozen integer weights; consensus cannot output recipients or money.
-7. **Consensus schema:** the consensus result must contain every criterion exactly once and each value must be `PASS`, `FAIL`, or `UNKNOWN`.
-8. **Deadline safety:** timeout methods reject calls made before their corresponding deadline.
-9. **History:** every agreement transition creates a new immutable history entry with a monotonically increasing revision.
-10. **Custody gate:** `custody_enabled()` is false and no withdrawal or administrator transfer path exists.
-
-The first six invariants are directly exercised by pure policy tests. Contract-level and live-network verification are separate gates and are not inferred from those tests.
+1. **Frozen policy:** key, parties, criteria, issuer addresses, weights, critical flags, details digest, and deadlines cannot change after creation.
+2. **Role separation:** requester, provider, and every nominated issuer are distinct.
+3. **Bounded input:** keys, questions, claims, source coordinates, criterion count, and dossier size are capped.
+4. **Issuer binding:** only the nominated issuer can publish and authenticate its criterion record.
+5. **Case-scoped evidence:** one criterion has one immutable evidence binding; an attestation cannot be replaced after publication.
+6. **Deterministic economics:** consensus supplies labels only; integer score and provider/requester allocation are contract calculations.
+7. **Consensus schema:** every criterion appears exactly once with `PASS`, `FAIL`, or `INCONCLUSIVE`.
+8. **Deadline safety:** acceptance, delivery timeout, appeal, and appeal-resolution methods reject early calls.
+9. **Append-only history:** every transition and decision version receives a new audit key.
+10. **Custody containment:** `custody_enabled()` is false; non-zero funding and outbound payment paths revert.
+11. **Accounting conservation:** `funded = confirmed_paid + in_flight + unresolved + remaining`, with no negative component.
+12. **No ambiguous retry:** an unresolved payment attempt cannot be silently retried or marked paid.

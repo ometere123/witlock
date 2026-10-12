@@ -1,13 +1,15 @@
 # Evidence authority
 
-An evidence digest proves byte integrity only. WITLOCK therefore requires a nominated issuer wallet for every criterion and an immutable registry record with:
+A digest proves byte integrity only. Each frozen criterion nominates an external issuer wallet and the monolith requires that issuer to publish an immutable record containing:
 
-- the agreement criterion subject;
-- the issuer sender address;
-- the exact digest;
-- the bounded source coordinate; and
-- the issuer claim.
+- agreement/criterion subject;
+- issuer sender address;
+- evidence digest;
+- bounded source URL or coordinate;
+- immutable source revision;
+- bounded claim; and
+- provenance digest.
 
-The submitting party cannot authenticate its own evidence. The agreement engine rejects issuer addresses equal to either party, rejects registry-key reuse, and requires the nominated issuer to call `authenticate_evidence`. The registry is permissionless: anyone can publish a record under an unused key, so the agreement's frozen issuer address and the actual sender are the authority boundary.
+The submitting party cannot publish as the issuer or authenticate its own record. `publish_attestation` checks the frozen nominated issuer, and `submit_evidence` binds one case-scoped attestation to one criterion. `authenticate_evidence` is a second transaction from the nominated issuer and checks the exact digest. Records cannot be replaced after publication.
 
-The registry does not establish that an issuer controls a domain, represents a company, is independent from a participant, or tells the truth. A valid record with false content remains a validly published false claim. Deleted web content, redirects, fake ownership, prompt injection, contradictory sources, and unavailable URLs are resolved only as the bounded semantic evidence permits; unresolved cases must remain `UNKNOWN` or fail consensus.
+This model proves wallet publication and exact record binding. It does not prove legal identity, domain ownership, human independence, or factual truth. Redirects, deletion, false claims, unavailable sources, prompt injection, and correlated issuers remain trust boundaries. They must produce `INCONCLUSIVE` or a failed deterministic outcome rather than an automatic pass.

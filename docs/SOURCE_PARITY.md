@@ -1,5 +1,5 @@
 # Source parity
 
-The authoritative source is the GitHub repository commit reported in the final handoff. Before deployment, hash the exact contract files and record the Git commit, SHA-256 values, deployment transaction, deployed source response, and schema response. Compare deployed bytes and schema against the local files before calling the deployment verified.
+`contracts/Witlock.py` is the only canonical deployable source. Before a deployment is called verified, record the exact Git SHA, local SHA-256 of the contract, deployment transaction, deployed source response, and schema response. Compare source bytes and public method signatures independently.
 
-The browser must be configured with the verified registry and agreement addresses. A frontend contract address without a matching source and schema is configuration, not proof. The build has no backend signer and cannot alter the deployed code.
+The frontend uses one public `NEXT_PUBLIC_WITLOCK_CONTRACT` address and contains no signer key or backend write service. A configured address without matching explorer source and schema is marked unverified.

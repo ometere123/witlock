@@ -1,18 +1,16 @@
 # Test matrix
 
-| Area | Command or method | Current evidence |
+| Area | Command | Evidence target |
 | --- | --- | --- |
-| Pure policy and contract tests | `python -m pytest -q tests` | 15 passed |
-| Python syntax | `python -m compileall -q contracts policy` | Passed |
-| Contract AST safety | `python scripts/genvm_lint.py lint ...` | Passed for both contracts |
-| Contract semantic validation | `python scripts/genvm_lint.py check ...` | Passed for both contracts; pinned runner bundle `v0.2.16` |
-| Schema extraction | `python scripts/genvm_lint.py schema ... --json` | Passed; Registry has 4 methods and Agreement has 16 methods with one address constructor parameter |
-| Direct Mode | `python -m pytest -q tests/test_contracts_direct.py` | 3 passed |
-| Full consensus | Studio or local multi-validator test | Not yet run |
-| Frontend preflight | `npm run preflight` | StudioNet 61999, `0xF22F`, approved RPC passed |
-| Frontend types | `npm --workspace web run typecheck` | Passed after SDK correction |
-| Production build | `npm --workspace web run build` | Passed; all required routes generated |
-| Wallet negative cases | injected provider browser flow | Not yet run |
-| Live proof | StudioNet 61999 receipts and explorer evidence | None recorded; no deployment claim |
+| Pure policy and invariants | `python -m pytest -q tests` | deterministic validation and conservation |
+| Direct Mode lifecycle | `python -m pytest -q tests/test_contracts_direct.py` | five GenVM contract tests, including bounded consensus |
+| Python syntax | `python -m compileall -q contracts policy` | source compiles |
+| GenVM AST safety | `python scripts/genvm_lint.py lint contracts/Witlock.py --json` | no safety warnings |
+| GenVM semantic/schema | `python scripts/genvm_lint.py check contracts/Witlock.py --json` | one constructorless `Witlock`, 31 methods |
+| Network preflight | `npm run cli:version; npm run preflight` | CLI 0.39.1 and StudioNet 61999 |
+| Frontend | `npm run web:typecheck; npm run web:build` | installed SDK compatibility and production build |
+| Live validator agreement | StudioNet receipt and explorer evidence | not recorded |
+| Browser wallet lifecycle | injected EIP-1193 browser run | not recorded |
+| Payment/recovery | real transfer and child fault evidence | custody intentionally blocked |
 
-The suite must include unauthorized parties, issuer substitution, registry replay, digest mismatch, missing/contradictory evidence, malformed consensus output, deadline abuse, appeal replay, wrong network, rejected wallet requests, and ambiguous transfer handling. Any unrun row remains unproven.
+The negative suite covers unauthorized parties, issuer substitution, premature sealing, incomplete evidence, wrong deadlines, appeal expiry, malformed labels, duplicate evidence, non-zero custody attempts, and accounting conservation. Network-level transfer faults remain a documented unrun gate.

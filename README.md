@@ -1,32 +1,37 @@
 # WITLOCK
 
-WITLOCK is a proof-bound agreement decision engine for GenLayer StudioNet. It freezes weighted acceptance criteria, requires each criterion to name an external issuer wallet, binds submitted evidence to an immutable registry record, and uses GenLayer consensus for the bounded semantic classification `PASS`, `FAIL`, or `UNKNOWN`.
+WITLOCK is a proof-bound agreement and adjudication monolith for GenLayer StudioNet. It freezes weighted acceptance criteria, nominated external issuers, source provenance, deadlines, appeals, and an auditable decision history in one deployable `contracts/Witlock.py` contract.
 
-WITLOCK deliberately separates evidence integrity from truth and transaction finality from business success. A digest proves bytes; an issuer sender proves which wallet published an attestation; neither proves that the issuer is a human or that a claim is true. The contract therefore keeps native GEN custody, withdrawals, and payout claims disabled until the actual StudioNet transfer lifecycle is independently proven.
+The core path is:
 
-## Current implementation
+`create_agreement` → `accept_agreement` → issuer `publish_attestation` → party `submit_evidence` → issuer `authenticate_evidence` → delivery/dispute → `seal_agreement` → GenLayer adjudication → appeal window → final decision.
 
-- `contracts/WitlockRegistry.py` stores one immutable attestation per registry key.
-- `contracts/WitlockAgreement.py` enforces parties, issuer nomination, deadlines, one-use attestations, registry matching, append-only transition history, semantic consensus, timeout handling, and one bounded appeal.
-- `policy/rules.py` contains deterministic scoring, validation, and timeout helpers used by the test suite.
-- `web/` is a Next.js App Router client using injected EIP-1193 wallets and `genlayer-js` 1.1.8. It hard-blocks wrong-network and unconfigured-contract writes.
+Consensus returns only `PASS`, `FAIL`, or `INCONCLUSIVE` per criterion. Contract code validates the schema and computes the result and integer allocation. A digest proves bytes, and an issuer transaction proves wallet publication; neither proves factual truth by itself.
 
-## Development
+Native GEN custody is contained behind `custody_enabled() == False`. Non-zero funding, bonds, and payment calls are rejected until StudioNet transfer, recipient delivery, and recovery semantics are proven. Zero-value agreements remain available for the evidence and adjudication lifecycle.
+
+## Approved stack
+
+- GenLayer StudioNet stable, chain `61999` (`0xF22F`)
+- RPC `https://studio.genlayer.com/api`
+- Explorer `https://explorer-studio.genlayer.com`
+- repository-local GenLayer CLI `0.39.1`
+- `genlayer-js` `1.1.8`
+- Next.js App Router and injected EIP-1193 wallet
+
+## Local verification
 
 ```powershell
-npm install
-npm run cli:version       # repository-local GenLayer CLI; must be 0.39.1
+npm ci
+pip install -r requirements.txt
+npm run cli:version
+npm run preflight
 python -m pytest -q tests
 python -m compileall -q contracts policy
 npm run contracts:lint
 npm run contracts:check
-npm run preflight
-npm --workspace web run typecheck
-npm --workspace web run build
+npm run web:typecheck
+npm run web:build
 ```
 
-The approved target is StudioNet chain `61999` (`0xF22F`) at `https://studio.genlayer.com/api`. Do not use chain 61997, preview RPCs, a global CLI, private keys in the browser, or a backend signing service.
-
-Set `NEXT_PUBLIC_WITLOCK_CONTRACT` and `NEXT_PUBLIC_WITLOCK_REGISTRY` only after independently verifying the deployed source and schema. A transaction hash is displayed as a submission reference; the interface does not treat it as finalized successful execution or payment proof.
-
-The implementation and evidence status are recorded in [docs/IMPLEMENTATION_AUDIT.md](docs/IMPLEMENTATION_AUDIT.md), [docs/LIVE_PROOF.md](docs/LIVE_PROOF.md), and [docs/REVIEWER_EVIDENCE.md](docs/REVIEWER_EVIDENCE.md).
+Deployment and evidence rules are in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). The current live proof status is [docs/LIVE_PROOF.md](docs/LIVE_PROOF.md).

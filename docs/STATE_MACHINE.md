@@ -1,17 +1,25 @@
 # State machine
 
-| From | Transition | Caller | Guard | To |
+| From | Method | Caller | Guards | To |
 | --- | --- | --- | --- | --- |
-| none | `create_case` | requester | valid criteria, external issuers, ordered future deadlines, unique key | `DRAFT` |
-| `DRAFT` | `accept_case` | provider | sender is frozen provider and current time is within accept deadline | `ACTIVE` |
-| `DRAFT` | `timeout_case` | anyone | current time is after accept deadline | `EXPIRED` |
-| `ACTIVE` | `submit_evidence` | requester or provider | before delivery deadline, criterion exists, registry key unused | `ACTIVE` |
-| `ACTIVE` | `authenticate_evidence` | nominated issuer | exact immutable registry record match | `ACTIVE` |
-| `ACTIVE` | `seal_case` | requester | requester is frozen party | `SEALED` |
-| `ACTIVE` | `timeout_case` | anyone | current time is after delivery deadline | `TIMED_OUT` |
-| `SEALED` | `adjudicate` | anyone | every criterion has authenticated evidence; consensus returns valid bounded labels | outcome |
-| `SEALED` | `close_inconclusive` | anyone | delivery deadline has passed | `INCONCLUSIVE` |
-| outcome | `open_appeal` | requester or provider | before appeal deadline, no earlier appeal, valid reason digest | `APPEALED` |
-| `APPEALED` | `resolve_appeal` | anyone | every criterion remains authenticated; new consensus succeeds | outcome |
+| none | `create_agreement` | requester | valid frozen terms, external issuers, ordered deadlines, zero funding while gate is closed | `DRAFT` |
+| `DRAFT` | `fund_agreement` | requester | exact value and custody gate | `FUNDED` |
+| `DRAFT` | `post_operator_bond` | provider | exact value and custody gate | `DRAFT` |
+| `DRAFT` | `accept_agreement` | provider | funded/bond requirements and acceptance deadline | `FUNDED` → `ACTIVE` |
+| `ACTIVE` | `publish_attestation` | nominated issuer | exact subject and immutable record | `ACTIVE` |
+| `ACTIVE` | `submit_evidence` | requester/provider | before delivery deadline, existing case-scoped attestation | `ACTIVE` |
+| `ACTIVE` / `DELIVERED` / `REVIEW` | `authenticate_evidence` | nominated issuer | exact digest and evidence binding | same |
+| `ACTIVE` | `acknowledge_delivery` | requester | before delivery deadline | `DELIVERED` |
+| `ACTIVE` / `DELIVERED` | `open_dispute` | requester/provider | valid reason digest and appeal window | `REVIEW` |
+| `ACTIVE` / `DELIVERED` | `timeout_delivery` | anyone | after delivery deadline | `REVIEW` |
+| `DELIVERED` / `REVIEW` | `seal_agreement` | requester/provider | every criterion authenticated | `SEALED` |
+| `SEALED` | `adjudicate` | permissionless | bounded consensus over complete dossier | `DECIDED` → `APPEAL_WINDOW` |
+| `REVIEW` | `finalize_inconclusive` | permissionless | deadline passed and at least one criterion is incomplete | `DECIDED` → `APPEAL_WINDOW` |
+| `APPEAL_WINDOW` | `open_appeal` | requester/provider | one digest before appeal deadline | `APPEALED` |
+| `APPEALED` | `resolve_appeal` | permissionless | authenticated dossier and bounded consensus | `DECIDED` → `APPEAL_WINDOW` |
+| `APPEALED` | `expire_appeal` | permissionless | appeal resolution deadline passed | `FINAL_DECISION` blocked |
+| `APPEAL_WINDOW` | `finalize_decision` | permissionless | deadline passed and no appeal | `FINAL_DECISION` |
+| `FINAL_DECISION` | `begin_payment` | permissionless | custody gate, payable state, idempotent attempt | `PAYMENT_PENDING` |
+| `PAYMENT_PENDING` | `reconcile_payment` | permissionless | verified receipt or explicit ambiguity | `RECONCILED` or unresolved |
 
-`APPROVED`, `PARTIAL`, `REJECTED`, `INCONCLUSIVE`, `TIMED_OUT`, and `EXPIRED` do not expose any value exit. `APPEALED` is a decision review state and never authorizes payment. Every mutating transition appends a history record; criteria, issuer addresses, deadlines, and recipient policy cannot be modified after creation.
+The live contract currently reaches a zero-value reconciled state or an explicit blocked state because custody is disabled. No method changes recipients or frozen policy.

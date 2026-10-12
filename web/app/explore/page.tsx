@@ -7,7 +7,7 @@ export default function ExplorePage() {
       <RouteCard title="Configured deployment">
         <StatusRow label="Network" value="StudioNet · 61999" ok />
         <StatusRow label="Agreement address" value="Configured in environment" />
-        <StatusRow label="Registry address" value="Configured in environment" />
+        <StatusRow label="Canonical monolith" value="One contract owns attestations and decisions" ok />
         <p className="muted small-copy">Use the interactive explorer on the home route after verified addresses are supplied.</p>
         <Link className="button" href="/#workspace">Open case explorer</Link>
       </RouteCard>

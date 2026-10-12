@@ -7,7 +7,6 @@ export const CHAIN_HEX = '0xF22F';
 export const RPC = 'https://studio.genlayer.com/api';
 export const EXPLORER = 'https://explorer-studio.genlayer.com';
 export const CONTRACT = process.env.NEXT_PUBLIC_WITLOCK_CONTRACT || '';
-export const REGISTRY = process.env.NEXT_PUBLIC_WITLOCK_REGISTRY || '';
 
 export type InjectedProvider = EIP1193Provider & {
   on?: (event: string, listener: (...args: unknown[]) => void) => void;

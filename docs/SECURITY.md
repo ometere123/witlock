@@ -1,9 +1,9 @@
 # Security model
 
-The deployment target is StudioNet `61999` and the repository-local CLI is `0.39.1`.
+WITLOCK targets StudioNet stable `61999` through the repository-local CLI `0.39.1`, with RPC `https://studio.genlayer.com/api` and explorer `https://explorer-studio.genlayer.com`.
 
-The present source does not accept GEN deposits, send GEN, or warrant economic settlement. An evidence hash authenticates bytes, not truth, issuer authority, or ownership of a domain. Submitter-declared source classifications never earn an automatic `PASS`; the nominated issuer must publish and authenticate an exact registry record, and GenLayer consensus classifies the resulting claim.
+The monolith does not accept non-zero funding while custody is unproven, does not emit payouts, and has no administrator transfer or hidden withdrawal path. A digest proves bytes, an issuer transaction proves wallet publication, and a consensus decision classifies admitted evidence; none alone proves a recipient received GEN.
 
-Uncertain child-transfer execution must not be treated as confirmed payment. There is no backend signer, unattended funded wallet, WalletConnect, Privy, WorkOS, or browser Snap integration. Wrong-network and unconfigured-contract writes are blocked in the client, but contract authorization remains the security boundary.
+The state machine rejects unauthorized callers, issuer substitution, duplicate evidence, premature sealing, early timeouts, malformed consensus, appeal replay, and ambiguous payment reconciliation. The frontend uses injected EIP-1193 only and hard-blocks writes on the wrong chain or without a configured contract.
 
-Stop ship until GenVM Direct Mode, verified deployment source, finalized execution evidence, adversarial wallet flows, and payout transfer reconciliation are demonstrated on 61999.
+Remaining proof gates are live validator independence, deployment source parity, browser transaction finality, and network-level transfer/recovery semantics.

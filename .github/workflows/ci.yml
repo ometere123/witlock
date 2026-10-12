@@ -10,10 +10,9 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python -m pytest -q tests
       - run: python -m compileall -q contracts policy
-      - run: genvm-lint lint contracts/WitlockRegistry.py --json
-      - run: genvm-lint lint contracts/WitlockAgreement.py --json
-      - run: python scripts/genvm_lint.py check contracts/WitlockRegistry.py --json
-      - run: python scripts/genvm_lint.py check contracts/WitlockAgreement.py --json
+      - run: python scripts/genvm_lint.py lint contracts/Witlock.py --json
+      - run: python scripts/genvm_lint.py check contracts/Witlock.py --json
+      - run: python scripts/genvm_lint.py schema contracts/Witlock.py --json
   frontend:
     runs-on: ubuntu-latest
     steps:

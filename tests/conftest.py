@@ -13,7 +13,7 @@ from gltest.direct.vm import VMContext
 
 
 def _address(seed: str):
-    setup_sdk_paths(Path("contracts/WitlockRegistry.py"), "v0.2.16")
+    setup_sdk_paths(Path("contracts/Witlock.py"), "v0.2.16")
     from genlayer.py.types import Address
 
     return Address(hashlib.sha256(seed.encode()).digest()[:20])

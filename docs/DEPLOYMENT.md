@@ -1,10 +1,10 @@
 # StudioNet 61999 deployment protocol
 
-1. Install the lockfile and run the repository-local CLI through `npm run cli:version`; require `0.39.1`. The global CLI is not an acceptable substitute.
-2. Assert chain ID `61999`, chain hex `0xF22F`, and RPC `https://studio.genlayer.com/api` before any deployment command. Abort on mismatch.
-3. Run Python tests, Python compilation, GenVM lint and semantic validation, Direct Mode, frontend typecheck, and production build on the exact Git commit.
-4. Hash both contract files and retain the SHA-256 values with the commit SHA.
-5. Deploy the registry and then the agreement engine with the registry address as constructor input. Record submitted, accepted, finalized, and execution-success states separately.
-6. Read source and schema from `https://explorer-studio.genlayer.com` and compare them to the local hashes and ABI.
-7. Use distinct wallet identities for requester, provider, and issuer. Test wrong-network blocking, wallet rejection, unauthorized callers, replay, deadline, malformed consensus, and page-refresh recovery.
-8. Keep custody disabled. Do not solicit or accept GEN deposits, emit payouts, or claim recipient delivery until the transfer and recovery evidence in [CUSTODY_AND_RECOVERY.md](CUSTODY_AND_RECOVERY.md) exists.
+1. Use the repository-local GenLayer CLI `0.39.1`; never use a global release candidate.
+2. Assert StudioNet stable, chain `61999`, hex `0xF22F`, RPC `https://studio.genlayer.com/api`, and explorer `https://explorer-studio.genlayer.com`.
+3. Run the Python suite, compilation, `genvm-lint` lint/check/schema, frontend typecheck, preflight, and production build at the exact Git SHA.
+4. Hash `contracts/Witlock.py` and record the SHA-256, CLI version, network output, active account address, and source commit in a sanitized manifest. Do not record key material.
+5. Deploy only `contracts/Witlock.py` with the local CLI. Record submission, accepted, finalized, and execution-success states separately.
+6. Read deployed source and schema from the StudioNet explorer and compare them with local source and schema. A matching address alone is not source parity.
+7. Use distinct requester, provider, and issuer wallets for lifecycle proof. Keep funding and payout methods blocked while the custody gate is false.
+8. Preserve raw diagnostic output under `artifacts/live-61999/` locally; commit only sanitized evidence with no secrets.

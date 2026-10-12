@@ -2,16 +2,8 @@
 
 Status: **NOT RECORDED**.
 
-No StudioNet contract address, deployment hash, lifecycle transaction, validator receipt, browser wallet transcript, recipient transfer, or recovery result is asserted by this repository at this time. The absence of a proof record is intentional; fabricated hashes or screenshots would make the security posture worse.
+No StudioNet deployment address, deployment transaction, lifecycle receipt, validator receipt, browser wallet transcript, source-parity response, recipient transfer, or recovery result is asserted here. The repository records only results actually obtained; fabricated hashes and screenshots are prohibited.
 
-When a safe deployment is authorized and the required gates pass, record for each transaction:
+When deployment and live lifecycle execution are performed, add the exact Git SHA, contract address, source hash, CLI/network/account output, submission and finalization status, execution result, explorer links, method/schema parity, and each lifecycle transaction. Keep raw logs private under `artifacts/live-61999/` and commit only a sanitized manifest.
 
-1. submitted hash and exact Git commit;
-2. `ACCEPTED` status;
-3. `FINALIZED` status;
-4. successful execution result;
-5. parent and child transaction IDs, if any;
-6. explorer links and source hashes; and
-7. the resulting state read from the deployed contract.
-
-The economic section must remain marked unsupported until a real recipient-side transfer and ambiguous/failure recovery path have been proven.
+Until transfer and recovery evidence is added, custody remains disabled and no decision is described as a payment.

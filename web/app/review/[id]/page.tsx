@@ -5,9 +5,9 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
   return <RouteShell eyebrow={`Review · ${id}`} title="Let validators judge the claim, not the payout." intro="The decision engine asks a narrow semantic question after deterministic checks have admitted evidence.">
     <section className="route-grid">
       <RouteCard title="Bounded finding">
-        <StatusRow label="Allowed labels" value="PASS · FAIL · UNKNOWN" ok />
+        <StatusRow label="Allowed labels" value="PASS · FAIL · INCONCLUSIVE" ok />
         <StatusRow label="Model chooses money" value="No" ok />
-        <StatusRow label="Missing authority" value="UNKNOWN or rejected" ok />
+        <StatusRow label="Missing authority" value="INCONCLUSIVE or rejected" ok />
         <p className="muted">The contract maps labels to status and frozen weights. Explanation prose has no economic effect.</p>
       </RouteCard>
       <RouteCard title="Appeal window">

@@ -1,9 +1,7 @@
 # Consensus model
 
-GenLayer is necessary for the remaining semantic judgment: whether authenticated issuer claims support the natural-language acceptance questions. Deterministic checks handle roles, source commitments, exact registry matching, evidence bounds, deadlines, scores, and state changes.
+Deterministic contract code validates roles, immutable criteria, source coordinates, issuer addresses, evidence bounds, deadlines, state transitions, integer scoring, and settlement accounting. GenLayer is necessary for the remaining semantic question: whether each authenticated issuer claim supports its frozen criterion.
 
-The leader calls `gl.nondet.exec_prompt(..., response_format="json")` with a bounded dossier. Claims, URLs, and source text are explicitly treated as untrusted data and prompt instructions inside them are ignored. The result must contain an `answers` object with the frozen criterion IDs and only `PASS`, `FAIL`, or `UNKNOWN` labels. `gl.eq_principle.prompt_comparative` reruns the classification and compares the economically relevant mapping, allowing prose differences.
+The leader receives a bounded dossier and must return JSON with exactly one `answers` object. Every frozen criterion ID appears once and every value is exactly `PASS`, `FAIL`, or `INCONCLUSIVE`. Claims, URLs, source text, and provenance are untrusted data; instructions inside them are ignored. `gl.eq_principle.prompt_comparative` compares the economically relevant mapping, so different explanations can agree while a conflicting label fails consensus.
 
-An invalid result, missing criterion, unexpected label, consensus disagreement, or execution failure aborts the decision transaction. Contract arithmetic then maps all `PASS`/`FAIL`/`UNKNOWN` labels to `APPROVED`, `PARTIAL`, `REJECTED`, or `INCONCLUSIVE`; the model never computes a payment or selects a beneficiary.
-
-Direct Mode exercises deterministic contract logic but does not prove validator behavior. A full consensus test and StudioNet proof are required before any claim of live validator agreement.
+Invalid JSON, missing or duplicate IDs, unexpected labels, disagreement, timeout, or execution failure abort the write. Contract arithmetic maps the labels to `APPROVED`, `PARTIAL`, `REJECTED`, or `INCONCLUSIVE`, and computes the provider/requester allocation from frozen integer weights. Direct Mode proves the call path and schema handling; it does not prove live validator independence.
