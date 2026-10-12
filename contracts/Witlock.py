@@ -85,6 +85,13 @@ class Witlock(gl.Contract):
             )
         )
 
+    def _address_text(self, value) -> str:
+        if isinstance(value, str):
+            return value
+        if hasattr(value, "as_hex"):
+            return value.as_hex
+        return ""
+
     def _bounded(self, value: str, minimum: int, maximum: int) -> bool:
         return isinstance(value, str) and minimum <= len(value) <= maximum
 
@@ -311,6 +318,7 @@ class Witlock(gl.Contract):
     ) -> None:
         if not self._key(key, 64) or self.agreements.get(key, ""):
             self._reject("KEY_UNAVAILABLE")
+        provider = self._address_text(provider)
         if not self._address(provider):
             self._reject("PROVIDER_ADDRESS")
         if not self._digest(details_hash):
