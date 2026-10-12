@@ -1,18 +1,20 @@
 # Source parity
 
-`contracts/Witlock.py` is the only canonical deployable source. The current StudioNet address is `0x4D39aBdF8F574B44Ff178CBf974042a36D70c9A0`, deployed by `0x727050425edb3591f6438b6b4a88f2f7e8efcd160444f073062b9317e430b53f` from Git SHA `e57424aa97817469385add4a426943dd67ca1d19`.
+`contracts/Witlock.py` is the only canonical deployable source. The current source is Git SHA `96edcdbbd1025541b5d00d5b6d82ecd28b46ab55`, 60,059 bytes, SHA-256 `F9E08ADA6D39E083B681221B05489E3A45E18E9A96FE455B2E05F6ABFC82188`.
 
-The local source and `gen_getContractCode` response are both 45,334 bytes and hash to `E71CF73539EB4A552C5CE120C29227F5197E89CE288DF09E344D5B93F64E8A81`. The deployed schema exposes 37 methods and zero constructor parameters. `get_contract_info` reports `monolith-v2`, StudioNet, chain `61999`, and `custody_enabled=false`.
+There is no current deployed contract to compare. Fresh StudioNet deployment attempts `0xcb4b0a…c8514` and `0x4b94eb…2c159` finalized `NO_MAJORITY` with `consensus_data=null`; the network probe reports no consensus contracts deployed. Source parity therefore remains `NOT PROVEN` for the current source.
 
-Reproduce the comparison with:
+Once StudioNet consensus is available, reproduce the comparison with:
 
 ```powershell
 npm ci
 npm run cli:version
-python scripts/genvm_lint.py schema contracts/Witlock.py --json
-npx --no-install genlayer code 0x4D39aBdF8F574B44Ff178CBf974042a36D70c9A0 --rpc https://studio.genlayer.com/api > deployed.py
+python scripts/genvm_lint.py check contracts/Witlock.py --json
+genlayer deploy --contract contracts/Witlock.py --rpc https://studio.genlayer.com/api --wallet keystore
+genlayer code <fresh-contract-address> --rpc https://studio.genlayer.com/api > deployed.py
 Get-FileHash contracts/Witlock.py -Algorithm SHA256
 Get-FileHash deployed.py -Algorithm SHA256
+genlayer schema <fresh-contract-address> --rpc https://studio.genlayer.com/api
 ```
 
-The sanitized deployment record is [`artifacts/live-61999/manifest.json`](../artifacts/live-61999/manifest.json). The deployed source was normalized only for CLI output line endings and footer removal before comparison; the byte content matches the local source exactly.
+The old address `0x4D39aBdF8F574B44Ff178CBf974042a36D70c9A0` and its 45,334-byte source hash are historical artifacts from a superseded release. They must not be substituted for the current source parity check.

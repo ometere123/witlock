@@ -1,7 +1,7 @@
 # User guide
 
 1. Connect an injected EIP-1193 wallet and switch to GenLayer StudioNet `61999`.
-2. Configure `NEXT_PUBLIC_WITLOCK_CONTRACT` with the verified address in the live manifest. The frontend blocks writes without an injected provider, with a different account, or on another chain.
+2. Configure `NEXT_PUBLIC_WITLOCK_CONTRACT` only with a fresh address recorded after current-source parity is verified in the live manifest. The checked-in example is intentionally empty while StudioNet consensus is unavailable. The frontend blocks writes without an injected provider, with a different account, or on another chain.
 3. Create an agreement with a unique key, provider, details digest, ordered deadlines, and 1–4 criteria. Each criterion must nominate a distinct issuer and independent verifier. Funding and operator bond values must be zero while custody is disabled.
 4. The provider accepts before the acceptance deadline. A draft can expire after that deadline without value received.
 5. The nominated issuer publishes a case-scoped attestation containing the digest, source coordinate, immutable revision, retrieval method/time, claim, and provenance digest.

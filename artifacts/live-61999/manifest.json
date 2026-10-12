@@ -1,5 +1,6 @@
 {
   "project": "WITLOCK",
+  "status": "BLOCKED_EXTERNAL_NETWORK",
   "network": {
     "name": "GenLayer StudioNet stable",
     "chain_id": 61999,
@@ -10,81 +11,64 @@
     "genlayer_js": "1.1.8"
   },
   "source": {
-    "git_sha": "e57424aa97817469385add4a426943dd67ca1d19",
+    "git_sha": "96edcdbbd1025541b5d00d5b6d82ecd28b46ab55",
     "path": "contracts/Witlock.py",
-    "bytes": 45334,
-    "sha256": "E71CF73539EB4A552C5CE120C29227F5197E89CE288DF09E344D5B93F64E8A81",
-    "exact_deployed_match": true
+    "bytes": 60059,
+    "sha256": "F9E08ADA6D39E083B681221B05489E3A45E18E9A96FE455B2E05F6ABFC82188",
+    "exact_deployed_match": false
   },
-  "deployment": {
-    "deployer": "0x0d5540e0aD4B92Aa0ad4e5F1b8cD645ee1E363E7",
+  "deployment_attempts": [
+    {
+      "transaction": "0xcb4b0ab413314360f6a636df82add34218efdd06cc4f69223f5c8b44899c8514",
+      "source": "current runtime-safe hashing source",
+      "status": "FINALIZED",
+      "execution": "UNKNOWN",
+      "consensus_result": "NO_MAJORITY",
+      "consensus_data": null,
+      "contract": null
+    },
+    {
+      "transaction": "0x4b94eba2f3c6b2842a3851a9181bd98bb8af91996dad753aa2cf0db08a72c159",
+      "source": "pre-hashing-fix current source",
+      "status": "FINALIZED",
+      "execution": "UNKNOWN",
+      "consensus_result": "NO_MAJORITY",
+      "consensus_data": null,
+      "contract": null
+    },
+    {
+      "transaction": "0x12b6e36941ddcf9472b360138ffb85eb52418a6a153c2d8fc355a43186109bca",
+      "source": "exact superseded control source",
+      "status": "FINALIZED",
+      "execution": "UNKNOWN",
+      "consensus_result": "NO_MAJORITY",
+      "consensus_data": null,
+      "contract": null
+    }
+  ],
+  "network_probe": {
+    "command": "genlayer balances --rpc https://studio.genlayer.com/api",
+    "result": "no consensus contracts deployed"
+  },
+  "superseded_historical_contract": {
     "contract": "0x4D39aBdF8F574B44Ff178CBf974042a36D70c9A0",
-    "transaction": "0x727050425edb3591f6438b6b4a88f2f7e8efcd160444f073062b9317e430b53f",
-    "status": "FINALIZED",
-    "execution": "SUCCESS",
-    "consensus_result": "MAJORITY_AGREE",
-    "schema_methods": 37,
-    "schema_constructor_params": 0,
-    "source_parity": "VERIFIED"
+    "source_sha256": "E71CF73539EB4A552C5CE120C29227F5197E89CE288DF09E344D5B93F64E8A81",
+    "status": "NOT_CURRENT_SOURCE_PARITY"
   },
-  "readback": {
-    "contract_info": {
-      "name": "WITLOCK",
-      "version": "monolith-v2",
-      "network": "StudioNet",
-      "chain_id": 61999,
-      "custody_enabled": false,
-      "source_model": "issuer publication plus independent source verifier",
-      "appeal_model": "frozen grounds plus independent verifier authentication"
-    },
-    "live_case": "live-20261012-03",
-    "live_case_status": "FINAL_DECISION",
-    "live_case_result": "INCONCLUSIVE",
-    "live_appeal_status": "FINALIZED",
-    "live_decision_version": 2,
-    "live_settlement_status": "BLOCKED_INCONCLUSIVE",
-    "live_source_verified": true,
-    "live_evidence_authenticated": true,
-    "live_payment_attempt": 0,
-    "live_paid": 0,
-    "live_in_flight": 0,
-    "live_unresolved": 0,
-    "final_audit_revision": 12,
-    "final_audit_action": "FINAL_DECISION",
-    "final_audit_timestamp": 1791804918
+  "local_verification": {
+    "direct_mode_tests": 27,
+    "genvm_methods": 37,
+    "genvm_views": 13,
+    "genvm_writes": 24,
+    "constructor_params": 0,
+    "npm_audit_vulnerabilities": 0,
+    "browser_injected_provider": "DETECTED_ON_CHAIN_0xF22F",
+    "browser_signed_write": "NOT_RECORDED"
   },
-  "lifecycle": {
-    "actors": {
-      "requester": "0x0d5540e0aD4B92Aa0ad4e5F1b8cD645ee1E363E7",
-      "provider": "0xac3ac69dc0bde389256dd6748c75817ead9286d9",
-      "issuer": "0x951e6b75530774ff82321a5ae54e14f778f0c855",
-      "independent_verifier": "0xb845a69860ba4cdf19cfdc5afbaf2e20b6be86b0"
-    },
-    "transactions": [
-      {"method": "create_agreement", "hash": "0x88c18567a867a12fb861dce974179381b5155b3dc74308a6f0c7ba744a834314", "status": "FINALIZED", "execution": "SUCCESS"},
-      {"method": "accept_agreement", "hash": "0x6ced3d353a873de1061d74b442154259b0d6aeed2cfc91957ff804dc9ae67b8f", "status": "FINALIZED", "execution": "SUCCESS"},
-      {"method": "publish_attestation", "hash": "0xcb2ddf638e9ce341d0611d68fd57a6e396118ec0206a22e0a212a12f73eaa88b", "status": "FINALIZED", "execution": "SUCCESS"},
-      {"method": "verify_attestation_source", "hash": "0x7809d558d329b217b0900fed643e11ce13d8230894a1e13cd6a5905cf28eaa62", "status": "FINALIZED", "execution": "SUCCESS"},
-      {"method": "submit_evidence", "hash": "0xaa5a812c297e0c8f74c76a53e949d38d6e2cc100f725ab646e9bb18f4aebcdd8", "status": "FINALIZED", "execution": "SUCCESS"},
-      {"method": "authenticate_evidence", "hash": "0x56871a92cfaf6698ca6528a2d8c274d5126f03373ebcb0b42292dbd9000a8480", "status": "FINALIZED", "execution": "SUCCESS"},
-      {"method": "acknowledge_delivery", "hash": "0x673ea0af26838811bfb6cfedbbb062842417bfccbda0dc99a831038f6ce949ed", "status": "FINALIZED", "execution": "SUCCESS"},
-      {"method": "seal_agreement", "hash": "0x5bcc637ba0ce501ace3fe1e6da882d82f920ce75a5f885434387073bc95b5409", "status": "FINALIZED", "execution": "SUCCESS"},
-      {"method": "adjudicate", "hash": "0x6d44c66314b0095f80775cb6466767afc0c93131b971da2adf069344a28d92ec", "status": "FINALIZED", "execution": "SUCCESS"},
-      {"method": "open_appeal", "hash": "0x6d9439d5c4003342e15cbc5617766879a1532ec80afec5af080e771fc54de9c1", "status": "FINALIZED", "execution": "SUCCESS"},
-      {"method": "authenticate_appeal", "hash": "0x65e5361e4aa628bc2ef29d103492056b3817f965664ce83161868ae89cfbacb8", "status": "FINALIZED", "execution": "SUCCESS"},
-      {"method": "resolve_appeal", "hash": "0x66ca667361a5c31422f42e0cb2f887265a9ce1dbb63e1ad0217b46d7c6042aa7", "status": "FINALIZED", "execution": "SUCCESS"},
-      {"method": "finalize_decision", "hash": "0xb2d780791761e5fef0b18902eacb1898113a933c71ac328811183098a2b40f8d", "status": "FINALIZED", "execution": "ERROR", "note": "On-chain readback reached FINAL_DECISION and audit revision 12; receipt leader execution was ERROR and is not claimed as successful."}
-    ],
-    "proof_status": "STATE_FINALIZED_WITH_RECEIPT_LIMITATION"
-  },
-  "payment_and_recovery": {
-    "custody_enabled": false,
+  "custody": {
+    "enabled": false,
     "real_transfer_proof": "NOT_RECORDED",
     "recipient_delivery_proof": "NOT_RECORDED",
     "ambiguous_transfer_recovery": "NOT_RECORDED"
-  },
-  "browser": {
-    "injected_eip1193_build": "VERIFIED",
-    "live_browser_transaction": "NOT_RECORDED"
   }
 }

@@ -10,4 +10,4 @@ The frontend uses injected EIP-1193 only, checks account and chain before every 
 
 Native custody is disabled. No administrator transfer, hidden withdrawal, or fallback deposit path exists. A digest proves integrity, an issuer call proves publication, and an independent verifier call proves source-observation agreement; none proves human independence, legal authority, factual truth, or recipient payment.
 
-The final live state is recorded with a receipt limitation: `finalize_decision` reached a finalized transaction and final state readback, but its leader receipt reported execution error. Browser execution, recipient delivery, and transfer recovery remain unproven and are not presented as available.
+The current source has no live deployment claim. Fresh deployment attempts reached `FINALIZED` with `NO_MAJORITY` and no consensus data because the StudioNet probe reports no consensus contracts deployed. Browser signing, recipient delivery, transfer recovery, and live current-source lifecycle outcomes remain unproven and are not presented as available.

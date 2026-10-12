@@ -21,12 +21,11 @@ Native GEN custody is contained behind `custody_enabled() == False`. Non-zero fu
 
 ## Current StudioNet deployment
 
-- Contract: `0x4D39aBdF8F574B44Ff178CBf974042a36D70c9A0`
-- Deployment transaction: `0x727050425edb3591f6438b6b4a88f2f7e8efcd160444f073062b9317e430b53f`
-- Source Git SHA: `e57424aa97817469385add4a426943dd67ca1d19`
-- Source SHA-256: `E71CF73539EB4A552C5CE120C29227F5197E89CE288DF09E344D5B93F64E8A81`
-- Deployed schema: 37 methods, zero constructor parameters
-- Deployment and source-parity evidence: [docs/LIVE_PROOF.md](docs/LIVE_PROOF.md)
+No deployment of the current source is claimed yet. The repository is pinned to Git SHA `96edcdbbd1025541b5d00d5b6d82ecd28b46ab55`; `contracts/Witlock.py` is 60,059 bytes with SHA-256 `F9E08ADA6D39E083B681221B05489E3A45E18E9A96FE455B2E05F6ABFC82188`.
+
+Two fresh deployment attempts for the current source finalized as `NO_MAJORITY` with no consensus data, and an exact old-source control deployment produced the same zero-round result. The StudioNet balance probe currently reports that consensus contracts are unavailable. The old contract at `0x4D39aBdF8F574B44Ff178CBf974042a36D70c9A0` is superseded and must not be used as parity evidence for this source.
+
+The current environment example therefore leaves `NEXT_PUBLIC_WITLOCK_CONTRACT` empty until a fresh deployment returns `FINALIZED` with `FINISHED_WITH_RETURN`. See [docs/LIVE_PROOF.md](docs/LIVE_PROOF.md) and the sanitized [deployment manifest](artifacts/live-61999/manifest.json) for the exact evidence boundary.
 
 ## Local verification
 

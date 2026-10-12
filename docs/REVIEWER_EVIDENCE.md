@@ -1,27 +1,19 @@
 # Reviewer evidence
 
-## Verified
+## Proven locally
 
 - One canonical deployable source: `contracts/Witlock.py`, class `Witlock`.
 - Repository-local CLI `0.39.1`, `genlayer-js` `1.1.8`, StudioNet chain `61999`, and approved RPC.
-- `24 passed` Python/Direct Mode tests, compileall, GenVM lint/check/schema, `npm audit --audit-level=moderate`, frontend typecheck, and Next production build.
-- Deployment `0x727050425edb3591f6438b6b4a88f2f7e8efcd160444f073062b9317e430b53f` is `FINALIZED` with execution `SUCCESS` and `MAJORITY_AGREE`; contract is `0x4D39aBdF8F574B44Ff178CBf974042a36D70c9A0`.
-- Local/deployed source parity is exact at SHA-256 `E71CF73539EB4A552C5CE120C29227F5197E89CE288DF09E344D5B93F64E8A81`; deployed schema is 37 methods, zero constructor parameters.
-- Real StudioNet case `live-20261012-03` finalized create, accept, attestation publication, independent source verification, evidence submission/authentication, delivery acknowledgement, sealing, adjudication, structured appeal, appeal authentication, and appeal resolution transactions.
-- Live readback proves `FINAL_DECISION`, `appeal_status=FINALIZED`, decision version 2, source/evidence authentication, audit revision 12, and `BLOCKED_INCONCLUSIVE` zero-value settlement.
+- `27 passed` Python/Direct Mode tests, GenVM lint/check, frontend typecheck, frontend transaction tests, Next production build, StudioNet preflight, and `npm audit --audit-level=moderate` with 0 vulnerabilities.
+- The source-verification tests exercise actual mocked `gl.nondet.web.get` retrieval and fail closed on altered bytes, mutable branches, mismatched commit identity, and mutated appeal sources.
+- The frontend uses SDK `TransactionStatus.FINALIZED` and `ExecutionResult.FINISHED_WITH_RETURN`, retains failed finalized receipts, recovers multiple pending entries, and routes writes through guided role/state consoles.
 
-## Receipt limitation
+## Live boundary
 
-The finalization transaction is `FINALIZED` but its leader receipt reports `execution_result=ERROR` even though the consensus result is `MAJORITY_AGREE`. The contract state and final audit entry are visible on-chain, but this receipt is not counted as successful execution. The manifest and [LIVE_PROOF](LIVE_PROOF.md) preserve this limitation.
+No current contract address is claimed. Fresh deployments `0xcb4b0ab4…c8514` and `0x4b94eba2…2c159` finalized `NO_MAJORITY` with no consensus data, and the StudioNet balance probe reports no consensus contracts deployed. The superseded address `0x4D39aBdF8F574B44Ff178CBf974042a36D70c9A0` is not source parity evidence for the current source.
 
-## Unproven gates
+The Chrome profile exposes an injected EIP-1193 wallet on chain `0xf22f`, but no browser transaction is claimed because StudioNet has no current consensus layer and the environment example intentionally leaves the contract address empty.
 
-Native GEN custody, recipient-side delivery, ambiguous transfer recovery, and a live browser-wallet transaction remain unproven. Custody is disabled, so allocation fields are not presented as payments.
+Native GEN custody, recipient-side delivery, ambiguous-transfer recovery, current-source deployment, live source retrieval, live APPROVED/PARTIAL/REJECTED/INCONCLUSIVE cases, and successful current-source finalization remain `NOT PROVEN`.
 
-## Independent review
-
-Clone the exact Git SHA, install the lockfile and Python requirements, run every command in `docs/TEST_MATRIX.md`, inspect the generated schema, compare the deployed source hash with the manifest, and treat every absent or unsuccessful receipt as `NOT PROVEN`.
-
-## Submission summary
-
-WITLOCK is a proof-bound GenLayer StudioNet agreement monolith. It freezes weighted criteria, nominated issuers, independent source verifiers, immutable provenance, and deadlines; requires authenticated evidence before adjudication; and asks validators to agree on a bounded PASS/FAIL/INCONCLUSIVE mapping. Contract arithmetic owns outcomes and allocations, while append-only decisions and structured appeals preserve reviewability. Native custody remains disabled until StudioNet transfer and recovery behavior is proven.
+The sanitized record is [`artifacts/live-61999/manifest.json`](../artifacts/live-61999/manifest.json).
