@@ -19,11 +19,28 @@ Native GEN custody is contained behind `custody_enabled() == False`. Non-zero fu
 - `genlayer-js` `1.1.8`
 - Next.js App Router and injected EIP-1193 wallet
 
+## Frontend route map
+
+The frontend uses addressable workflow pages behind one shared navigation shell:
+
+- `/` — product entry point and route map
+- `/new` — guided zero-value agreement creation
+- `/explore` — exact-key agreement lookup
+- `/workspace` — role-aware case entry point
+- `/agreement/:id` — agreement state and party actions
+- `/evidence/:id` — publication, source verification, and evidence admission
+- `/review/:id` — sealing, adjudication, appeal, and decision history
+- `/settlement/:id` — allocation readback and custody boundary
+- `/activity` — persisted pending and finalized transaction receipts
+- `/verification` and `/guide` — deployment checks and protocol guidance
+
+Each workflow page reads the relevant finalized state and keeps invalid actions disabled for the connected actor or lifecycle state.
+
 ## Current StudioNet deployment
 
-No current-source deployment address exists. The contract source is pinned at Git SHA `56332feeabec917255ea3d8cb13b21198d27344d`; `contracts/Witlock.py` is 60,636 bytes with SHA-256 `144042E9A8B0C62A3F2E820A094A39ADAEE9463AEFD21352AD3B4102CFAF3D30`.
+No current-source deployment address exists. The contract source is pinned at Git SHA `14315fa82ef6d6f5e2c077de51c93f266801b1cb`; `contracts/Witlock.py` is 62,629 bytes with SHA-256 `AB446841A8A16276ED30A431264DEEC015E87751FF594AE92392ECFACB2F7F35`.
 
-The latest current-source deployment attempt `0x85a76d80…d257171` finalized with `NO_MAJORITY`, zero rounds, null consensus data, and no contract address. The prior current-source attempt `0xaf8744c3…bebde0` and earlier controls reached the same pre-consensus boundary. The StudioNet balance probe reports that consensus contracts are unavailable. The old contract at `0x4D39aBdF8F574B44Ff178CBf974042a36D70c9A0` is superseded and must not be used as parity evidence for this source.
+The latest current-source deployment attempt `0x20ef2080…c3d24` finalized with `NO_MAJORITY`, zero rounds, null consensus data, and no contract address. The lifecycle readback stored `Finalized` with `NoOp` and no decision ID. Earlier current-source attempts reached the same pre-consensus boundary. The StudioNet balance probe reports that consensus contracts are unavailable. The old contract at `0x4D39aBdF8F574B44Ff178CBf974042a36D70c9A0` is superseded and must not be used as parity evidence for this source.
 
 The current environment example therefore leaves `NEXT_PUBLIC_WITLOCK_CONTRACT` empty until a fresh deployment returns `FINALIZED` with `FINISHED_WITH_RETURN`. See [docs/LIVE_PROOF.md](docs/LIVE_PROOF.md) and the sanitized [deployment manifest](artifacts/live-61999/manifest.json) for the exact evidence boundary.
 

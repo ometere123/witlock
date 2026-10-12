@@ -11,16 +11,31 @@
     "genlayer_js": "1.1.8"
   },
   "source": {
-    "git_sha": "56332feeabec917255ea3d8cb13b21198d27344d",
+    "git_sha": "14315fa82ef6d6f5e2c077de51c93f266801b1cb",
     "path": "contracts/Witlock.py",
-    "bytes": 60636,
-    "sha256": "144042E9A8B0C62A3F2E820A094A39ADAEE9463AEFD21352AD3B4102CFAF3D30",
+    "bytes": 62629,
+    "sha256": "AB446841A8A16276ED30A431264DEEC015E87751FF594AE92392ECFACB2F7F35",
     "exact_deployed_match": false
   },
   "deployment_attempts": [
     {
+      "transaction": "0x20ef208035dd7c080fafc78759477335f575dda6962750eec7cc0de4539c3d24",
+      "source": "current bounded-dossier source",
+      "status": "FINALIZED",
+      "execution": "UNKNOWN",
+      "consensus_result": "NO_MAJORITY",
+      "consensus_data": null,
+      "contract": null,
+      "lifecycle": {
+        "stored_status": "Finalized",
+        "resolution_action": "NoOp",
+        "decision_id": null,
+        "decision_active": false
+      }
+    },
+    {
       "transaction": "0x85a76d80e00c0fa97d290cb71d98b36009c2131c98c53f09cc287c133d257171",
-      "source": "current source with response-body normalization",
+      "source": "prior current source with response-body normalization",
       "status": "FINALIZED",
       "execution": "UNKNOWN",
       "consensus_result": "NO_MAJORITY",
@@ -74,7 +89,7 @@
     "status": "NOT_CURRENT_SOURCE_PARITY"
   },
   "local_verification": {
-    "direct_mode_tests": 31,
+    "direct_mode_tests": 34,
     "genvm_methods": 37,
     "genvm_views": 13,
     "genvm_writes": 24,

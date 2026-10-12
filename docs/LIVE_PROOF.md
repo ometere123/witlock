@@ -2,13 +2,15 @@
 
 ## Current status
 
-A fresh StudioNet proof for the current source is **blocked by the network state**. The current source is Git SHA `56332feeabec917255ea3d8cb13b21198d27344d`; `contracts/Witlock.py` is 60,636 bytes and hashes to `144042E9A8B0C62A3F2E820A094A39ADAEE9463AEFD21352AD3B4102CFAF3D30`.
+A fresh StudioNet proof for the current source is **blocked by the network state**. The current source is Git SHA `14315fa82ef6d6f5e2c077de51c93f266801b1cb`; `contracts/Witlock.py` is 62,629 bytes and hashes to `AB446841A8A16276ED30A431264DEEC015E87751FF594AE92392ECFACB2F7F35`.
 
 The latest exact current-source deployment attempt was:
 
-- `0x85a76d80e00c0fa97d290cb71d98b36009c2131c98c53f09cc287c133d257171`: `FINALIZED`, `NO_MAJORITY`, zero rounds, `consensus_data=null`, no contract address. The receipt classified the result as `Undetermined`; the CLI could not identify a leader execution, and the advanced lifecycle RPC method is unavailable on StudioNet.
+- `0x20ef208035dd7c080fafc78759477335f575dda6962750eec7cc0de4539c3d24`: `FINALIZED`, `NO_MAJORITY`, zero rounds, `consensus_data=null`, no contract address. The receipt classified the result as `Undetermined`; the lifecycle readback returned stored status `Finalized`, resolution action `NoOp`, `decisionId=null`, and `decisionActive=false`. The underlying advanced lifecycle method first returned `Method not found`, after which the CLI fallback returned the stored lifecycle record.
 
-The preceding current-source deployment attempt was:
+The preceding current-source deployment attempts were:
+
+- `0x85a76d80e00c0fa97d290cb71d98b36009c2131c98c53f09cc287c133d257171`: `FINALIZED`, `NO_MAJORITY`, zero rounds, `consensus_data=null`, no contract address. The receipt classified the result as `Undetermined`; the CLI could not identify a leader execution.
 
 - `0xaf8744c306dec999ac3861c9da45af53f7f47e889dc08bc35797e9db28bebde0`: `FINALIZED`, `NO_MAJORITY`, zero rounds, `consensus_data=null`, no contract address. The CLI classified leader execution as `UNKNOWN`; the advanced lifecycle query returned `NoOp` and no decision ID, and `genlayer trace` was unavailable because the RPC returned `Method not found`.
 
@@ -23,7 +25,7 @@ The StudioNet balance probe reports that no consensus contracts are deployed. Be
 ## What is proven locally
 
 - GenVM lint/check: 37 methods, 13 views, 24 writes, zero constructor parameters.
-- Direct Mode suite: 31 tests passed, including actual mocked `gl.nondet.web.get` retrieval, immutable GitHub commit validation, altered-byte rejection, mutable-branch rejection, appeal-source mutation rejection, dossier budget enforcement, and idempotent finalization.
+- Direct Mode suite: 34 tests passed, including actual mocked `gl.nondet.web.get` retrieval, immutable GitHub commit validation, altered-byte rejection during verification and adjudication, mutable-branch rejection, appeal-source mutation rejection, reachable maximum dossier bounds, correlated-role rejection, and idempotent finalization.
 - Frontend typecheck, transaction tests, production build, dependency audit, and StudioNet preflight pass.
 - The Chrome browser profile exposes an injected EIP-1193 wallet and reports chain `0xf22f`; no browser transaction is claimed because no current contract is configured and StudioNet has no consensus contracts available.
 - Custody remains disabled in the contract and environment configuration.

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import CaseLookup from '@/app/_components/CaseLookup';
 import { RouteCard, RouteShell, StatusRow } from '@/app/_components/RouteShell';
 
 export default function ExplorePage() {
@@ -6,15 +7,16 @@ export default function ExplorePage() {
     <section className="route-grid">
       <RouteCard title="Configured deployment">
         <StatusRow label="Network" value="StudioNet · 61999" ok />
-        <StatusRow label="Agreement address" value="Configured in environment" />
+        <StatusRow label="Agreement address" value="Read from current contract" />
         <StatusRow label="Canonical monolith" value="One contract owns attestations and decisions" ok />
-        <p className="muted small-copy">Use the interactive explorer on the home route after verified addresses are supplied.</p>
-        <Link className="button" href="/#workspace">Open case explorer</Link>
+        <p className="muted small-copy">The contract has no enumeration endpoint, so discovery uses an exact case key supplied by the user.</p>
+        <Link className="button" href="/new">Create an agreement</Link>
       </RouteCard>
       <RouteCard title="What appears here">
         <p className="muted">Cases are discoverable only through live contract reads. Each record includes its frozen parties, deadlines, current state, decision history, and separate transaction references.</p>
         <p className="muted">A pending, failed, or unconfigured read stays visible as pending, failed, or unconfigured.</p>
       </RouteCard>
     </section>
+    <CaseLookup title="Inspect an agreement" />
   </RouteShell>;
 }

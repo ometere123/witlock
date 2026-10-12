@@ -108,6 +108,12 @@ export default function CaseConsole({ caseId, surface }: CaseConsoleProps) {
     } catch (error) { setMessage((error as Error).message); }
   }
 
+  function disconnect() {
+    setAccount('');
+    setChain('');
+    setMessage('Wallet disconnected from this interface.');
+  }
+
   useEffect(() => {
     void refresh();
     const injected = provider();
@@ -164,7 +170,7 @@ export default function CaseConsole({ caseId, surface }: CaseConsoleProps) {
   const action = (label: string, method: string, args: unknown[]) => <button className="button" disabled={busy || !account || !isTargetChain(chain)} onClick={() => void run(method, args)}>{label}</button>;
 
   return <div className="case-console">
-    <div className="line"><span className="mono">LIVE CASE · {caseId}</span><div className="row"><span className="mono">{account ? account.slice(0, 10) + '…' : 'WALLET DISCONNECTED'}</span><button className="button alt" onClick={() => void wallet()}><Wallet size={14} /> Connect</button><button className="button alt" onClick={() => void refresh()} disabled={busy}><RefreshCw size={14} /> Refresh</button></div></div>
+    <div className="line"><span className="mono">LIVE CASE · {caseId}</span><div className="row"><span className="mono">{account ? account.slice(0, 10) + '…' : 'WALLET DISCONNECTED'}</span><button className="button alt" onClick={() => void wallet()}><Wallet size={14} /> Connect</button>{account && <button className="button alt" onClick={disconnect}>Disconnect</button>}<button className="button alt" onClick={() => void refresh()} disabled={busy}><RefreshCw size={14} /> Refresh</button></div></div>
     {chain && !isTargetChain(chain) && <div className="warning">Writes are blocked on wallet chain {chain}. Switch to StudioNet {CHAIN_ID}.</div>}
       {surface === 'agreement' && <section className="route-grid">
       {card('Frozen agreement', <>{state ? <pre className="code">{JSON.stringify(state, null, 2)}</pre> : <p className="muted">No on-chain case was returned for this key.</p>}{status === 'DRAFT' && isProvider && action('Accept as provider', 'accept_agreement', [caseId])}{status === 'ACTIVE' && isRequester && action('Acknowledge delivery', 'acknowledge_delivery', [caseId])}{['ACTIVE', 'DELIVERED'].includes(status) && isParty && <div className="field"><label>Dispute reason digest</label><input value={fields.reason_hash || ''} onChange={(event) => change('reason_hash', event.target.value)} placeholder="64 lowercase hex characters" />{action('Open dispute', 'open_dispute', [caseId, fields.reason_hash || ''])}</div>}</>)}

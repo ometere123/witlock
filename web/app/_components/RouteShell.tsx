@@ -14,15 +14,6 @@ export function RouteShell({
 }) {
   return (
     <main className="wrap route-page">
-      <header className="nav">
-        <Link href="/" className="logo">WIT<span>LOCK</span></Link>
-        <nav className="route-nav" aria-label="Primary">
-          <Link href="/explore">Explore</Link>
-          <Link href="/workspace">Workspace</Link>
-          <Link href="/verification">Verification</Link>
-          <Link href="/guide">Guide</Link>
-        </nav>
-      </header>
       <section className="route-hero">
         <Link href="/" className="back-link"><ArrowLeft size={15} /> Home</Link>
         <div className="label">{eyebrow}</div>
@@ -30,7 +21,6 @@ export function RouteShell({
         <p className="muted route-intro">{intro}</p>
       </section>
       {children}
-      <footer className="footer"><Link href="/">WITLOCK</Link> · provenance before economic finality</footer>
     </main>
   );
 }

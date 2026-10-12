@@ -1,148 +1,46 @@
-'use client';
+import { ArrowRight, FileCheck, Lock, Scale, ShieldCheck } from 'lucide-react';
+import Link from 'next/link';
 
-import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, FileCheck, Lock, Plus, Search, ShieldCheck, Wallet } from 'lucide-react';
-import { CHAIN_HEX, CHAIN_ID, CONTRACT, EXPLORER, RPC, isTargetChain, provider, readClient, switchNetwork } from '@/lib/network';
-import { readPendingTransactions, recoverPendingTransactions, submitWrite, TransactionExecutionError, type FinalizedTransaction, type PendingTransaction } from '@/lib/transactions';
-
-type Tab = 'overview' | 'create' | 'inspect' | 'actions' | 'verification';
-type Criterion = { id: string; question: string; weight: number; critical: boolean; issuer: string; verifier: string };
-
-function short(value: string): string {
-  return value.length > 18 ? `${value.slice(0, 10)}…${value.slice(-6)}` : value;
-}
+const routes = [
+  { href: '/new', number: '01', title: 'Create an agreement', copy: 'Freeze parties, criteria, independent verifiers, commitments, and deadlines before work begins.', icon: Lock },
+  { href: '/explore', number: '02', title: 'Explore a case', copy: 'Open an exact case key and read agreement, decision, evidence, and settlement state from chain.', icon: FileCheck },
+  { href: '/workspace', number: '03', title: 'Run the workflow', copy: 'Move through acceptance, evidence, dispute, sealing, adjudication, appeal, and history by role.', icon: Scale },
+  { href: '/verification', number: '04', title: 'Verify the network', copy: 'Check the approved StudioNet endpoint, current-source contract binding, custody flag, and wallet chain.', icon: ShieldCheck },
+];
 
 export default function Home() {
-  const [tab, setTab] = useState<Tab>('overview');
-  const [account, setAccount] = useState('');
-  const [chain, setChain] = useState('');
-  const [msg, setMsg] = useState('');
-  const [result, setResult] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [receipt, setReceipt] = useState<FinalizedTransaction | null>(null);
-  const [pending, setPending] = useState<PendingTransaction[]>([]);
-  const [caseId, setCaseId] = useState('');
-  const [operator, setOperator] = useState('');
-  const [commitment, setCommitment] = useState('');
-  const [lookup, setLookup] = useState('');
-  const [acceptDeadline, setAcceptDeadline] = useState(() => Math.floor(Date.now() / 1000) + 86400);
-  const [deliveryDeadline, setDeliveryDeadline] = useState(() => Math.floor(Date.now() / 1000) + 604800);
-  const [appealDeadline, setAppealDeadline] = useState(() => Math.floor(Date.now() / 1000) + 691200);
-  const [criteria, setCriteria] = useState<Criterion[]>([
-    { id: 'source', question: 'Does the independently verified source support the frozen acceptance criterion?', weight: 100, critical: true, issuer: '', verifier: '' },
-  ]);
+  return <main className="wrap landing-page">
+    <section className="hero landing-hero">
+      <div>
+        <div className="label">THE PROOF-BOUND AGREEMENT PROTOCOL</div>
+        <h1>WORK DESERVES <span className="accent">PROOF.</span><br />PAYMENT DESERVES CERTAINTY.</h1>
+        <p className="muted">WITLOCK freezes agreements, verifies external evidence, and records bounded decisions on GenLayer StudioNet. Open a route for the job you need; every case surface reads the actual state before presenting the next action.</p>
+        <div className="row landing-actions"><Link className="button" href="/new">Create an agreement <ArrowRight size={16} /></Link><Link className="button alt" href="/explore">Explore a case</Link></div>
+        <p className="mono muted">STUDIONET · 61999 · ZERO-VALUE AGREEMENTS · CUSTODY DISABLED</p>
+      </div>
+      <aside className="panel landing-proof">
+        <div className="line"><span className="label">WITLOCK ROUTES</span><span className="label">READ THE STATE</span></div>
+        <h2>One case, several accountable surfaces.</h2>
+        <p className="muted">Creation, evidence, review, settlement, verification, and receipt recovery each have their own addressable page.</p>
+        <div className="line"><span className="mono">01 / Frozen agreement</span><ShieldCheck color="#dbf895" size={18} /></div>
+        <div className="line"><span className="mono">02 / Source authority</span><ShieldCheck color="#dbf895" size={18} /></div>
+        <div className="line"><span className="mono">03 / Consensus decision</span><ShieldCheck color="#dbf895" size={18} /></div>
+        <div className="line"><span className="mono">04 / Finalized receipt</span><ShieldCheck color="#ef968f" size={18} /></div>
+      </aside>
+    </section>
 
-  const wrongNetwork = !!chain && !isTargetChain(chain);
-  const ready = !!account && !wrongNetwork && /^0x[a-f\d]{40}$/i.test(CONTRACT);
-  const totalWeight = useMemo(() => criteria.reduce((sum, item) => sum + Number(item.weight), 0), [criteria]);
+    <section className="section landing-routes" aria-labelledby="routes-heading">
+      <div className="label">THE WITLOCK ROUTE MAP</div>
+      <h2 id="routes-heading">Choose the surface for the work.</h2>
+      <div className="route-grid route-map-grid">{routes.map(({ href, number, title, copy, icon: Icon }) => <Link className="card route-link-card" href={href} key={href}><div className="line"><span className="mono accent">{number}</span><Icon color="#dbf895" size={20} /></div><h3>{title}</h3><p className="muted">{copy}</p><span className="route-arrow">Open route <ArrowRight size={14} /></span></Link>)}</div>
+    </section>
 
-  async function refresh() {
-    const injected = provider();
-    if (!injected) return;
-    try {
-      const accounts = (await injected.request({ method: 'eth_accounts' })) as string[];
-      setAccount(accounts[0] || '');
-      setChain(String(await injected.request({ method: 'eth_chainId' })));
-    } catch {
-      setAccount('');
-      setChain('');
-    }
-  }
-
-  useEffect(() => {
-    const injected = provider();
-    if (!injected) return;
-    void refresh();
-    setPending(readPendingTransactions());
-    const onAccount = () => { setReceipt(null); setMsg('Wallet account changed; verify the actor before the next action.'); void refresh(); };
-    const onChain = () => { setReceipt(null); setMsg('Wallet network changed; only StudioNet 61999 writes are allowed.'); void refresh(); };
-    injected.on?.('accountsChanged', onAccount);
-    injected.on?.('chainChanged', onChain);
-    return () => {
-      injected.removeListener?.('accountsChanged', onAccount);
-      injected.removeListener?.('chainChanged', onChain);
-    };
-  }, []);
-
-  async function connect() {
-    const injected = provider();
-    if (!injected) { setMsg('Install an injected EIP-1193 wallet.'); return; }
-    try { await injected.request({ method: 'eth_requestAccounts' }); await refresh(); setMsg('Wallet connected. Confirm the actor and network before signing.'); }
-    catch (error) { setMsg((error as Error).message); }
-  }
-
-  async function fixNetwork() {
-    const injected = provider();
-    if (!injected) { setMsg('Install an injected EIP-1193 wallet.'); return; }
-    try { await switchNetwork(injected); await refresh(); }
-    catch (error) { setMsg((error as Error).message); }
-  }
-
-  async function write(method: string, args: unknown[]) {
-    if (!ready) throw new Error('Connect an injected wallet on StudioNet 61999 with the verified contract configured.');
-    setBusy(true); setMsg(`Submitting ${method}; waiting for FINALIZED and execution FINISHED_WITH_RETURN…`); setReceipt(null);
-    try {
-      const finalized = await submitWrite(account, method, args);
-      setReceipt(finalized); setPending(readPendingTransactions()); setMsg(`${method} finalized with successful GenVM execution.`);
-      return finalized;
-    } catch (error) {
-      if (error instanceof TransactionExecutionError) {
-        setReceipt(error.transaction);
-        setPending(readPendingTransactions());
-        setMsg(`The transaction finalized, but GenVM execution was ${error.transaction.execution || 'undetermined'}. Inspect the saved receipt before retrying.`);
-      }
-      throw error;
-    } finally { setBusy(false); }
-  }
-
-  async function createCase() {
-    try {
-      if (!/^[a-zA-Z0-9_-]{1,64}$/.test(caseId)) throw new Error('Case ID may contain only letters, numbers, underscores, or hyphens.');
-      if (!/^0x[a-f\d]{40}$/i.test(operator) || operator.toLowerCase() === account.toLowerCase()) throw new Error('Provider must be a distinct wallet.');
-      if (!/^[a-f\d]{64}$/.test(commitment)) throw new Error('Use a 64-character lowercase agreement SHA-256 commitment.');
-      if (totalWeight !== 100) throw new Error('Criterion weights must total 100.');
-      for (const criterion of criteria) {
-        if (!/^[a-zA-Z0-9_-]{1,20}$/.test(criterion.id) || criterion.question.length < 20 || criterion.question.length > 400) throw new Error('Each criterion needs a bounded ID and question.');
-        if (!/^0x[a-f\d]{40}$/i.test(criterion.issuer) || !/^0x[a-f\d]{40}$/i.test(criterion.verifier)) throw new Error('Each criterion needs issuer and verifier wallets.');
-        if ([account.toLowerCase(), operator.toLowerCase()].includes(criterion.issuer.toLowerCase()) || [account.toLowerCase(), operator.toLowerCase(), criterion.issuer.toLowerCase()].includes(criterion.verifier.toLowerCase())) throw new Error('Issuer and verifier must be independent of the parties and each other.');
-      }
-      await write('create_agreement', [caseId, operator, JSON.stringify({ tasks: criteria }), commitment, BigInt(acceptDeadline), BigInt(deliveryDeadline), BigInt(appealDeadline), 0n, 0n]);
-    } catch (error) { setMsg((error as Error).message); setBusy(false); }
-  }
-
-  async function inspect() {
-    if (!CONTRACT || !lookup) return;
-    setBusy(true); setMsg('Reading finalized chain state…');
-    try {
-      const value = await readClient().readContract({ address: CONTRACT as `0x${string}`, functionName: 'get_agreement', args: [lookup] });
-      const text = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
-      setResult(text || 'No agreement record.');
-      setMsg('Read completed from StudioNet.');
-    } catch (error) { setMsg((error as Error).message); }
-    finally { setBusy(false); }
-  }
-
-
-  async function recover() {
-    setBusy(true); setMsg('Recovering the persisted transaction and waiting for finality…');
-    try { const recovered = await recoverPendingTransactions(); if (recovered.length) { setReceipt(recovered[recovered.length - 1]); setPending(readPendingTransactions()); setMsg(`${recovered.length} persisted transaction receipt(s) recovered.`); } else setMsg('No pending transaction found.'); }
-    catch (error) { setMsg((error as Error).message); }
-    finally { setBusy(false); }
-  }
-
-  function changeCriterion(index: number, patch: Partial<Criterion>) { setCriteria((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item)); }
-
-  return <main className="wrap">
-    <header className="nav"><a href="#" className="logo">WIT<span>LOCK</span></a><div className="row"><span className="mono">{wrongNetwork ? 'WRONG NETWORK' : 'STUDIONET · 61999'}</span><button className="button alt" onClick={wrongNetwork ? fixNetwork : connect}><Wallet size={15}/>{wrongNetwork ? 'Switch network' : account ? short(account) : 'Connect wallet'}</button></div></header>
-    <section className="hero"><div><div className="label">THE PROOF-BOUND AGREEMENT PROTOCOL</div><h1>WORK DESERVES <span className="accent">PROOF.</span> PAYMENT DESERVES CERTAINTY.</h1><p className="muted">Clear commitments, independently verified sources, and bounded decisions. No settlement claim is presented as a payment while custody is disabled.</p><div className="row"><button className="button" onClick={() => { setTab('create'); document.getElementById('workspace')?.scrollIntoView({ behavior: 'smooth' }); }}>Build agreement <ArrowRight size={16}/></button><button className="button alt" onClick={() => { setTab('verification'); document.getElementById('workspace')?.scrollIntoView({ behavior: 'smooth' }); }}>Verify network</button></div><p className="mono muted">CANONICAL MONOLITH · CUSTODY DISABLED</p></div><div className="panel"><div className="line"><span className="label">EVIDENCE AUTHORITY</span><span className="label">VERIFY FIRST</span></div><h3>Proof beyond appearance.</h3><p className="muted">A digest, URL, issuer assertion, or finalized transaction is not external truth by itself.</p>{[['01','Source integrity'],['02','Issuer authority'],['03','Consensus classification'],['04','Recipient-side finality']].map(([n, title]) => <div className="line" key={n}><span className="mono">{n} / {title}</span><ShieldCheck color={n === '04' ? '#ef968f' : '#dbf895'} size={18}/></div>)}</div></section>
-    <section className="section"><div className="label">THE WITLOCK METHOD</div><h2>Trust is a process.</h2><div className="grid"><div className="card"><Lock color="#dbf895"/><h3>Freeze the agreement</h3><p className="muted">Bounded criteria, parties, issuers, verifiers, and deadlines.</p></div><div className="card"><FileCheck color="#dbf895"/><h3>Verify the source</h3><p className="muted">An independent verifier retrieves an immutable GitHub commit before issuer evidence can enter the dossier.</p></div><div className="card"><ShieldCheck color="#dbf895"/><h3>Respect finality</h3><p className="muted">Every write waits for FINALIZED and execution FINISHED_WITH_RETURN, with a persistent recovery path.</p></div></div></section>
-    <section className="section" id="workspace"><div className="label">PROTOCOL WORKSPACE</div><h2>The agreement desk.</h2><div className="workspace"><nav className="panel side">{([['overview','Overview'],['create','New agreement'],['inspect','Case explorer'],['actions','Lifecycle actions'],['verification','Verification']] as const).map(([key, title]) => <button key={key} className={tab === key ? 'selected' : ''} onClick={() => { setTab(key); setMsg(''); }}>{title}</button>)}</nav><div className="panel">
-      {tab === 'overview' && <><h3>System status</h3><p className="muted">This client writes only through the injected EIP-1193 wallet and refuses writes on any network other than StudioNet 61999.</p><div className="line"><span>Chain ID</span><strong>{CHAIN_ID}</strong></div><div className="line"><span>Custody</span><strong style={{ color: '#ef968f' }}>DISABLED</strong></div><div className="line"><span>Contract</span><strong className="mono">{CONTRACT || 'NOT CONFIGURED'}</strong></div><div className="line"><span>Wallet</span><strong className="mono">{account || 'NOT CONNECTED'}</strong></div><div className="line"><span>Provider network</span><strong className="mono">{chain || 'UNKNOWN'}</strong></div>{pending.length > 0 && <div className="warning">{pending.length} pending transaction{pending.length === 1 ? '' : 's'} persisted locally: {pending.map((item) => short(item.hash)).join(', ')}. <button className="button alt" onClick={recover} disabled={busy}>Recover receipts</button></div>}</>}
-      {tab === 'create' && <><h3>Create agreement</h3><p className="muted">Zero-value creation freezes the parties, independent source verifiers, criteria, and deadlines. Funding and bonds remain unavailable while custody is disabled.</p><div className="field"><label>Case ID</label><input value={caseId} onChange={(event) => setCaseId(event.target.value)} placeholder="WL-2026-001"/></div><div className="field"><label>Provider wallet</label><input value={operator} onChange={(event) => setOperator(event.target.value)} placeholder="0x..."/></div><div className="field"><label>Agreement SHA-256 commitment</label><input value={commitment} onChange={(event) => setCommitment(event.target.value)} placeholder="64 lowercase hex characters"/></div><div className="grid"><div className="field"><label>Accept deadline · Unix seconds</label><input type="number" value={acceptDeadline} onChange={(event) => setAcceptDeadline(Number(event.target.value))}/></div><div className="field"><label>Delivery deadline · Unix seconds</label><input type="number" value={deliveryDeadline} onChange={(event) => setDeliveryDeadline(Number(event.target.value))}/></div><div className="field"><label>Appeal deadline · Unix seconds</label><input type="number" value={appealDeadline} onChange={(event) => setAppealDeadline(Number(event.target.value))}/></div></div><div className="line"><h3>Criteria · {totalWeight} / 100</h3><button className="button alt" disabled={criteria.length >= 4} onClick={() => setCriteria((current) => [...current, { id: '', question: '', weight: 0, critical: false, issuer: '', verifier: '' }])}><Plus size={14}/> Add</button></div>{criteria.map((criterion, index) => <div className="card" key={`${criterion.id}-${index}`} style={{ margin: '15px 0' }}><div className="line"><span>CRITERION {index + 1}</span><button className="button alt" onClick={() => setCriteria((current) => current.filter((_, itemIndex) => itemIndex !== index))}>Remove</button></div><div className="field"><label>ID</label><input value={criterion.id} onChange={(event) => changeCriterion(index, { id: event.target.value })}/></div><div className="field"><label>Question</label><textarea value={criterion.question} onChange={(event) => changeCriterion(index, { question: event.target.value })}/></div><div className="grid"><div className="field"><label>Weight</label><input type="number" min="1" max="100" value={criterion.weight} onChange={(event) => changeCriterion(index, { weight: Number(event.target.value) })}/></div><div className="field"><label>Nominated issuer</label><input value={criterion.issuer} onChange={(event) => changeCriterion(index, { issuer: event.target.value })} placeholder="0x..."/></div><div className="field"><label>Independent verifier</label><input value={criterion.verifier} onChange={(event) => changeCriterion(index, { verifier: event.target.value })} placeholder="0x..."/></div></div><label><input type="checkbox" checked={criterion.critical} onChange={(event) => changeCriterion(index, { critical: event.target.checked })}/> Critical criterion</label></div>)}<p><button className="button" disabled={!ready || busy} onClick={createCase}>Submit agreement</button></p></>}
-      {tab === 'inspect' && <><h3>Case explorer</h3><p className="muted">Reads are read-only. Use the lifecycle action desk for wallet writes and inspect each finalized transaction below.</p><div className="field"><label>Case ID</label><input value={lookup} onChange={(event) => setLookup(event.target.value)} placeholder="WL-2026-001"/></div><button className="button" disabled={!lookup || busy} onClick={inspect}><Search size={14}/> Read case state</button><pre className="code">{result || 'No case queried'}</pre></>}
-      {tab === 'actions' && <><h3>Guided case workflow</h3><p className="muted">Choose a case to open the state-aware console. It presents only the role and lifecycle actions relevant to each route, while every write remains wallet/network guarded and is accepted only after FINALIZED plus execution FINISHED_WITH_RETURN.</p><div className="field"><label>Case ID</label><input value={lookup} onChange={(event) => setLookup(event.target.value)} placeholder="WL-2026-001"/></div><div className="grid"><a className="button" href={lookup ? `/agreement/${encodeURIComponent(lookup)}` : '#'} aria-disabled={!lookup}>Agreement state</a><a className="button" href={lookup ? `/evidence/${encodeURIComponent(lookup)}` : '#'} aria-disabled={!lookup}>Evidence admission</a><a className="button" href={lookup ? `/review/${encodeURIComponent(lookup)}` : '#'} aria-disabled={!lookup}>Review and appeal</a><a className="button" href={lookup ? `/settlement/${encodeURIComponent(lookup)}` : '#'} aria-disabled={!lookup}>Settlement readback</a></div><p className="muted small-copy">Payment actions remain visibly disabled because native custody is disabled. The console reads finalized agreement, evidence, decision, history, settlement, and accounting state before showing next actions.</p></>}
-      {tab === 'verification' && <><h3>Verification checklist</h3>{[['Chain', String(CHAIN_ID)], ['RPC', RPC], ['Wallet network', chain || 'INCONCLUSIVE'], ['Contract', CONTRACT || 'NONE'], ['Custody', 'DISABLED'], ['Source parity', 'See deployment manifest'], ['Finalized execution', 'Required for every write'], ['Recipient receipt', 'NOT VERIFIED — payment disabled']].map(([key, value]) => <div className="line" key={key}><span>{key}</span><span className="mono">{value}</span></div>)}<p><a className="button alt" href={EXPLORER} target="_blank" rel="noreferrer">StudioNet explorer ↗</a></p></>}
-      {msg && <p className="notice">{msg}</p>}{receipt && <div className="success"><strong>{receipt.method || 'Transaction'} · {receipt.status} · {receipt.execution}</strong><br/><a href={receipt.explorer} target="_blank" rel="noreferrer">View finalized transaction ↗</a></div>}
-    </div></div></section>
+    <section className="section landing-notes">
+      <div className="grid">
+        <article className="card"><div className="label">WHAT IS FROZEN</div><h3>Terms and provenance</h3><p className="muted">The canonical contract owns agreement state, issuer attestations, source observations, decisions, appeal history, and deterministic allocation calculations.</p></article>
+        <article className="card"><div className="label">WHAT IS READ</div><h3>Finalized chain state</h3><p className="muted">Empty, unavailable, or failed reads stay visible as those states. The interface does not insert sample cases or demo transactions.</p></article>
+        <article className="card"><div className="label">WHAT STAYS CLOSED</div><h3>Native custody</h3><p className="muted">WITLOCK reports decisions and allocations while payment custody remains disabled. No route claims that an allocation delivered GEN.</p></article>
+      </div>
+    </section>
   </main>;
 }

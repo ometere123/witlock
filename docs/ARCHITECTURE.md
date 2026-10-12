@@ -2,7 +2,7 @@
 
 `contracts/Witlock.py` is the only deployable source and its class is `Witlock(gl.Contract)`. It owns agreement creation, frozen criteria, issuer/verifier authority, attestation and evidence bindings, GenLayer adjudication, appeals, audit history, and settlement accounting.
 
-Creation freezes the requester, provider, 1–4 weighted criteria, external issuer and independent verifier wallets, details digest, and ordered deadlines. The nominated issuer publishes a case-scoped attestation. The independent verifier separately verifies the source digest and provenance. A party binds the attestation to the case and the issuer authenticates the exact digest. This proves wallet transactions and frozen commitments while leaving factual truth to bounded GenLayer judgment.
+Creation freezes the requester, provider, 1–2 weighted criteria, external issuer and independent verifier wallets, details digest, and ordered deadlines. The nominated issuer publishes a case-scoped attestation. The independent verifier separately verifies the source digest and provenance. A party binds the attestation to the case and the issuer authenticates the exact digest. This proves wallet transactions and frozen commitments while leaving factual truth to bounded GenLayer judgment.
 
 Evidence remains admissible through `ACTIVE`, `DELIVERED`, and `REVIEW` before the delivery deadline, so requester acknowledgement or an open dispute cannot lock the provider out of the evidence path. Sealing requires all criteria to be source-verified and issuer-authenticated.
 
