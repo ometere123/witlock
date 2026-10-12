@@ -5,6 +5,7 @@ node_modules/
 __pycache__/
 .pytest_cache/
 *.pyc
+*.tsbuildinfo
 .artifacts/
 artifacts/live-61999/*
 !artifacts/live-61999/

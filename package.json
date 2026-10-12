@@ -1,1 +1,28 @@
-{"name":"witlock-workspace","private":true,"version":"0.1.0","workspaces":["web"],"scripts":{"cli:version":"genlayer --version","preflight":"node scripts/preflight.mjs","test":"python -m pytest -q tests","contracts:lint":"python scripts/genvm_lint.py lint contracts/Witlock.py --json","contracts:check":"python scripts/genvm_lint.py check contracts/Witlock.py --json","web:dev":"npm --workspace web run dev","web:typecheck":"npm --workspace web run typecheck","web:build":"npm --workspace web run build"},"devDependencies":{"genlayer":"0.39.1"}}
+{
+  "name": "witlock-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "web"
+  ],
+  "scripts": {
+    "cli:version": "genlayer --version",
+    "preflight": "node scripts/preflight.mjs",
+    "test": "python -m pytest -q tests",
+    "contracts:lint": "python scripts/genvm_lint.py lint contracts/Witlock.py --json",
+    "contracts:check": "python scripts/genvm_lint.py check contracts/Witlock.py --json",
+    "web:dev": "npm --workspace web run dev",
+    "web:typecheck": "npm --workspace web run typecheck",
+    "web:build": "npm --workspace web run build"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "genlayer": "0.39.1"
+  },
+  "overrides": {
+    "vitest": "4.1.11",
+    "@vitest/mocker": "4.1.11",
+    "tinypool": "2.1.2",
+    "uuid": "11.1.1"
+  }
+}

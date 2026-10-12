@@ -1,40 +1,197 @@
 'use client';
-import {useState,useEffect} from 'react';
-import {ArrowRight,ShieldCheck,FileCheck,Scale,Lock,AlertTriangle,Plus,Search} from 'lucide-react';
-import {CHAIN_HEX,CHAIN_ID,RPC,EXPLORER,CONTRACT,provider,readClient,switchNetwork,writeClient} from '@/lib/network';
-type Criterion={id:string;question:string;weight:number;critical:boolean;issuer:string};
-type Tab='overview'|'create'|'inspect'|'verification';
-export default function Home(){
- const [tab,setTab]=useState<Tab>('overview'),[account,setAccount]=useState(''),[chain,setChain]=useState(''),[msg,setMsg]=useState(''),[caseId,setCaseId]=useState(''),[operator,setOperator]=useState(''),[commitment,setCommitment]=useState(''),[lookup,setLookup]=useState(''),[result,setResult]=useState(''),[busy,setBusy]=useState(false);
- const [acceptDeadline,setAcceptDeadline]=useState(()=>Math.floor(Date.now()/1000)+86400),[deliveryDeadline,setDeliveryDeadline]=useState(()=>Math.floor(Date.now()/1000)+604800),[appealDeadline,setAppealDeadline]=useState(()=>Math.floor(Date.now()/1000)+691200);
- const [criteria,setCriteria]=useState<Criterion[]>([{id:'SOURCE',question:'Does the authorized repository contain the agreed deliverable at the approved revision?',weight:60,critical:true,issuer:''},{id:'RELEASE',question:'Does the issuer-confirmed deployment originate from that approved source revision?',weight:40,critical:false,issuer:''}]);
- async function refresh(){const p=provider();if(!p)return;try{const a=await p.request({method:'eth_accounts'}) as string[];setAccount(a[0]||'');setChain(String(await p.request({method:'eth_chainId'})));}catch{setAccount('')}}
- useEffect(()=>{const p=provider();if(!p)return;void refresh();const fn=()=>void refresh();p.on?.('accountsChanged',fn);p.on?.('chainChanged',fn);return()=>{p.removeListener?.('accountsChanged',fn);p.removeListener?.('chainChanged',fn)}},[]);
- async function connect(){const p=provider();if(!p){setMsg('Install an EIP-1193 wallet.');return}try{await p.request({method:'eth_requestAccounts'});await refresh()}catch(e){setMsg((e as Error).message)}}
- async function fixNetwork(){const p=provider();if(!p)return;try{await switchNetwork(p);await refresh()}catch(e){setMsg((e as Error).message)}}
- const ready=!!account&&chain.toLowerCase()===CHAIN_HEX.toLowerCase()&&/^0x[a-f\d]{40}$/i.test(CONTRACT);
- function change(i:number,delta:Partial<Criterion>){setCriteria(a=>a.map((v,j)=>j===i?{...v,...delta}:v))}
- async function createCase(){try{
- if(!ready)throw Error('Verified deployment and correct wallet network required');
- if(!/^[A-Za-z0-9_-]{1,64}$/.test(caseId))throw Error('Invalid case ID');
- if(!/^0x[a-f\d]{40}$/i.test(operator))throw Error('Invalid provider wallet');
- if(!/^[a-f0-9]{64}$/.test(commitment))throw Error('Details require a lowercase SHA-256 hash');
- if(criteria.length<1||criteria.length>8||criteria.reduce((n,c)=>n+Number(c.weight),0)!==100)throw Error('Use 1–8 criteria weighted to 100');
- for(const c of criteria){if(c.question.length<20||c.question.length>400)throw Error('Criterion questions must be 20–400 characters');if(!/^0x[a-f\d]{40}$/i.test(c.issuer))throw Error('Every criterion needs an issuer wallet');if([account.toLowerCase(),operator.toLowerCase()].includes(c.issuer.toLowerCase()))throw Error('An issuer cannot be a party')}
- const injected=provider();if(!injected)throw Error('Injected wallet provider not found');
- setBusy(true);const client=writeClient(account,injected);
- const tx=await client.writeContract({address:CONTRACT as `0x${string}`,functionName:'create_agreement',args:[caseId,operator,JSON.stringify({tasks:criteria}),commitment,BigInt(acceptDeadline),BigInt(deliveryDeadline),BigInt(appealDeadline),BigInt(0),BigInt(0)],value:BigInt(0)});
- setResult(String(tx));setMsg('Submitted. A hash proves submission only; inspect ACCEPTED, FINALIZED and execution result separately. No payment is authorized.');
- }catch(e){setMsg((e as Error).message)}finally{setBusy(false)}}
- async function inspect(){try{if(!/^0x[a-f\d]{40}$/i.test(CONTRACT))throw Error('Contract address not configured');setBusy(true);const client=readClient();const data=await client.readContract({address:CONTRACT as `0x${string}`,functionName:'get_case',args:[lookup]});setResult(JSON.stringify(data,null,2))}catch(e){setMsg((e as Error).message)}finally{setBusy(false)}}
- return <main className="wrap"><header className="nav"><a href="#" className="logo">WIT<span>LOCK</span></a><div className="row"><span className="mono">{chain&&chain.toLowerCase()!==CHAIN_HEX.toLowerCase()?'WRONG NETWORK':'STUDIONET · 61999'}</span><button className="button alt" onClick={chain&&chain.toLowerCase()!==CHAIN_HEX.toLowerCase()?fixNetwork:connect}>{chain&&chain.toLowerCase()!==CHAIN_HEX.toLowerCase()?'Switch network':account?account.slice(0,6)+'…'+account.slice(-4):'Connect wallet'}</button></div></header>
- <section className="hero"><div><div className="label">THE PROOF-BOUND AGREEMENT PROTOCOL</div><h1>WORK DESERVES <span className="accent">PROOF.</span> PAYMENT DESERVES CERTAINTY.</h1><p className="muted">Clear commitments, authenticated issuers, and independent decisions. No settlement claims until money can be proved delivered.</p><div className="row"><button className="button" onClick={()=>{setTab('create');document.getElementById('workspace')?.scrollIntoView({behavior:'smooth'})}}>Build agreement <ArrowRight size={16}/></button><button className="button alt" onClick={()=>{setTab('verification');document.getElementById('workspace')?.scrollIntoView({behavior:'smooth'})}}>Verify network</button></div><p className="mono muted">GUARDED PRE-DEPLOYMENT BUILD · CUSTODY DISABLED</p></div><div className="panel"><div className="line"><span className="label">EVIDENCE AUTHORITY</span><span className="label">VERIFY FIRST</span></div><h3>Proof beyond appearance.</h3><p className="muted">A digest alone does not prove a claim is true.</p>{[['01','Source integrity'],['02','Issuer authority'],['03','Consensus classification'],['04','Recipient-side finality']].map(([n,t])=><div className="line" key={n}><span className="mono">{n} / {t}</span><ShieldCheck color={n==='04'?'#ef968f':'#dbf895'} size={18}/></div>)}</div></section>
- <section className="section"><div className="label">THE WITLOCK METHOD</div><h2>Trust is a process.</h2><div className="grid"><div className="card"><Lock color="#dbf895"/><h3>Freeze the agreement</h3><p className="muted">Bounded acceptance criteria, issuers and content commitments.</p></div><div className="card"><FileCheck color="#dbf895"/><h3>Verify the authority</h3><p className="muted">Issuer account identity before semantic conclusions.</p></div><div className="card"><Scale color="#dbf895"/><h3>Respect finality</h3><p className="muted">A decision is not a receipt proving transferred money arrived.</p></div></div></section>
- <section className="section" id="workspace"><div className="label">PROTOCOL WORKSPACE</div><h2>The agreement desk.</h2><div className="workspace"><nav className="panel side">{([['overview','Overview'],['create','New agreement'],['inspect','Case explorer'],['verification','Verification']] as const).map(([k,title])=><button key={k} className={tab===k?'selected':''} onClick={()=>{setTab(k);setMsg('')}}>{title}</button>)}</nav><div className="panel">
- {tab==='overview'&&<><h3>System status</h3><p className="muted">A live contract address is required for reads and writes; the page never invents agreement data or payment proof.</p><div className="line"><span>Chain ID</span><strong>61999</strong></div><div className="line"><span>Custody</span><strong style={{color:'#ef968f'}}>DISABLED</strong></div><div className="line"><span>Contract</span><strong>{CONTRACT||'NOT CONFIGURED'}</strong></div><div className="line"><span>Wallet</span><strong>{account||'NOT CONNECTED'}</strong></div></>}
- {tab==='create'&&<><h3>Create agreement</h3><p className="muted">Select authorities who can issue attestations. Neither submitted evidence nor a successful transaction hash is a payout guarantee.</p><div className="field"><label>Case ID</label><input value={caseId} onChange={e=>setCaseId(e.target.value)} placeholder="WL-2026-001"/></div><div className="field"><label>Provider wallet</label><input value={operator} onChange={e=>setOperator(e.target.value)} placeholder="0x..."/></div><div className="field"><label>Agreement SHA-256 commitment</label><input value={commitment} onChange={e=>setCommitment(e.target.value)} placeholder="64 lowercase hex characters"/></div><div className="grid"><div className="field"><label>Accept deadline · Unix seconds</label><input type="number" value={acceptDeadline} onChange={e=>setAcceptDeadline(Number(e.target.value))}/></div><div className="field"><label>Delivery deadline · Unix seconds</label><input type="number" value={deliveryDeadline} onChange={e=>setDeliveryDeadline(Number(e.target.value))}/></div><div className="field"><label>Appeal deadline · Unix seconds</label><input type="number" value={appealDeadline} onChange={e=>setAppealDeadline(Number(e.target.value))}/></div></div><div className="line"><h3>Criteria · {criteria.reduce((a,b)=>a+Number(b.weight),0)} / 100</h3><button className="button alt" disabled={criteria.length>=8} onClick={()=>setCriteria(a=>[...a,{id:'',question:'',weight:0,critical:false,issuer:''}])}><Plus size={14}/> Add</button></div>{criteria.map((c,i)=><div className="card" key={i} style={{margin:'15px 0'}}><div className="line"><span>CRITERION {i+1}</span><button className="button alt" onClick={()=>setCriteria(a=>a.filter((_,j)=>j!==i))}>Remove</button></div><div className="field"><label>ID</label><input value={c.id} onChange={e=>change(i,{id:e.target.value})}/></div><div className="field"><label>Question</label><textarea value={c.question} onChange={e=>change(i,{question:e.target.value})}/></div><div className="field"><label>Weight</label><input type="number" min="1" max="100" value={c.weight} onChange={e=>change(i,{weight:Number(e.target.value)})}/></div><div className="field"><label>Nominated independent issuer</label><input value={c.issuer} onChange={e=>change(i,{issuer:e.target.value})} placeholder="0x..."/></div><label><input type="checkbox" checked={c.critical} onChange={e=>change(i,{critical:e.target.checked})}/> Critical criterion</label></div>)}<div className="warning">No deposits or GEN transfers are available. The nominated issuer must publish an exact matching attestation inside this monolith before authentication can succeed.</div><p><button className="button" disabled={!ready||busy} onClick={createCase}>Submit agreement</button></p></>}
-{tab==='inspect'&&<><h3>Case explorer</h3><p className="muted">Query the current decided state of the configured contract.</p><div className="field"><label>Case ID</label><input value={lookup} onChange={e=>setLookup(e.target.value)} placeholder="WL-2026-001"/></div><button className="button" disabled={!lookup||busy} onClick={inspect}><Search size={14}/> Read case state</button><pre className="code">{result||'No case queried'}</pre></>}
- {tab==='verification'&&<><h3>Verification checklist</h3>{[['Chain','61999'],['RPC',RPC],['Wallet network',chain||'INCONCLUSIVE'],['Contract',CONTRACT||'NONE'],['Custody','DISABLED'],['Source parity','NOT YET VERIFIED'],['Recipient receipt','NOT YET VERIFIED']].map(([k,v])=><div className="line" key={k}><span>{k}</span><span className="mono">{v}</span></div>)}<p><a className="button alt button" href={EXPLORER} target="_blank" rel="noreferrer">StudioNet explorer ↗</a></p></>}
- {msg&&<p className="warning" role="status"><AlertTriangle size={14}/>{' '+msg}</p>}
- </div></div></section><footer className="footer">WITLOCK © 2026 · PROVENANCE BEFORE ECONOMIC FINALITY</footer></main>
+
+import { useEffect, useMemo, useState } from 'react';
+import { ArrowRight, FileCheck, Lock, Plus, Search, ShieldCheck, Wallet } from 'lucide-react';
+import { CHAIN_HEX, CHAIN_ID, CONTRACT, EXPLORER, RPC, isTargetChain, provider, readClient, switchNetwork } from '@/lib/network';
+import { readPendingTransaction, recoverPendingTransaction, submitWrite, type FinalizedTransaction, type PendingTransaction } from '@/lib/transactions';
+
+type Tab = 'overview' | 'create' | 'inspect' | 'actions' | 'verification';
+type Criterion = { id: string; question: string; weight: number; critical: boolean; issuer: string; verifier: string };
+
+const WRITE_METHODS = [
+  'accept_agreement', 'acknowledge_delivery', 'adjudicate', 'authenticate_appeal',
+  'authenticate_evidence', 'begin_payment', 'confirm_payment_delivery', 'create_agreement',
+  'expire_appeal', 'expire_draft', 'finalize_decision', 'finalize_inconclusive', 'fund_agreement',
+  'mark_payment_ambiguous', 'open_appeal', 'open_dispute', 'post_operator_bond',
+  'publish_attestation', 'reconcile_payment', 'resolve_appeal', 'seal_agreement',
+  'submit_evidence', 'timeout_delivery', 'verify_attestation_source',
+];
+
+const ACTION_EXAMPLES: Record<string, string> = {
+  accept_agreement: '["WL-2026-001"]',
+  acknowledge_delivery: '["WL-2026-001"]',
+  adjudicate: '["WL-2026-001"]',
+  authenticate_appeal: '["WL-2026-001","64-lowercase-digest","64-lowercase-digest"]',
+  authenticate_evidence: '["WL-2026-001","source","64-lowercase-digest"]',
+  begin_payment: '["WL-2026-001","PROVIDER"]',
+  confirm_payment_delivery: '["WL-2026-001",1,"64-lowercase-receipt","64-lowercase-delivery-evidence"]',
+  expire_appeal: '["WL-2026-001"]',
+  expire_draft: '["WL-2026-001"]',
+  finalize_decision: '["WL-2026-001"]',
+  finalize_inconclusive: '["WL-2026-001"]',
+  fund_agreement: '["WL-2026-001"]',
+  mark_payment_ambiguous: '["WL-2026-001",1,"64-lowercase-incident-digest"]',
+  open_appeal: '["WL-2026-001","{\\"task_id\\":\\"source\\",\\"challenged_version\\":1,\\"basis\\":\\"A bounded contradiction requires review.\\",\\"digest\\":\\"64-lowercase-digest\\",\\"source\\":\\"https://appeal.example/review/1\\",\\"source_revision\\":\\"rev-1\\",\\"retrieval_method\\":\\"HTTPS_GET\\",\\"retrieved_at\\":1767225600,\\"claim\\":\\"The source contradicts the ruling.\\",\\"provenance_hash\\":\\"64-lowercase-digest\\"}"]',
+  open_dispute: '["WL-2026-001","64-lowercase-reason-digest"]',
+  publish_attestation: '["WL-2026-001","source","att-1","64-lowercase-digest","https://issuer.example/release/1","commit-1","HTTPS_GET",1767225600,"The source supports the criterion.","64-lowercase-provenance",0]',
+  reconcile_payment: '["WL-2026-001",1,"64-lowercase-receipt"]',
+  resolve_appeal: '["WL-2026-001"]',
+  seal_agreement: '["WL-2026-001"]',
+  submit_evidence: '["WL-2026-001","source","att-1"]',
+  timeout_delivery: '["WL-2026-001"]',
+  verify_attestation_source: '["WL-2026-001","source","att-1","64-lowercase-digest","64-lowercase-provenance"]',
+};
+
+const BIGINT_FIELDS: Record<string, number[]> = {
+  create_agreement: [4, 5, 6, 7, 8],
+  publish_attestation: [7, 10],
+  authenticate_appeal: [],
+  confirm_payment_delivery: [1],
+  mark_payment_ambiguous: [1],
+  reconcile_payment: [1],
+};
+
+function normalizeArgs(method: string, raw: unknown[]): unknown[] {
+  return raw.map((value, index) => BIGINT_FIELDS[method]?.includes(index) ? BigInt(value as string | number) : value);
+}
+
+function short(value: string): string {
+  return value.length > 18 ? `${value.slice(0, 10)}…${value.slice(-6)}` : value;
+}
+
+export default function Home() {
+  const [tab, setTab] = useState<Tab>('overview');
+  const [account, setAccount] = useState('');
+  const [chain, setChain] = useState('');
+  const [msg, setMsg] = useState('');
+  const [result, setResult] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [receipt, setReceipt] = useState<FinalizedTransaction | null>(null);
+  const [pending, setPending] = useState<PendingTransaction | null>(null);
+  const [caseId, setCaseId] = useState('');
+  const [operator, setOperator] = useState('');
+  const [commitment, setCommitment] = useState('');
+  const [lookup, setLookup] = useState('');
+  const [actionMethod, setActionMethod] = useState(WRITE_METHODS[0]);
+  const [actionArgs, setActionArgs] = useState(ACTION_EXAMPLES[WRITE_METHODS[0]]);
+  const [acceptDeadline, setAcceptDeadline] = useState(() => Math.floor(Date.now() / 1000) + 86400);
+  const [deliveryDeadline, setDeliveryDeadline] = useState(() => Math.floor(Date.now() / 1000) + 604800);
+  const [appealDeadline, setAppealDeadline] = useState(() => Math.floor(Date.now() / 1000) + 691200);
+  const [criteria, setCriteria] = useState<Criterion[]>([
+    { id: 'source', question: 'Does the independently verified source support the frozen acceptance criterion?', weight: 100, critical: true, issuer: '', verifier: '' },
+  ]);
+
+  const wrongNetwork = !!chain && !isTargetChain(chain);
+  const ready = !!account && !wrongNetwork && /^0x[a-f\d]{40}$/i.test(CONTRACT);
+  const totalWeight = useMemo(() => criteria.reduce((sum, item) => sum + Number(item.weight), 0), [criteria]);
+
+  async function refresh() {
+    const injected = provider();
+    if (!injected) return;
+    try {
+      const accounts = (await injected.request({ method: 'eth_accounts' })) as string[];
+      setAccount(accounts[0] || '');
+      setChain(String(await injected.request({ method: 'eth_chainId' })));
+    } catch {
+      setAccount('');
+      setChain('');
+    }
+  }
+
+  useEffect(() => {
+    const injected = provider();
+    if (!injected) return;
+    void refresh();
+    setPending(readPendingTransaction());
+    const onAccount = () => { setReceipt(null); setMsg('Wallet account changed; verify the actor before the next action.'); void refresh(); };
+    const onChain = () => { setReceipt(null); setMsg('Wallet network changed; only StudioNet 61999 writes are allowed.'); void refresh(); };
+    injected.on?.('accountsChanged', onAccount);
+    injected.on?.('chainChanged', onChain);
+    return () => {
+      injected.removeListener?.('accountsChanged', onAccount);
+      injected.removeListener?.('chainChanged', onChain);
+    };
+  }, []);
+
+  async function connect() {
+    const injected = provider();
+    if (!injected) { setMsg('Install an injected EIP-1193 wallet.'); return; }
+    try { await injected.request({ method: 'eth_requestAccounts' }); await refresh(); setMsg('Wallet connected. Confirm the actor and network before signing.'); }
+    catch (error) { setMsg((error as Error).message); }
+  }
+
+  async function fixNetwork() {
+    const injected = provider();
+    if (!injected) { setMsg('Install an injected EIP-1193 wallet.'); return; }
+    try { await switchNetwork(injected); await refresh(); }
+    catch (error) { setMsg((error as Error).message); }
+  }
+
+  async function write(method: string, args: unknown[]) {
+    if (!ready) throw new Error('Connect an injected wallet on StudioNet 61999 with the verified contract configured.');
+    setBusy(true); setMsg(`Submitting ${method}; waiting for FINALIZED and execution SUCCESS…`); setReceipt(null);
+    try {
+      const finalized = await submitWrite(account, method, args);
+      setReceipt(finalized); setPending(null); setMsg(`${method} finalized successfully.`);
+      return finalized;
+    } finally { setBusy(false); }
+  }
+
+  async function createCase() {
+    try {
+      if (!/^[a-zA-Z0-9_-]{1,64}$/.test(caseId)) throw new Error('Case ID may contain only letters, numbers, underscores, or hyphens.');
+      if (!/^0x[a-f\d]{40}$/i.test(operator) || operator.toLowerCase() === account.toLowerCase()) throw new Error('Provider must be a distinct wallet.');
+      if (!/^[a-f\d]{64}$/.test(commitment)) throw new Error('Use a 64-character lowercase agreement SHA-256 commitment.');
+      if (totalWeight !== 100) throw new Error('Criterion weights must total 100.');
+      for (const criterion of criteria) {
+        if (!/^[a-zA-Z0-9_-]{1,20}$/.test(criterion.id) || criterion.question.length < 20 || criterion.question.length > 400) throw new Error('Each criterion needs a bounded ID and question.');
+        if (!/^0x[a-f\d]{40}$/i.test(criterion.issuer) || !/^0x[a-f\d]{40}$/i.test(criterion.verifier)) throw new Error('Each criterion needs issuer and verifier wallets.');
+        if ([account.toLowerCase(), operator.toLowerCase()].includes(criterion.issuer.toLowerCase()) || [account.toLowerCase(), operator.toLowerCase(), criterion.issuer.toLowerCase()].includes(criterion.verifier.toLowerCase())) throw new Error('Issuer and verifier must be independent of the parties and each other.');
+      }
+      await write('create_agreement', [caseId, operator, JSON.stringify({ tasks: criteria }), commitment, BigInt(acceptDeadline), BigInt(deliveryDeadline), BigInt(appealDeadline), 0n, 0n]);
+    } catch (error) { setMsg((error as Error).message); setBusy(false); }
+  }
+
+  async function inspect() {
+    if (!CONTRACT || !lookup) return;
+    setBusy(true); setMsg('Reading finalized chain state…');
+    try {
+      const value = await readClient().readContract({ address: CONTRACT as `0x${string}`, functionName: 'get_agreement', args: [lookup] });
+      const text = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+      setResult(text || 'No agreement record.');
+      setMsg('Read completed from StudioNet.');
+    } catch (error) { setMsg((error as Error).message); }
+    finally { setBusy(false); }
+  }
+
+  async function runAction() {
+    try {
+      const parsed = JSON.parse(actionArgs);
+      if (!Array.isArray(parsed)) throw new Error('Arguments must be a JSON array.');
+      await write(actionMethod, normalizeArgs(actionMethod, parsed));
+    } catch (error) { setMsg((error as Error).message); setBusy(false); }
+  }
+
+  async function recover() {
+    setBusy(true); setMsg('Recovering the persisted transaction and waiting for finality…');
+    try { const recovered = await recoverPendingTransaction(); if (recovered) { setReceipt(recovered); setPending(null); setMsg('Persisted transaction finalized successfully.'); } else setMsg('No pending transaction found.'); }
+    catch (error) { setMsg((error as Error).message); }
+    finally { setBusy(false); }
+  }
+
+  function changeCriterion(index: number, patch: Partial<Criterion>) { setCriteria((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item)); }
+
+  return <main className="wrap">
+    <header className="nav"><a href="#" className="logo">WIT<span>LOCK</span></a><div className="row"><span className="mono">{wrongNetwork ? 'WRONG NETWORK' : 'STUDIONET · 61999'}</span><button className="button alt" onClick={wrongNetwork ? fixNetwork : connect}><Wallet size={15}/>{wrongNetwork ? 'Switch network' : account ? short(account) : 'Connect wallet'}</button></div></header>
+    <section className="hero"><div><div className="label">THE PROOF-BOUND AGREEMENT PROTOCOL</div><h1>WORK DESERVES <span className="accent">PROOF.</span> PAYMENT DESERVES CERTAINTY.</h1><p className="muted">Clear commitments, independently verified sources, and bounded decisions. No settlement claim is presented as a payment while custody is disabled.</p><div className="row"><button className="button" onClick={() => { setTab('create'); document.getElementById('workspace')?.scrollIntoView({ behavior: 'smooth' }); }}>Build agreement <ArrowRight size={16}/></button><button className="button alt" onClick={() => { setTab('verification'); document.getElementById('workspace')?.scrollIntoView({ behavior: 'smooth' }); }}>Verify network</button></div><p className="mono muted">CANONICAL MONOLITH · CUSTODY DISABLED</p></div><div className="panel"><div className="line"><span className="label">EVIDENCE AUTHORITY</span><span className="label">VERIFY FIRST</span></div><h3>Proof beyond appearance.</h3><p className="muted">A digest, URL, issuer assertion, or finalized transaction is not external truth by itself.</p>{[['01','Source integrity'],['02','Issuer authority'],['03','Consensus classification'],['04','Recipient-side finality']].map(([n, title]) => <div className="line" key={n}><span className="mono">{n} / {title}</span><ShieldCheck color={n === '04' ? '#ef968f' : '#dbf895'} size={18}/></div>)}</div></section>
+    <section className="section"><div className="label">THE WITLOCK METHOD</div><h2>Trust is a process.</h2><div className="grid"><div className="card"><Lock color="#dbf895"/><h3>Freeze the agreement</h3><p className="muted">Bounded criteria, parties, issuers, verifiers, and deadlines.</p></div><div className="card"><FileCheck color="#dbf895"/><h3>Verify the source</h3><p className="muted">An independent verifier authenticates the retrieval record before issuer evidence can enter the dossier.</p></div><div className="card"><ShieldCheck color="#dbf895"/><h3>Respect finality</h3><p className="muted">Every write waits for FINALIZED and execution SUCCESS, with a persistent recovery path.</p></div></div></section>
+    <section className="section" id="workspace"><div className="label">PROTOCOL WORKSPACE</div><h2>The agreement desk.</h2><div className="workspace"><nav className="panel side">{([['overview','Overview'],['create','New agreement'],['inspect','Case explorer'],['actions','Lifecycle actions'],['verification','Verification']] as const).map(([key, title]) => <button key={key} className={tab === key ? 'selected' : ''} onClick={() => { setTab(key); setMsg(''); }}>{title}</button>)}</nav><div className="panel">
+      {tab === 'overview' && <><h3>System status</h3><p className="muted">This client writes only through the injected EIP-1193 wallet and refuses writes on any network other than StudioNet 61999.</p><div className="line"><span>Chain ID</span><strong>{CHAIN_ID}</strong></div><div className="line"><span>Custody</span><strong style={{ color: '#ef968f' }}>DISABLED</strong></div><div className="line"><span>Contract</span><strong className="mono">{CONTRACT || 'NOT CONFIGURED'}</strong></div><div className="line"><span>Wallet</span><strong className="mono">{account || 'NOT CONNECTED'}</strong></div><div className="line"><span>Provider network</span><strong className="mono">{chain || 'UNKNOWN'}</strong></div>{pending && <div className="warning">Pending transaction {short(pending.hash)} is persisted locally. <button className="button alt" onClick={recover} disabled={busy}>Recover final receipt</button></div>}</>}
+      {tab === 'create' && <><h3>Create agreement</h3><p className="muted">Zero-value creation freezes the parties, independent source verifiers, criteria, and deadlines. Funding and bonds remain unavailable while custody is disabled.</p><div className="field"><label>Case ID</label><input value={caseId} onChange={(event) => setCaseId(event.target.value)} placeholder="WL-2026-001"/></div><div className="field"><label>Provider wallet</label><input value={operator} onChange={(event) => setOperator(event.target.value)} placeholder="0x..."/></div><div className="field"><label>Agreement SHA-256 commitment</label><input value={commitment} onChange={(event) => setCommitment(event.target.value)} placeholder="64 lowercase hex characters"/></div><div className="grid"><div className="field"><label>Accept deadline · Unix seconds</label><input type="number" value={acceptDeadline} onChange={(event) => setAcceptDeadline(Number(event.target.value))}/></div><div className="field"><label>Delivery deadline · Unix seconds</label><input type="number" value={deliveryDeadline} onChange={(event) => setDeliveryDeadline(Number(event.target.value))}/></div><div className="field"><label>Appeal deadline · Unix seconds</label><input type="number" value={appealDeadline} onChange={(event) => setAppealDeadline(Number(event.target.value))}/></div></div><div className="line"><h3>Criteria · {totalWeight} / 100</h3><button className="button alt" disabled={criteria.length >= 8} onClick={() => setCriteria((current) => [...current, { id: '', question: '', weight: 0, critical: false, issuer: '', verifier: '' }])}><Plus size={14}/> Add</button></div>{criteria.map((criterion, index) => <div className="card" key={`${criterion.id}-${index}`} style={{ margin: '15px 0' }}><div className="line"><span>CRITERION {index + 1}</span><button className="button alt" onClick={() => setCriteria((current) => current.filter((_, itemIndex) => itemIndex !== index))}>Remove</button></div><div className="field"><label>ID</label><input value={criterion.id} onChange={(event) => changeCriterion(index, { id: event.target.value })}/></div><div className="field"><label>Question</label><textarea value={criterion.question} onChange={(event) => changeCriterion(index, { question: event.target.value })}/></div><div className="grid"><div className="field"><label>Weight</label><input type="number" min="1" max="100" value={criterion.weight} onChange={(event) => changeCriterion(index, { weight: Number(event.target.value) })}/></div><div className="field"><label>Nominated issuer</label><input value={criterion.issuer} onChange={(event) => changeCriterion(index, { issuer: event.target.value })} placeholder="0x..."/></div><div className="field"><label>Independent verifier</label><input value={criterion.verifier} onChange={(event) => changeCriterion(index, { verifier: event.target.value })} placeholder="0x..."/></div></div><label><input type="checkbox" checked={criterion.critical} onChange={(event) => changeCriterion(index, { critical: event.target.checked })}/> Critical criterion</label></div>)}<p><button className="button" disabled={!ready || busy} onClick={createCase}>Submit agreement</button></p></>}
+      {tab === 'inspect' && <><h3>Case explorer</h3><p className="muted">Reads are read-only. Use the lifecycle action desk for wallet writes and inspect each finalized transaction below.</p><div className="field"><label>Case ID</label><input value={lookup} onChange={(event) => setLookup(event.target.value)} placeholder="WL-2026-001"/></div><button className="button" disabled={!lookup || busy} onClick={inspect}><Search size={14}/> Read case state</button><pre className="code">{result || 'No case queried'}</pre></>}
+      {tab === 'actions' && <><h3>Lifecycle action desk</h3><p className="muted">Every write is wallet/network guarded, persisted before waiting, and accepted only after FINALIZED plus execution SUCCESS. Role authorization is enforced by the monolith.</p><div className="field"><label>Method</label><select value={actionMethod} onChange={(event) => { const method = event.target.value; setActionMethod(method); setActionArgs(ACTION_EXAMPLES[method] || '["WL-2026-001"]'); }}>{WRITE_METHODS.map((method) => <option key={method} value={method}>{method}</option>)}</select></div><div className="field"><label>Arguments · JSON array</label><textarea value={actionArgs} onChange={(event) => setActionArgs(event.target.value)} rows={7}/></div><p className="muted small-copy">Use exact contract schema. Appeal grounds require task ID, challenged decision version, bounded basis, source coordinate, content digest, and independent verifier authentication. Payment methods remain custody-gated.</p><button className="button" disabled={!ready || busy} onClick={runAction}>Run {actionMethod}</button></>}
+      {tab === 'verification' && <><h3>Verification checklist</h3>{[['Chain', String(CHAIN_ID)], ['RPC', RPC], ['Wallet network', chain || 'INCONCLUSIVE'], ['Contract', CONTRACT || 'NONE'], ['Custody', 'DISABLED'], ['Source parity', 'See deployment manifest'], ['Finalized execution', 'Required for every write'], ['Recipient receipt', 'NOT VERIFIED — payment disabled']].map(([key, value]) => <div className="line" key={key}><span>{key}</span><span className="mono">{value}</span></div>)}<p><a className="button alt" href={EXPLORER} target="_blank" rel="noreferrer">StudioNet explorer ↗</a></p></>}
+      {msg && <p className="notice">{msg}</p>}{receipt && <div className="success"><strong>{receipt.method || 'Transaction'} · {receipt.status} · {receipt.execution}</strong><br/><a href={receipt.explorer} target="_blank" rel="noreferrer">View finalized transaction ↗</a></div>}
+    </div></div></section>
+  </main>;
 }

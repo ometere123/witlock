@@ -34,6 +34,11 @@ def direct_charlie():
     return _address("charlie")
 
 
+@pytest.fixture
+def direct_dana():
+    return _address("dana")
+
+
 # The installed Direct Mode VM refreshes sender and origin but leaves the
 # timestamp in message_raw unchanged after vm.warp(). Keep the test clock
 # aligned with the message seen by the contract on every supported OS.

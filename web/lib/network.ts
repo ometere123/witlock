@@ -7,6 +7,7 @@ export const CHAIN_HEX = '0xF22F';
 export const RPC = 'https://studio.genlayer.com/api';
 export const EXPLORER = 'https://explorer-studio.genlayer.com';
 export const CONTRACT = process.env.NEXT_PUBLIC_WITLOCK_CONTRACT || '';
+export const PENDING_TRANSACTION_KEY = 'witlock.pending.transaction.v1';
 
 export type InjectedProvider = EIP1193Provider & {
   on?: (event: string, listener: (...args: unknown[]) => void) => void;
@@ -16,6 +17,10 @@ export type InjectedProvider = EIP1193Provider & {
 export function provider(): InjectedProvider | undefined {
   if (typeof window === 'undefined') return undefined;
   return (window as Window & { ethereum?: InjectedProvider }).ethereum;
+}
+
+export function isTargetChain(chainId: string): boolean {
+  return chainId.toLowerCase() === CHAIN_HEX.toLowerCase();
 }
 
 export function readClient() {

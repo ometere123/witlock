@@ -52,7 +52,7 @@ def validate_terms(terms):
         raise ValueError("weights must total 100")
     ids = set()
     for task in tasks:
-        if set(task) != {"id", "question", "weight", "critical", "issuer"}:
+        if set(task) != {"id", "question", "weight", "critical", "issuer", "verifier"}:
             raise ValueError("schema")
         if not _key(task["id"], 20) or task["id"] in ids:
             raise ValueError("duplicate/invalid id")
@@ -65,13 +65,15 @@ def validate_terms(terms):
             raise ValueError("question")
         if not _address(task["issuer"]):
             raise ValueError("issuer")
+        if not _address(task["verifier"]):
+            raise ValueError("verifier")
     return True
 
 
 def validate_attestation(attestation, task, parties, expected_subject):
     required = {
-        "issuer", "subject", "digest", "source", "source_revision", "claim",
-        "provenance_hash",
+        "issuer", "subject", "digest", "source", "source_revision",
+        "retrieval_method", "retrieved_at", "claim", "provenance_hash",
     }
     if not isinstance(attestation, dict) or not required.issubset(attestation):
         raise ValueError("attestation schema")
@@ -80,18 +82,30 @@ def validate_attestation(attestation, task, parties, expected_subject):
         raise ValueError("issuer address")
     if issuer != task["issuer"].lower() or issuer in {party.lower() for party in parties}:
         raise ValueError("issuer authorization")
+    verifier = task["verifier"].lower()
+    if verifier in {party.lower() for party in parties} or verifier == issuer:
+        raise ValueError("verifier authorization")
     if attestation["subject"] != expected_subject:
         raise ValueError("subject")
     for field in ("digest", "provenance_hash"):
         value = attestation[field]
         if not isinstance(value, str) or len(value) != 64 or any(char not in "0123456789abcdef" for char in value):
             raise ValueError("digest")
-    if not isinstance(attestation["source"], str) or not 1 <= len(attestation["source"]) <= 400:
+    if (
+        not isinstance(attestation["source"], str)
+        or not 1 <= len(attestation["source"]) <= 400
+        or " " in attestation["source"]
+        or not attestation["source"].startswith(("https://", "ipfs://", "chain://"))
+    ):
         raise ValueError("source")
     if not isinstance(attestation["source_revision"], str) or not 1 <= len(attestation["source_revision"]) <= 160:
         raise ValueError("source revision")
     if not isinstance(attestation["claim"], str) or not 1 <= len(attestation["claim"]) <= 1200:
         raise ValueError("claim")
+    if attestation["retrieval_method"] not in ("HTTPS_GET", "IPFS_GET", "CHAIN_READ"):
+        raise ValueError("retrieval method")
+    if type(attestation["retrieved_at"]) is not int or attestation["retrieved_at"] <= 0:
+        raise ValueError("retrieved at")
     return True
 
 
