@@ -21,7 +21,7 @@ Native GEN custody is contained behind `custody_enabled() == False`. Non-zero fu
 
 ## Current StudioNet deployment
 
-No deployment of the current source is claimed yet. The repository is pinned to Git SHA `96edcdbbd1025541b5d00d5b6d82ecd28b46ab55`; `contracts/Witlock.py` is 60,059 bytes with SHA-256 `F9E08ADA6D39E083B681221B05489E3A45E18E9A96FE455B2E05F6ABFC82188`.
+No deployment of the current source is claimed yet. The contract source is pinned at Git SHA `96edcdbbd1025541b5d00d5b6d82ecd28b46ab55`; `contracts/Witlock.py` is 60,059 bytes with SHA-256 `F9E08ADA6D39E083B681221B05489E3A45E18E9A96FE455B2E05F6ABFC82188`.
 
 Two fresh deployment attempts for the current source finalized as `NO_MAJORITY` with no consensus data, and an exact old-source control deployment produced the same zero-round result. The StudioNet balance probe currently reports that consensus contracts are unavailable. The old contract at `0x4D39aBdF8F574B44Ff178CBf974042a36D70c9A0` is superseded and must not be used as parity evidence for this source.
 
