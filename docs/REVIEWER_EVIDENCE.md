@@ -10,7 +10,7 @@
 
 ## Live boundary
 
-No current contract address is claimed. The current-source deployment `0xaf8744c3…bebde0` and earlier attempts finalized `NO_MAJORITY` with no consensus data, and the StudioNet balance probe reports no consensus contracts deployed. The superseded address `0x4D39aBdF8F574B44Ff178CBf974042a36D70c9A0` is not source parity evidence for the current source.
+No current contract address is claimed. The latest current-source deployment `0x85a76d80…d257171`, the prior current-source deployment `0xaf8744c3…bebde0`, and earlier attempts finalized `NO_MAJORITY` with no consensus data. The StudioNet balance probe reports no consensus contracts deployed. The superseded address `0x4D39aBdF8F574B44Ff178CBf974042a36D70c9A0` is not source parity evidence for the current source.
 
 The Chrome profile exposes an injected EIP-1193 wallet on chain `0xf22f`, but no browser transaction is claimed because StudioNet has no current consensus layer and the environment example intentionally leaves the contract address empty.
 

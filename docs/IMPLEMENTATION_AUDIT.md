@@ -14,8 +14,8 @@ Audit date: 2026-10-12. The repository was audited against the handoff and reval
 
 ## Current verification
 
-- Git SHA: `2882e1fc17e07f36d389e028551a1aa7eec58761`
-- Source SHA-256: `5A22F179E7D41CA12A501C0C2443AAF3C5FC088AF230DC7190B6542E9595D58D`
+- Git SHA: `56332feeabec917255ea3d8cb13b21198d27344d`
+- Source SHA-256: `144042E9A8B0C62A3F2E820A094A39ADAEE9463AEFD21352AD3B4102CFAF3D30`
 - Local suite: 31 passed
 - GenVM schema check: 37 methods, 13 views, 24 writes, zero constructor parameters
 - Dependency audit: 0 vulnerabilities

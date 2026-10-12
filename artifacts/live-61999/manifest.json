@@ -11,16 +11,25 @@
     "genlayer_js": "1.1.8"
   },
   "source": {
-    "git_sha": "2882e1fc17e07f36d389e028551a1aa7eec58761",
+    "git_sha": "56332feeabec917255ea3d8cb13b21198d27344d",
     "path": "contracts/Witlock.py",
-    "bytes": 60447,
-    "sha256": "5A22F179E7D41CA12A501C0C2443AAF3C5FC088AF230DC7190B6542E9595D58D",
+    "bytes": 60636,
+    "sha256": "144042E9A8B0C62A3F2E820A094A39ADAEE9463AEFD21352AD3B4102CFAF3D30",
     "exact_deployed_match": false
   },
   "deployment_attempts": [
     {
+      "transaction": "0x85a76d80e00c0fa97d290cb71d98b36009c2131c98c53f09cc287c133d257171",
+      "source": "current source with response-body normalization",
+      "status": "FINALIZED",
+      "execution": "UNKNOWN",
+      "consensus_result": "NO_MAJORITY",
+      "consensus_data": null,
+      "contract": null
+    },
+    {
       "transaction": "0xaf8744c306dec999ac3861c9da45af53f7f47e889dc08bc35797e9db28bebde0",
-      "source": "current source with repository identity check",
+      "source": "prior current source with repository identity check",
       "status": "FINALIZED",
       "execution": "UNKNOWN",
       "consensus_result": "NO_MAJORITY",
