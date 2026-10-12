@@ -2,24 +2,27 @@
 
 | From | Method | Caller | Guards | To |
 | --- | --- | --- | --- | --- |
-| none | `create_agreement` | requester | valid frozen terms, external issuers, ordered deadlines, zero funding while gate is closed | `DRAFT` |
-| `DRAFT` | `fund_agreement` | requester | exact value and custody gate | `FUNDED` |
-| `DRAFT` | `post_operator_bond` | provider | exact value and custody gate | `DRAFT` |
-| `DRAFT` | `accept_agreement` | provider | funded/bond requirements and acceptance deadline | `FUNDED` → `ACTIVE` |
-| `ACTIVE` | `publish_attestation` | nominated issuer | exact subject and immutable record | `ACTIVE` |
-| `ACTIVE` | `submit_evidence` | requester/provider | before delivery deadline, existing case-scoped attestation | `ACTIVE` |
-| `ACTIVE` / `DELIVERED` / `REVIEW` | `authenticate_evidence` | nominated issuer | exact digest and evidence binding | same |
+| none | `create_agreement` | requester | strict terms, distinct provider/issuer/verifier, ordered deadlines, zero value while custody is closed | `DRAFT` |
+| `DRAFT` | `accept_agreement` | provider | correct provider, acceptance deadline, exact zero-value requirements | `ACTIVE` |
+| `DRAFT` | `expire_draft` | permissionless | acceptance deadline elapsed and no value received | `EXPIRED` terminal |
+| `ACTIVE` / `DELIVERED` / `REVIEW` | `publish_attestation` | nominated issuer | frozen task, immutable ID, bounded source/revision/claim, valid retrieval metadata | evidence registry |
+| evidence registry | `verify_attestation_source` | independent verifier | frozen verifier, exact digest and provenance hash | source verified |
+| `ACTIVE` / `DELIVERED` / `REVIEW` | `submit_evidence` | requester/provider | case-scoped attestation, source verified, before delivery deadline | evidence bound |
+| `ACTIVE` / `DELIVERED` / `REVIEW` | `authenticate_evidence` | nominated issuer | exact digest, source verified, before delivery deadline | authenticated evidence |
 | `ACTIVE` | `acknowledge_delivery` | requester | before delivery deadline | `DELIVERED` |
-| `ACTIVE` / `DELIVERED` | `open_dispute` | requester/provider | valid reason digest and appeal window | `REVIEW` |
-| `ACTIVE` / `DELIVERED` | `timeout_delivery` | anyone | after delivery deadline | `REVIEW` |
-| `DELIVERED` / `REVIEW` | `seal_agreement` | requester/provider | every criterion authenticated | `SEALED` |
-| `SEALED` | `adjudicate` | permissionless | bounded consensus over complete dossier | `DECIDED` → `APPEAL_WINDOW` |
-| `REVIEW` | `finalize_inconclusive` | permissionless | deadline passed and at least one criterion is incomplete | `DECIDED` → `APPEAL_WINDOW` |
-| `APPEAL_WINDOW` | `open_appeal` | requester/provider | one digest before appeal deadline | `APPEALED` |
-| `APPEALED` | `resolve_appeal` | permissionless | authenticated dossier and bounded consensus | `DECIDED` → `APPEAL_WINDOW` |
-| `APPEALED` | `expire_appeal` | permissionless | appeal resolution deadline passed | `FINAL_DECISION` blocked |
-| `APPEAL_WINDOW` | `finalize_decision` | permissionless | deadline passed and no appeal | `FINAL_DECISION` |
-| `FINAL_DECISION` | `begin_payment` | permissionless | custody gate, payable state, idempotent attempt | `PAYMENT_PENDING` |
-| `PAYMENT_PENDING` | `reconcile_payment` | permissionless | verified receipt or explicit ambiguity | `RECONCILED` or unresolved |
+| `ACTIVE` / `DELIVERED` | `open_dispute` | requester/provider | reason digest, valid dispute window | `REVIEW` |
+| `ACTIVE` / `DELIVERED` | `timeout_delivery` | permissionless | delivery deadline elapsed | `REVIEW` |
+| `DELIVERED` / `REVIEW` | `seal_agreement` | requester/provider | every criterion source verified and issuer authenticated | `SEALED` |
+| `SEALED` | `adjudicate` | permissionless | bounded dossier and comparative consensus | `APPEAL_WINDOW`, decision version +1 |
+| `REVIEW` | `finalize_inconclusive` | permissionless | delivery deadline elapsed and incomplete evidence | `APPEAL_WINDOW`, blocked decision |
+| `APPEAL_WINDOW` | `open_appeal` | requester/provider | one structured grounds object, matching decision version, before appeal deadline | `APPEALED` |
+| `APPEALED` | `authenticate_appeal` | independent verifier | frozen grounds digest/provenance match, before resolution deadline | authenticated appeal |
+| `APPEALED` | `resolve_appeal` | permissionless | authenticated appeal and bounded consensus | `APPEAL_WINDOW`, decision version +1, appeal `RESOLVED` |
+| `APPEALED` | `expire_appeal` | permissionless | appeal resolution deadline elapsed | `FINAL_DECISION`, prior ruling preserved, appeal `EXPIRED` |
+| `APPEAL_WINDOW` with appeal `NONE`/`RESOLVED` | `finalize_decision` | permissionless | appeal deadline elapsed | `FINAL_DECISION`, appeal `FINALIZED` |
+| `FINAL_DECISION` | `begin_payment` | permissionless | custody enabled, payable entitlement, frozen role-derived recipient and amount, idempotent attempt | `PAYMENT_PENDING` |
+| `PAYMENT_PENDING` | `confirm_payment_delivery` | permissionless | custody, recipient, receipt hash, and independent delivery evidence | delivery-attested payment |
+| `PAYMENT_PENDING` | `reconcile_payment` | permissionless | authenticated delivery evidence and matching receipt; no boolean caller claim | `RECONCILED` |
+| `PAYMENT_PENDING` | `mark_payment_ambiguous` | permissionless | transfer deadline elapsed and incident hash | `UNRESOLVED`, no re-credit or blind retry |
 
-The live contract currently reaches a zero-value reconciled state or an explicit blocked state because custody is disabled. No method changes recipients or frozen policy.
+The current live case reached `FINAL_DECISION` with `appeal_status=FINALIZED` and `BLOCKED_INCONCLUSIVE` zero-value settlement. Custody is disabled, so payment transitions are intentionally unreachable. No public method can change frozen recipients or policy.

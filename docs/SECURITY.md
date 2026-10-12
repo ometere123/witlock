@@ -1,9 +1,13 @@
 # Security model
 
-WITLOCK targets StudioNet stable `61999` through the repository-local CLI `0.39.1`, with RPC `https://studio.genlayer.com/api` and explorer `https://explorer-studio.genlayer.com`.
+WITLOCK targets stable StudioNet `61999` through the repository-local CLI `0.39.1`, with RPC `https://studio.genlayer.com/api` and explorer `https://explorer-studio.genlayer.com`.
 
-The monolith does not accept non-zero funding while custody is unproven, does not emit payouts, and has no administrator transfer or hidden withdrawal path. A digest proves bytes, an issuer transaction proves wallet publication, and a consensus decision classifies admitted evidence; none alone proves a recipient received GEN.
+The monolith freezes parties, criteria, issuer wallets, independent verifier wallets, source coordinates, retrieval metadata, deadlines, and entitlements. It rejects unauthorized calls, issuer/verifier substitution, duplicate records, early deadlines, unverified sources, malformed consensus, oversized dossiers/results, appeal replay, and arbitrary payment recipient/amount inputs.
 
-The state machine rejects unauthorized callers, issuer substitution, duplicate evidence, premature sealing, early timeouts, malformed consensus, appeal replay, and ambiguous payment reconciliation. The frontend uses injected EIP-1193 only and hard-blocks writes on the wrong chain or without a configured contract.
+Consensus is bounded to criterion labels. The contract calculates the verdict, integer score, and role-derived allocations. Consensus exceptions and invalid output fail closed to `INCONCLUSIVE` with `BLOCKED_CONSENSUS`; no model output selects a recipient or amount.
 
-Remaining proof gates are live validator independence, deployment source parity, browser transaction finality, and network-level transfer/recovery semantics.
+The frontend uses injected EIP-1193 only, checks account and chain before every write, distinguishes accepted from finalized transactions, verifies execution success, persists pending hashes for recovery, and links finalized transactions to the StudioNet explorer.
+
+Native custody is disabled. No administrator transfer, hidden withdrawal, or fallback deposit path exists. A digest proves integrity, an issuer call proves publication, and an independent verifier call proves source-observation agreement; none proves human independence, legal authority, factual truth, or recipient payment.
+
+The final live state is recorded with a receipt limitation: `finalize_decision` reached a finalized transaction and final state readback, but its leader receipt reported execution error. Browser execution, recipient delivery, and transfer recovery remain unproven and are not presented as available.

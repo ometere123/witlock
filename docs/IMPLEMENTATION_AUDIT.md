@@ -1,29 +1,26 @@
 # Implementation audit
 
-Audit date: 2026-10-12. The repository was inspected at the existing `main` history before this monolith pass, then deployed and read back from stable StudioNet.
+Audit date: 2026-10-12. The repository was audited against the original handoff and then revalidated locally and on stable StudioNet 61999.
 
-## Findings addressed
-
-| Severity | Finding | Remediation | Evidence |
+| Severity | Original defect | Remediation | Verification |
 | --- | --- | --- | --- |
-| Critical | Two deployable contracts made deployment and source parity ambiguous | Consolidated all responsibilities into `contracts/Witlock.py` | Live source hash and schema parity |
-| Critical | Custody and transfer recovery were unproven | Added an explicit false custody gate, exact-value guards, accounting fields, and blocked payout methods | Direct Mode, live `custody_enabled=false` |
-| High | Evidence authority was separate and replay-prone | Case-scoped immutable attestations, nominated issuer checks, and a second authentication transaction now live in the monolith | Direct Mode and deployed schema |
-| High | Sealing and inconclusive closure were too permissive | Sealing requires the correct delivery/review state and complete authenticated evidence; inconclusive closure requires a passed deadline and incomplete evidence | Direct Mode |
-| High | Decision history could be overwritten | Decisions are keyed by agreement and monotonically increasing version | Direct Mode append-only check |
-| High | Appeal resolution could remain stuck | Appeal expiry produces an explicit blocked final decision after its resolution deadline | Direct Mode |
-| Medium | Consensus labels were uncontrolled | Exact bounded `PASS` / `FAIL` / `INCONCLUSIVE` schema and comparative equivalence | lint, Direct Mode |
-| Medium | Frontend referenced a second address and old methods | Frontend now targets one contract and `create_agreement`; environment contains one deployed address | typecheck/build and live schema |
+| Critical | Two deployable contracts made parity and custody boundaries ambiguous | One canonical `Witlock` monolith owns policy, evidence, adjudication, appeals, audit, and guarded settlement accounting | deployed schema, exact source parity |
+| Critical | Custody and transfer recovery were unproven | Hard false custody gate, zero-value-only live path, frozen role-derived payment scaffolding, authenticated delivery evidence, ambiguity state, no blind retry | 24 Direct Mode tests, live `custody_enabled=false` |
+| High | Evidence hash and issuer publication were treated as sufficient provenance | Frozen retrieval metadata plus an independent verifier transaction must match digest and provenance before evidence is admissible | adversarial Direct Mode tests, live verifier/authentication receipts |
+| High | Provider evidence could be locked out by requester acknowledgement or dispute | Evidence submission/authentication stays open through `ACTIVE`, `DELIVERED`, and `REVIEW` until delivery deadline | Direct Mode regression tests |
+| High | Resolved appeals could not be finalized and expiry could erase a ruling | Appeal status is explicit; resolution returns to `APPEAL_WINDOW`, finalization accepts `RESOLVED`, expiry preserves the prior ruling | Direct Mode appeal tests, live resolved appeal/readback |
+| High | Consensus failures could revert unpredictably or truncate dossiers | Full bounded dossier, bounded result, strict mapping, exception handling, failed-closed `INCONCLUSIVE` | malformed/oversized consensus tests |
+| Medium | CLI typed address/JSON arguments were incompatible with string contract fields | Normalize typed provider, issuer/verifier, terms, and grounds values before strict validation | live CLI/js deployment and lifecycle |
+| Medium | Frontend reported writes without finalized successful receipts | Injected EIP-1193 account/chain guards, persistent pending transaction recovery, `FINALIZED` plus execution-success checks, explorer links | typecheck and production build |
 
-## Verified locally and live
+## Verified release
 
-- CLI package: `0.39.1`; genlayer-js: `1.1.8`.
-- Stable network constants: StudioNet `61999`, `0xF22F`, approved RPC and explorer.
-- Monolith lint, semantic validation, and schema reflection pass.
-- Direct Mode executes five contract tests, including a mocked bounded consensus path.
-- Deployment finalized with execution `SUCCESS` and five validator `AGREE` votes.
-- Live source parity is exact at SHA-256 `5EB2C4ADA4A78C22AC484E974FC5D457F042624661876422099CB04B07BBCF95`.
+- Git SHA: `e57424aa97817469385add4a426943dd67ca1d19`
+- StudioNet contract: `0x4D39aBdF8F574B44Ff178CBf974042a36D70c9A0`
+- Deployed source hash: `E71CF73539EB4A552C5CE120C29227F5197E89CE288DF09E344D5B93F64E8A81`
+- Schema: 37 methods, 13 views, 24 writes, zero constructor parameters
+- Local suite: 24 passed; dependency audit: 0 vulnerabilities
 
 ## Remaining proof boundaries
 
-Browser wallet flow, a target-network agreement lifecycle, recipient-side payment, and recovery remain separate proof gates. Custody is intentionally disabled until those behaviors are proven.
+The final live readback is `FINAL_DECISION` with `appeal_status=FINALIZED` and audit revision 12, but the finalization transaction's leader receipt reports `execution_result=ERROR` despite a finalized majority consensus. This is retained as a limitation. Browser wallet execution, recipient-side payment, ambiguous transfer recovery, and production custody remain unproven and disabled.
