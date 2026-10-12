@@ -323,6 +323,12 @@ class Witlock(gl.Contract):
             self._reject("PROVIDER_ADDRESS")
         if not self._digest(details_hash):
             self._reject("DETAILS_DIGEST")
+        if not isinstance(terms_json, str):
+            for task in terms_json.get("tasks", []):
+                if isinstance(task, dict):
+                    task["issuer"] = self._address_text(task.get("issuer", ""))
+                    task["verifier"] = self._address_text(task.get("verifier", ""))
+            terms_json = json.dumps(terms_json, sort_keys=True)
         if not 2 <= len(terms_json) <= 12000:
             self._reject("TERMS_SIZE")
         terms = self._parse(terms_json, "TERMS_JSON")
@@ -717,6 +723,8 @@ class Witlock(gl.Contract):
         if agreement["status"] != "APPEAL_WINDOW" or agreement["appeal_status"] != "NONE":
             self._reject("APPEAL_STATE")
         self._require_party(agreement)
+        if not isinstance(grounds_json, str):
+            grounds_json = json.dumps(grounds_json, sort_keys=True)
         if self._now() > agreement["appeal_deadline"] or not self._bounded(grounds_json, 20, 5000):
             self._reject("APPEAL_DEADLINE")
         grounds = self._parse(grounds_json, "APPEAL_GROUNDS_JSON")
