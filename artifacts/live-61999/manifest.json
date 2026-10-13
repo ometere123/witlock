@@ -1,6 +1,6 @@
 {
   "project": "WITLOCK",
-  "status": "LIVE_CUSTODY_PROOF_COMPLETE_FRONTEND_READY_CI_PENDING",
+  "status": "LIVE_CUSTODY_PROOF_COMPLETE_FRONTEND_READY_CI_VALIDATED",
   "network": {
     "name": "GenLayer StudioNet stable",
     "chain_id": 61999,
