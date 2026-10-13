@@ -25,6 +25,31 @@ import {
 
 const values = new Map<string, string>();
 
+function successfulReceipt() {
+  return { raw_error: null, error_code: null, error_description: null };
+}
+
+function quorumCancellationReceipt() {
+  return {
+    raw_error: { fatal: false, causes: ['VALIDATOR_QUORUM_REACHED'] },
+    error_code: 'CONSENSUS_VALIDATOR_QUORUM_REACHED',
+  };
+}
+
+function majorityConsensus() {
+  return {
+    validators: [
+      { mode: 'validator', vote: 'agree', execution_result: 'SUCCESS', genvm_result: successfulReceipt() },
+      { mode: 'validator', vote: 'agree', execution_result: 'SUCCESS', genvm_result: successfulReceipt() },
+      { mode: 'validator', vote: 'idle', execution_result: 'ERROR', genvm_result: quorumCancellationReceipt() },
+    ],
+    leader_receipt: [
+      { mode: 'leader', execution_result: 'SUCCESS', genvm_result: successfulReceipt() },
+      { mode: 'validator', vote: 'idle', execution_result: 'ERROR', genvm_result: quorumCancellationReceipt() },
+    ],
+  };
+}
+
 beforeEach(() => {
   values.clear();
   mocks.provider.mockReset();
@@ -66,6 +91,15 @@ describe('GenLayer receipt classification', () => {
     })).toBe(true);
   });
 
+  it('accepts SDK success only when accompanying consensus metadata agrees', () => {
+    expect(isSuccessfulFinalizedReceipt({
+      statusName: TransactionStatus.FINALIZED,
+      txExecutionResultName: ExecutionResult.FINISHED_WITH_RETURN,
+      result_name: 'MAJORITY_AGREE',
+      consensus_data: majorityConsensus(),
+    })).toBe(true);
+  });
+
   it('rejects NO_MAJORITY and unknown execution states', () => {
     expect(isSuccessfulFinalizedReceipt({
       statusName: TransactionStatus.FINALIZED,
@@ -98,6 +132,72 @@ describe('GenLayer receipt classification', () => {
       consensus_data: {
         validators: [{ mode: 'validator', vote: 'agree', execution_result: 'ERROR', genvm_result: { raw_error: 'execution failed', error_code: 'GENVM_ERROR' } }],
         leader_receipt: [{ mode: 'leader', execution_result: 'SUCCESS', genvm_result: { raw_error: null, error_code: null, error_description: null } }],
+      },
+    })).toBe(false);
+    expect(isSuccessfulFinalizedReceipt({
+      statusName: TransactionStatus.FINALIZED,
+      txExecutionResultName: ExecutionResult.FINISHED_WITH_RETURN,
+      result_name: 'MAJORITY_AGREE',
+      consensus_data: {
+        validators: [{ mode: 'validator', vote: 'agree', execution_result: 'SUCCESS', genvm_result: successfulReceipt() }],
+        leader_receipt: [{ mode: 'leader', execution_result: 'ERROR', genvm_result: quorumCancellationReceipt() }],
+      },
+    })).toBe(false);
+  });
+
+  it('rejects contradictory top-level execution, result, and status aliases', () => {
+    expect(isSuccessfulFinalizedReceipt({
+      statusName: TransactionStatus.FINALIZED,
+      txExecutionResultName: ExecutionResult.FINISHED_WITH_RETURN,
+      execution_result: 'ERROR',
+      result_name: 'MAJORITY_AGREE',
+      consensus_data: majorityConsensus(),
+    })).toBe(false);
+    expect(isSuccessfulFinalizedReceipt({
+      statusName: TransactionStatus.FINALIZED,
+      status_name: TransactionStatus.CANCELED,
+      txExecutionResultName: ExecutionResult.FINISHED_WITH_RETURN,
+    })).toBe(false);
+    expect(isSuccessfulFinalizedReceipt({
+      statusName: TransactionStatus.FINALIZED,
+      result_name: 'MAJORITY_AGREE',
+      consensus_result: 'NO_MAJORITY',
+      consensus_data: majorityConsensus(),
+    })).toBe(false);
+  });
+
+  it('rejects NO_MAJORITY even when an SDK return enum is present', () => {
+    expect(isSuccessfulFinalizedReceipt({
+      statusName: TransactionStatus.FINALIZED,
+      txExecutionResultName: ExecutionResult.FINISHED_WITH_RETURN,
+      result_name: 'NO_MAJORITY',
+      consensus_data: { validators: [], leader_receipt: [] },
+    })).toBe(false);
+  });
+
+  it('rejects inconsistent validator results and malformed consensus records', () => {
+    expect(isSuccessfulFinalizedReceipt({
+      statusName: TransactionStatus.FINALIZED,
+      result_name: 'MAJORITY_AGREE',
+      consensus_data: {
+        validators: [
+          { mode: 'validator', vote: 'agree', execution_result: 'ERROR', genvm_result: { raw_error: { fatal: true }, error_code: 'GENVM_ERROR' } },
+        ],
+        leader_receipt: [{ mode: 'leader', execution_result: 'SUCCESS', genvm_result: successfulReceipt() }],
+      },
+    })).toBe(false);
+    expect(isSuccessfulFinalizedReceipt({
+      statusName: TransactionStatus.FINALIZED,
+      result_name: 'MAJORITY_AGREE',
+      consensus_data: { validators: [{ mode: 'validator', vote: 'agree' }] },
+    })).toBe(false);
+    expect(isSuccessfulFinalizedReceipt({
+      statusName: TransactionStatus.FINALIZED,
+      result_name: 'MAJORITY_AGREE',
+      consensus_data: {
+        validators: [{ mode: 'validator', vote: 'agree', execution_result: 'SUCCESS', genvm_result: successfulReceipt() }],
+        leader_receipt: [{ mode: 'leader', execution_result: 'SUCCESS', genvm_result: successfulReceipt() }],
+        final: false,
       },
     })).toBe(false);
   });

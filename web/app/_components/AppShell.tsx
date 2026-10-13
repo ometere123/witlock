@@ -3,8 +3,9 @@
 import { Menu, Wallet, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { CHAIN_ID, isTargetChain, provider, switchNetwork } from '@/lib/network';
+import { useState } from 'react';
+import { CHAIN_ID } from '@/lib/network';
+import { useWallet, WalletProvider } from '@/lib/wallet';
 
 const NAV_LINKS = [
   { href: '/explore', label: 'Explore' },
@@ -19,66 +20,11 @@ function short(value: string): string {
   return value.length > 18 ? `${value.slice(0, 8)}…${value.slice(-6)}` : value;
 }
 
-export default function AppShell({ children }: { children: React.ReactNode }) {
+function ShellContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [account, setAccount] = useState('');
-  const [chain, setChain] = useState('');
-  const [message, setMessage] = useState('');
-
-  async function refreshWallet() {
-    const injected = provider();
-    if (!injected) return;
-    try {
-      const accounts = (await injected.request({ method: 'eth_accounts' })) as string[];
-      setAccount(accounts[0] || '');
-      setChain(String(await injected.request({ method: 'eth_chainId' })));
-    } catch {
-      setAccount('');
-      setChain('');
-    }
-  }
-
-  useEffect(() => {
-    void refreshWallet();
-    const injected = provider();
-    if (!injected) return;
-    const onAccount = () => void refreshWallet();
-    const onChain = () => void refreshWallet();
-    injected.on?.('accountsChanged', onAccount);
-    injected.on?.('chainChanged', onChain);
-    return () => {
-      injected.removeListener?.('accountsChanged', onAccount);
-      injected.removeListener?.('chainChanged', onChain);
-    };
-  }, []);
-
-  async function walletAction() {
-    const injected = provider();
-    if (!injected) {
-      setMessage('Install an injected EIP-1193 wallet to sign WITLOCK actions.');
-      return;
-    }
-    try {
-      if (chain && !isTargetChain(chain)) {
-        await switchNetwork(injected);
-      } else if (!account) {
-        await injected.request({ method: 'eth_requestAccounts' });
-      }
-      setMessage('');
-      await refreshWallet();
-    } catch (error) {
-      setMessage((error as Error).message);
-    }
-  }
-
-  function disconnect() {
-    setAccount('');
-    setChain('');
-    setMessage('Wallet disconnected from this interface.');
-  }
-
-  const wrongNetwork = !!chain && !isTargetChain(chain);
+  const { account, wrongNetwork, message, connect, switchToTarget, disconnect } = useWallet();
+  const walletAction = wrongNetwork ? switchToTarget : connect;
 
   return <div className="site-shell">
     <header className="site-header">
@@ -99,4 +45,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     {children}
     <footer className="site-footer wrap"><span>WITLOCK · provenance before economic finality</span><span>INJECTED WALLET ONLY · CUSTODY DISABLED</span></footer>
   </div>;
+}
+
+export default function AppShell({ children }: { children: React.ReactNode }) {
+  return <WalletProvider><ShellContent>{children}</ShellContent></WalletProvider>;
 }

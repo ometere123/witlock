@@ -26,6 +26,7 @@ MAX_TASK_QUESTION_CHARS = 240
 MAX_CLAIM_CHARS = 400
 MAX_APPEAL_BASIS_CHARS = 400
 MAX_APPEAL_JSON_CHARS = 3500
+MIN_APPEAL_WINDOW_SECONDS = 15 * 60
 
 
 class Witlock(gl.Contract):
@@ -347,6 +348,32 @@ class Witlock(gl.Contract):
             sort_keys=True,
         )
 
+    def _open_first_appeal_window(self, agreement: dict) -> None:
+        """Set the effective first-ruling deadline exactly once.
+
+        The agreement deadline remains the effective deadline after this
+        method runs.  A delayed ruling therefore cannot consume the entire
+        appeal period, while a long original deadline is preserved.  The
+        decision-version and start-time guards make replay unable to extend
+        the window a second time.
+        """
+        if int(agreement.get("decision_version", 0)) != 0 or int(agreement.get("appeal_window_started_at", 0)) != 0:
+            self._reject("DECISION_REPLAY")
+        started_at = self._now()
+        original_deadline = int(agreement.get("original_appeal_deadline", agreement["appeal_deadline"]))
+        agreement["appeal_window_started_at"] = started_at
+        agreement["appeal_deadline"] = max(
+            int(agreement["appeal_deadline"]),
+            original_deadline,
+            started_at + MIN_APPEAL_WINDOW_SECONDS,
+        )
+
+    def _appeal_window_open(self, agreement: dict) -> bool:
+        return self._now() <= int(agreement["appeal_deadline"])
+
+    def _appeal_deadline_reached(self, agreement: dict) -> bool:
+        return self._now() >= int(agreement["appeal_deadline"])
+
     def _all_authenticated(self, key: str, agreement: dict) -> bool:
         for task in agreement["terms"]["tasks"]:
             raw = self.evidence.get(self._evidence_key(key, task["id"]), "")
@@ -626,6 +653,8 @@ class Witlock(gl.Contract):
             "accept_deadline": accept_at,
             "delivery_deadline": delivery_at,
             "appeal_deadline": appeal_at,
+            "original_appeal_deadline": appeal_at,
+            "appeal_window_started_at": 0,
             "status": "DRAFT",
             "revision": 0,
             "funding_required": int(funding_amount),
@@ -980,6 +1009,7 @@ class Witlock(gl.Contract):
             self._reject("ADJUDICATION_STATE")
         records = self._records(key, agreement)
         decision = self._classify(key, agreement, records, "")
+        self._open_first_appeal_window(agreement)
         agreement["status"] = "DECIDED"
         self._record_decision(key, agreement, decision, self._party(), "ADJUDICATED")
         agreement["status"] = "APPEAL_WINDOW"
@@ -1002,6 +1032,7 @@ class Witlock(gl.Contract):
             "economic_rule": "no authenticated dossier; no allocation",
             "payment_status": "BLOCKED_INCONCLUSIVE",
         }
+        self._open_first_appeal_window(agreement)
         agreement["status"] = "DECIDED"
         self._record_decision(key, agreement, decision, self._party(), "INCONCLUSIVE_FINALIZED")
         agreement["status"] = "APPEAL_WINDOW"
@@ -1016,7 +1047,7 @@ class Witlock(gl.Contract):
         self._require_party(agreement)
         if not isinstance(grounds_json, str):
             grounds_json = json.dumps(grounds_json, sort_keys=True)
-        if self._now() > agreement["appeal_deadline"] or not self._bounded(grounds_json, 20, MAX_APPEAL_JSON_CHARS):
+        if not self._appeal_window_open(agreement) or not self._bounded(grounds_json, 20, MAX_APPEAL_JSON_CHARS):
             self._reject("APPEAL_DEADLINE")
         grounds = self._parse(grounds_json, "APPEAL_GROUNDS_JSON")
         if set(grounds) != {
@@ -1185,7 +1216,7 @@ class Witlock(gl.Contract):
             self._reject("FINALIZATION_STATE")
         if agreement["appeal_status"] not in ("NONE", "RESOLVED"):
             self._reject("APPEAL_PENDING")
-        if self._now() < agreement["appeal_deadline"]:
+        if not self._appeal_deadline_reached(agreement):
             self._reject("FINALIZATION_EARLY")
         agreement["status"] = "FINAL_DECISION"
         agreement["appeal_status"] = "FINALIZED"

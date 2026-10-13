@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { CheckCircle2, CircleAlert, ExternalLink, RefreshCw, Wallet } from 'lucide-react';
-import { CONTRACT, CHAIN_ID, EXPLORER, isTargetChain, provider, readClient, switchNetwork } from '@/lib/network';
+import { CONTRACT, CHAIN_ID, EXPLORER, readClient, isTargetChain } from '@/lib/network';
+import { useWallet } from '@/lib/wallet';
 import { submitWrite, TransactionExecutionError, type FinalizedTransaction } from '@/lib/transactions';
 
 type CaseConsoleProps = { caseId: string; surface: 'agreement' | 'evidence' | 'review' | 'settlement' };
@@ -25,8 +26,7 @@ function Field({ label, name, value, onChange, placeholder, multiline = false }:
 }
 
 export default function CaseConsole({ caseId, surface }: CaseConsoleProps) {
-  const [account, setAccount] = useState('');
-  const [chain, setChain] = useState('');
+  const { account, chain, wrongNetwork, connect, disconnect } = useWallet();
   const [state, setState] = useState<Record<string, unknown> | null>(null);
   const [decision, setDecision] = useState<Record<string, unknown> | null>(null);
   const [evidence, setEvidence] = useState<Record<string, unknown> | null>(null);
@@ -98,34 +98,8 @@ export default function CaseConsole({ caseId, surface }: CaseConsoleProps) {
     } finally { setBusy(false); }
   }
 
-  async function wallet() {
-    const injected = provider();
-    if (!injected) { setMessage('An injected EIP-1193 wallet is required.'); return; }
-    try {
-      await injected.request({ method: 'eth_requestAccounts' });
-      setAccount(((await injected.request({ method: 'eth_accounts' })) as string[])[0] || '');
-      setChain(String(await injected.request({ method: 'eth_chainId' })));
-    } catch (error) { setMessage((error as Error).message); }
-  }
-
-  function disconnect() {
-    setAccount('');
-    setChain('');
-    setMessage('Wallet disconnected from this interface.');
-  }
-
   useEffect(() => {
     void refresh();
-    const injected = provider();
-    if (!injected) return;
-    const onAccount = (accounts: unknown) => setAccount(Array.isArray(accounts) ? String(accounts[0] || '') : '');
-    const onChain = (value: unknown) => setChain(String(value || ''));
-    injected.on?.('accountsChanged', onAccount);
-    injected.on?.('chainChanged', onChain);
-    return () => {
-      injected.removeListener?.('accountsChanged', onAccount);
-      injected.removeListener?.('chainChanged', onChain);
-    };
   }, [caseId]);
 
   function change(name: string, value: string) { setFields((current) => ({ ...current, [name]: value })); }
@@ -170,8 +144,8 @@ export default function CaseConsole({ caseId, surface }: CaseConsoleProps) {
   const action = (label: string, method: string, args: unknown[]) => <button className="button" disabled={busy || !account || !isTargetChain(chain)} onClick={() => void run(method, args)}>{label}</button>;
 
   return <div className="case-console">
-    <div className="line"><span className="mono">LIVE CASE · {caseId}</span><div className="row"><span className="mono">{account ? account.slice(0, 10) + '…' : 'WALLET DISCONNECTED'}</span><button className="button alt" onClick={() => void wallet()}><Wallet size={14} /> Connect</button>{account && <button className="button alt" onClick={disconnect}>Disconnect</button>}<button className="button alt" onClick={() => void refresh()} disabled={busy}><RefreshCw size={14} /> Refresh</button></div></div>
-    {chain && !isTargetChain(chain) && <div className="warning">Writes are blocked on wallet chain {chain}. Switch to StudioNet {CHAIN_ID}.</div>}
+    <div className="line"><span className="mono">LIVE CASE · {caseId}</span><div className="row"><span className="mono">{account ? account.slice(0, 10) + '…' : 'WALLET DISCONNECTED'}</span><button className="button alt" onClick={() => void connect()}><Wallet size={14} /> Connect</button>{account && <button className="button alt" onClick={disconnect}>Disconnect</button>}<button className="button alt" onClick={() => void refresh()} disabled={busy}><RefreshCw size={14} /> Refresh</button></div></div>
+    {wrongNetwork && <div className="warning">Writes are blocked on wallet chain {chain}. Switch to StudioNet {CHAIN_ID}.</div>}
       {surface === 'agreement' && <section className="route-grid">
       {card('Frozen agreement', <>{state ? <pre className="code">{JSON.stringify(state, null, 2)}</pre> : <p className="muted">No on-chain case was returned for this key.</p>}{status === 'DRAFT' && isProvider && action('Accept as provider', 'accept_agreement', [caseId])}{status === 'ACTIVE' && isRequester && action('Acknowledge delivery', 'acknowledge_delivery', [caseId])}{['ACTIVE', 'DELIVERED'].includes(status) && isParty && <div className="field"><label>Dispute reason digest</label><input value={fields.reason_hash || ''} onChange={(event) => change('reason_hash', event.target.value)} placeholder="64 lowercase hex characters" />{action('Open dispute', 'open_dispute', [caseId, fields.reason_hash || ''])}</div>}</>)}
       {card('Decision history', <><p className="muted">The current decision, revision number, deadlines, and actors are read directly from the contract. Each submitted write is stored with its explorer link after finality.</p>{decision && <pre className="code">{JSON.stringify(decision, null, 2)}</pre>}{history.length > 0 && <pre className="code">{JSON.stringify(history, null, 2)}</pre>}{receipt && <a className="button alt" href={receipt.explorer} target="_blank" rel="noreferrer">{receipt.successful ? 'Successful receipt' : 'Failed execution receipt'} <ExternalLink size={14} /></a>}</>)}

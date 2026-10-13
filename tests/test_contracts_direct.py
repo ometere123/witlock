@@ -138,10 +138,10 @@ def submit_and_authenticate(
         agreement.authenticate_evidence(key, task_id, observed_digest or digest(SOURCE_BODY))
 
 
-def open_authenticated_appeal(direct_vm, agreement, requester, verifier, key="agreement-1"):
+def appeal_grounds(key="agreement-1"):
     appeal_digest = digest(APPEAL_BODY)
     appeal_provenance = provenance(key + ":source", APPEAL_URL, APPEAL_COMMIT, appeal_digest)
-    grounds = json.dumps(
+    return json.dumps(
         {
             "task_id": "source",
             "challenged_version": 1,
@@ -156,6 +156,12 @@ def open_authenticated_appeal(direct_vm, agreement, requester, verifier, key="ag
         },
         sort_keys=True,
     )
+
+
+def open_authenticated_appeal(direct_vm, agreement, requester, verifier, key="agreement-1"):
+    appeal_digest = digest(APPEAL_BODY)
+    appeal_provenance = provenance(key + ":source", APPEAL_URL, APPEAL_COMMIT, appeal_digest)
+    grounds = appeal_grounds(key)
     with direct_vm.prank(requester):
         agreement.open_appeal(key, grounds)
     mock_source(direct_vm, APPEAL_URL, APPEAL_COMMIT, APPEAL_BODY)
@@ -497,8 +503,15 @@ def test_adjudication_and_resolved_appeal_can_finalize(
         agreement.acknowledge_delivery("agreement-1")
         agreement.seal_agreement("agreement-1")
 
+    # The ruling is deliberately delayed beyond the original five-minute
+    # agreement deadline.  The first ruling must open a fresh bounded window.
+    direct_vm.warp("2026-01-01T00:06:00Z")
     direct_vm.mock_llm("Classify each frozen criterion", json.dumps({"answers": {"source": "PASS"}}))
     agreement.adjudicate("agreement-1")
+    ruled = json.loads(agreement.get_agreement("agreement-1"))
+    assert ruled["original_appeal_deadline"] == BASE_TIMESTAMP + 300
+    assert ruled["appeal_window_started_at"] == BASE_TIMESTAMP + 360
+    assert ruled["appeal_deadline"] == BASE_TIMESTAMP + 360 + 15 * 60
     open_authenticated_appeal(direct_vm, agreement, direct_alice, direct_dana)
     direct_vm.clear_mocks()
     mock_source(direct_vm, SOURCE_URL, SOURCE_COMMIT, SOURCE_BODY)
@@ -511,7 +524,7 @@ def test_adjudication_and_resolved_appeal_can_finalize(
     assert state["appeal_status"] == "RESOLVED"
     assert state["decision_version"] == 2
 
-    direct_vm.warp("2026-01-01T00:05:01Z")
+    direct_vm.warp("2026-01-01T00:21:00Z")
     agreement.finalize_decision("agreement-1")
     state = json.loads(agreement.get_agreement("agreement-1"))
     assert state["status"] == "FINAL_DECISION"
@@ -539,13 +552,62 @@ def test_deadline_boundaries_finalize_at_appeal_deadline_without_evidence(
     direct_vm.warp("2026-01-01T00:03:21Z")
     agreement.timeout_delivery("agreement-1")
     agreement.finalize_inconclusive("agreement-1")
-    direct_vm.warp("2026-01-01T00:05:00Z")
+    state = json.loads(agreement.get_agreement("agreement-1"))
+    assert state["original_appeal_deadline"] == BASE_TIMESTAMP + 300
+    assert state["appeal_window_started_at"] == BASE_TIMESTAMP + 201
+    effective_deadline = state["appeal_deadline"]
+    direct_vm.warp("2026-01-01T00:18:20Z")
+    with direct_vm.expect_revert("WL_FINALIZATION_EARLY"):
+        agreement.finalize_decision("agreement-1")
+    direct_vm.warp("2026-01-01T00:18:21Z")
     agreement.finalize_decision("agreement-1")
     state = json.loads(agreement.get_agreement("agreement-1"))
+    assert effective_deadline == BASE_TIMESTAMP + 201 + 15 * 60
     assert state["status"] == "FINAL_DECISION"
     assert state["appeal_status"] == "FINALIZED"
     assert state["decision_version"] == 1
     assert state["settlement_status"] == "BLOCKED_INCONCLUSIVE"
+
+
+@pytest.mark.direct
+def test_late_appeal_is_rejected_after_the_one_time_effective_deadline(
+    direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, direct_dana
+):
+    agreement = direct_deploy("contracts/Witlock.py", sdk_version=SDK_VERSION)
+    direct_vm.warp("2026-01-01T00:00:00Z")
+    create(direct_vm, agreement, direct_alice, direct_bob, direct_charlie, direct_dana)
+    activate(direct_vm, agreement, direct_bob)
+    publish_and_verify(direct_vm, agreement, direct_charlie, direct_dana)
+    submit_and_authenticate(direct_vm, agreement, direct_alice, direct_charlie)
+    with direct_vm.prank(direct_alice):
+        agreement.acknowledge_delivery("agreement-1")
+        agreement.seal_agreement("agreement-1")
+    direct_vm.warp("2026-01-01T00:06:00Z")
+    direct_vm.mock_llm("Classify each frozen criterion", json.dumps({"answers": {"source": "PASS"}}))
+    agreement.adjudicate("agreement-1")
+    state = json.loads(agreement.get_agreement("agreement-1"))
+    direct_vm.warp("2026-01-01T00:21:01Z")
+    with direct_vm.expect_revert("WL_APPEAL_DEADLINE"):
+        with direct_vm.prank(direct_alice):
+            agreement.open_appeal("agreement-1", appeal_grounds())
+    assert json.loads(agreement.get_agreement("agreement-1"))["appeal_deadline"] == state["appeal_deadline"]
+
+
+@pytest.mark.direct
+def test_first_ruling_window_cannot_be_replayed_or_extended(
+    direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, direct_dana
+):
+    agreement = direct_deploy("contracts/Witlock.py", sdk_version=SDK_VERSION)
+    direct_vm.warp("2026-01-01T00:00:00Z")
+    create(direct_vm, agreement, direct_alice, direct_bob, direct_charlie, direct_dana)
+    activate(direct_vm, agreement, direct_bob)
+    direct_vm.warp("2026-01-01T00:03:21Z")
+    agreement.timeout_delivery("agreement-1")
+    agreement.finalize_inconclusive("agreement-1")
+    first = json.loads(agreement.get_agreement("agreement-1"))
+    with direct_vm.expect_revert("WL_ADJUDICATION_STATE"):
+        agreement.adjudicate("agreement-1")
+    assert json.loads(agreement.get_agreement("agreement-1"))["appeal_deadline"] == first["appeal_deadline"]
 
 
 @pytest.mark.direct

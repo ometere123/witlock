@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { ExternalLink, RefreshCw, Search, Wallet } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { CHAIN_ID, CONTRACT, EXPLORER, isTargetChain, provider, readClient, switchNetwork } from '@/lib/network';
+import { useState } from 'react';
+import { CHAIN_ID, CONTRACT, EXPLORER, readClient } from '@/lib/network';
+import { useWallet } from '@/lib/wallet';
 
 type JsonRecord = Record<string, unknown>;
 
@@ -18,48 +19,13 @@ function short(value: unknown): string {
 }
 
 export default function CaseLookup({ title = 'Read a live agreement' }: { title?: string }) {
+  const { account, wrongNetwork, connect, switchToTarget } = useWallet();
   const [caseId, setCaseId] = useState('');
-  const [account, setAccount] = useState('');
-  const [chain, setChain] = useState('');
   const [state, setState] = useState<JsonRecord | null>(null);
   const [decision, setDecision] = useState<JsonRecord | null>(null);
   const [settlement, setSettlement] = useState<JsonRecord | null>(null);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
-
-  async function refreshWallet() {
-    const injected = provider();
-    if (!injected) return;
-    try {
-      const accounts = (await injected.request({ method: 'eth_accounts' })) as string[];
-      setAccount(accounts[0] || '');
-      setChain(String(await injected.request({ method: 'eth_chainId' })));
-    } catch {
-      setAccount('');
-      setChain('');
-    }
-  }
-
-  useEffect(() => {
-    void refreshWallet();
-  }, []);
-
-  async function connect() {
-    const injected = provider();
-    if (!injected) { setMessage('An injected EIP-1193 wallet is required.'); return; }
-    try {
-      await injected.request({ method: 'eth_requestAccounts' });
-      await refreshWallet();
-      setMessage('Wallet connected. Reads remain read-only.');
-    } catch (error) { setMessage((error as Error).message); }
-  }
-
-  async function fixNetwork() {
-    const injected = provider();
-    if (!injected) { setMessage('An injected EIP-1193 wallet is required.'); return; }
-    try { await switchNetwork(injected); await refreshWallet(); }
-    catch (error) { setMessage((error as Error).message); }
-  }
 
   async function inspect() {
     if (!caseId.trim()) { setMessage('Enter the exact agreement key.'); return; }
@@ -85,10 +51,8 @@ export default function CaseLookup({ title = 'Read a live agreement' }: { title?
   }
 
   const terms = state?.terms && typeof state.terms === 'object' && state.terms !== null ? state.terms as { tasks?: unknown[] } : null;
-  const wrongNetwork = !!chain && !isTargetChain(chain);
-
   return <section className="panel live-lookup">
-    <div className="line"><div><div className="label">LIVE READ</div><h2>{title}</h2></div><div className="row"><span className="mono">{wrongNetwork ? 'WRONG NETWORK' : `STUDIONET · ${CHAIN_ID}`}</span><button className="button alt" onClick={wrongNetwork ? fixNetwork : connect}><Wallet size={14} />{account ? short(account) : wrongNetwork ? 'Switch network' : 'Connect wallet'}</button></div></div>
+    <div className="line"><div><div className="label">LIVE READ</div><h2>{title}</h2></div><div className="row"><span className="mono">{wrongNetwork ? 'WRONG NETWORK' : `STUDIONET · ${CHAIN_ID}`}</span><button className="button alt" onClick={() => void (wrongNetwork ? switchToTarget() : connect())}><Wallet size={14} />{account ? short(account) : wrongNetwork ? 'Switch network' : 'Connect wallet'}</button></div></div>
     <p className="muted">Enter a case key to read agreement, decision, and allocation records from the configured contract. This surface never fills missing state with fixtures.</p>
     <div className="lookup-form"><div className="field"><label htmlFor="case-lookup">Agreement key</label><input id="case-lookup" value={caseId} onChange={(event) => setCaseId(event.target.value)} placeholder="WL-2026-001" /></div><button className="button" onClick={() => void inspect()} disabled={busy || wrongNetwork}><Search size={14} />{busy ? 'Reading…' : 'Read state'}</button><button className="button alt" onClick={() => void inspect()} disabled={busy || !state}><RefreshCw size={14} />Refresh</button></div>
     {!CONTRACT && <div className="warning">The current source has no verified deployed contract address. Reads and writes stay disabled until a fresh StudioNet deployment reaches successful finalized execution.</div>}

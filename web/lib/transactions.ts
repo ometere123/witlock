@@ -95,11 +95,21 @@ function clearPendingTransaction(value: Pick<PendingTransaction, 'hash' | 'accou
   window.localStorage.removeItem('witlock.pending.transaction.v1');
 }
 
+type ReceiptField = { present: boolean; value: string; consistent: boolean };
+
 function receiptField(receipt: Record<string, unknown>, ...names: string[]): string {
-  for (const name of names) {
-    if (receipt[name] !== undefined && receipt[name] !== null) return String(receipt[name]);
-  }
-  return '';
+  return receiptFieldState(receipt, ...names).value;
+}
+
+function receiptFieldState(receipt: Record<string, unknown>, ...names: string[]): ReceiptField {
+  const values = names
+    .filter((name) => receipt[name] !== undefined && receipt[name] !== null)
+    .map((name) => String(receipt[name]));
+  return {
+    present: values.length > 0,
+    value: values[0] || '',
+    consistent: values.every((value) => value === values[0]),
+  };
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -112,10 +122,10 @@ function isQuorumCancellation(record: Record<string, unknown>): boolean {
   if (record.mode !== 'validator' || record.vote !== 'idle' || record.execution_result !== 'ERROR') return false;
   const genvmResult = asRecord(record.genvm_result);
   if (!genvmResult) return false;
-  if (genvmResult.error_code === 'CONSENSUS_VALIDATOR_QUORUM_REACHED') return true;
+  if (genvmResult.error_code !== 'CONSENSUS_VALIDATOR_QUORUM_REACHED') return false;
   const rawError = asRecord(genvmResult.raw_error);
   const causes = rawError?.causes;
-  return Array.isArray(causes) && causes.includes('VALIDATOR_QUORUM_REACHED');
+  return rawError?.fatal === false && Array.isArray(causes) && causes.includes('VALIDATOR_QUORUM_REACHED');
 }
 
 function hasSuccessfulExecution(record: Record<string, unknown>): boolean {
@@ -127,34 +137,72 @@ function hasSuccessfulExecution(record: Record<string, unknown>): boolean {
 }
 
 function hasSuccessfulStudioConsensus(receipt: Record<string, unknown>): boolean {
-  const resultName = receiptField(receipt, 'resultName', 'result_name');
-  if (resultName !== 'MAJORITY_AGREE') return false;
+  const resultState = receiptFieldState(receipt, 'resultName', 'result_name', 'consensusResult', 'consensus_result');
+  if (!resultState.present || !resultState.consistent || resultState.value !== 'MAJORITY_AGREE') return false;
 
   const consensus = asRecord(receipt.consensus_data);
   if (!consensus) return false;
+  if (consensus.final !== undefined && consensus.final !== true) return false;
   const validators = consensus.validators;
   const leaderReceipts = consensus.leader_receipt;
   if (!Array.isArray(validators) || validators.length === 0 || !Array.isArray(leaderReceipts) || leaderReceipts.length === 0) return false;
 
-  const records = [...leaderReceipts, ...validators].map(asRecord);
+  const validatorRecords = validators.map(asRecord);
+  const leaderRecords = leaderReceipts.map(asRecord);
+  if (validatorRecords.some((record) => !record) || leaderRecords.some((record) => !record)) return false;
+  const typedValidators = validatorRecords as Record<string, unknown>[];
+  const typedLeaders = leaderRecords as Record<string, unknown>[];
+  if (typedValidators.some((record) => record.mode !== 'validator' || !['agree', 'idle'].includes(String(record.vote)))) return false;
+  if (typedLeaders.some((record) => record.mode !== 'leader' && record.mode !== 'validator')) return false;
+  const records = [...typedLeaders, ...typedValidators];
   if (records.some((record) => !record)) return false;
-  const validRecords = records as Record<string, unknown>[];
-  const leader = validRecords.find((record) => record.mode === 'leader');
+  const leader = typedLeaders.find((record) => record.mode === 'leader');
   if (!leader || !hasSuccessfulExecution(leader)) return false;
-  if (!validators.some((validator) => {
-    const record = asRecord(validator);
-    return !!record && record.mode === 'validator' && record.vote === 'agree' && hasSuccessfulExecution(record);
-  })) return false;
-  return validRecords.every(hasSuccessfulExecution);
+  if (typedLeaders.some((record) => record.mode === 'leader' && !hasSuccessfulExecution(record))) return false;
+  if (!typedValidators.some((record) => record.vote === 'agree' && hasSuccessfulExecution(record))) return false;
+  if (!records.every(hasSuccessfulExecution)) return false;
+
+  const votes = asRecord(consensus.votes);
+  if (consensus.votes !== undefined && (!votes || Object.values(votes).some((vote) => !['agree', 'idle', 'AGREE', 'IDLE'].includes(String(vote))))) return false;
+  if (votes && !Object.values(votes).some((vote) => String(vote).toUpperCase() === 'AGREE')) return false;
+
+  const lastRound = asRecord(receipt.lastRound || receipt.last_round);
+  if (receipt.lastRound !== undefined || receipt.last_round !== undefined) {
+    if (!lastRound) return false;
+    const validatorVotes = lastRound.validatorVotesName || lastRound.validator_votes_name;
+    if (!Array.isArray(validatorVotes) || validatorVotes.length === 0) return false;
+    if (validatorVotes.some((vote) => !['agree', 'idle', 'AGREE', 'IDLE'].includes(String(vote)))) return false;
+    if (!validatorVotes.some((vote) => String(vote).toUpperCase() === 'AGREE')) return false;
+    const numericVotes = lastRound.validatorVotes || lastRound.validator_votes;
+    if (numericVotes !== undefined && (!Array.isArray(numericVotes) || numericVotes.length !== validatorVotes.length)) return false;
+  }
+  return true;
 }
 
 export function isSuccessfulFinalizedReceipt(receipt: Record<string, unknown>): boolean {
-  const status = receiptField(receipt, 'statusName', 'status_name');
-  const execution = receiptField(receipt, 'txExecutionResultName', 'tx_execution_result_name');
-  if (status !== TransactionStatus.FINALIZED) return false;
-  if (execution === ExecutionResult.FINISHED_WITH_ERROR) return false;
-  if (execution && execution !== ExecutionResult.FINISHED_WITH_RETURN) return false;
-  return execution === ExecutionResult.FINISHED_WITH_RETURN || hasSuccessfulStudioConsensus(receipt);
+  const statusState = receiptFieldState(receipt, 'statusName', 'status_name');
+  if (!statusState.present || !statusState.consistent || statusState.value !== TransactionStatus.FINALIZED) return false;
+
+  const executionState = receiptFieldState(
+    receipt,
+    'txExecutionResultName',
+    'tx_execution_result_name',
+    'executionResult',
+    'execution_result',
+  );
+  if (!executionState.consistent) return false;
+  if (executionState.present && executionState.value !== ExecutionResult.FINISHED_WITH_RETURN) return false;
+
+  const resultState = receiptFieldState(receipt, 'resultName', 'result_name', 'consensusResult', 'consensus_result');
+  const hasConsensus = receipt.consensus_data !== undefined && receipt.consensus_data !== null;
+  if (hasConsensus || resultState.present) {
+    if (executionState.present && executionState.value !== ExecutionResult.FINISHED_WITH_RETURN) return false;
+    return hasSuccessfulStudioConsensus(receipt);
+  }
+
+  // The SDK enum path is valid only when no partial consensus metadata is
+  // supplied to contradict it. Unknown or absent execution is fail-closed.
+  return executionState.value === ExecutionResult.FINISHED_WITH_RETURN;
 }
 
 async function assertWallet(account: string): Promise<void> {
