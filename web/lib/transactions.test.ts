@@ -1,11 +1,35 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ExecutionResult, TransactionStatus } from 'genlayer-js/types';
-import { isSuccessfulFinalizedReceipt, readPendingTransaction, readPendingTransactions } from './transactions';
+
+const mocks = vi.hoisted(() => {
+  process.env.NEXT_PUBLIC_WITLOCK_CONTRACT = '0x825478432dFECd321C5E5C193829Ad1bAd88043a';
+  return {
+    provider: vi.fn(),
+    readClient: vi.fn(),
+    writeClient: vi.fn(),
+  };
+});
+
+vi.mock('./network', async () => {
+  const actual = await vi.importActual<typeof import('./network')>('./network');
+  return { ...actual, ...mocks };
+});
+
+import {
+  isSuccessfulFinalizedReceipt,
+  readPendingTransaction,
+  readPendingTransactions,
+  recoverPendingTransactions,
+  submitWrite,
+} from './transactions';
 
 const values = new Map<string, string>();
 
 beforeEach(() => {
   values.clear();
+  mocks.provider.mockReset();
+  mocks.readClient.mockReset();
+  mocks.writeClient.mockReset();
   vi.stubGlobal('window', {
     localStorage: {
       getItem: (key: string) => values.get(key) ?? null,
@@ -23,35 +47,57 @@ describe('GenLayer receipt classification', () => {
     })).toBe(true);
   });
 
-  it('accepts the pinned StudioNet receipt shape with successful validator execution', () => {
+  it('accepts a successful StudioNet receipt with quorum cancellation records', () => {
     expect(isSuccessfulFinalizedReceipt({
-      statusName: TransactionStatus.FINALIZED,
+      status_name: TransactionStatus.FINALIZED,
       result_name: 'MAJORITY_AGREE',
       consensus_data: {
         validators: [
-          { vote: 'agree', execution_result: 'SUCCESS', genvm_result: { raw_error: null } },
-          { vote: 'agree', execution_result: 'SUCCESS', genvm_result: { raw_error: null } },
+          { mode: 'validator', vote: 'agree', execution_result: 'SUCCESS', genvm_result: { raw_error: null, error_code: null, error_description: null } },
+          { mode: 'validator', vote: 'agree', execution_result: 'SUCCESS', genvm_result: { raw_error: null, error_code: null, error_description: null } },
+          { mode: 'validator', vote: 'agree', execution_result: 'SUCCESS', genvm_result: { raw_error: null, error_code: null, error_description: null } },
+          { mode: 'validator', vote: 'idle', execution_result: 'ERROR', genvm_result: { raw_error: { fatal: false, causes: ['VALIDATOR_QUORUM_REACHED'] }, error_code: 'CONSENSUS_VALIDATOR_QUORUM_REACHED' } },
+        ],
+        leader_receipt: [
+          { mode: 'leader', execution_result: 'SUCCESS', genvm_result: { raw_error: null, error_code: null, error_description: null } },
+          { mode: 'validator', vote: 'idle', execution_result: 'ERROR', genvm_result: { raw_error: { fatal: false, causes: ['VALIDATOR_QUORUM_REACHED'] }, error_code: 'CONSENSUS_VALIDATOR_QUORUM_REACHED' } },
         ],
       },
     })).toBe(true);
   });
 
-  it('rejects finalized execution errors and generic SUCCESS labels', () => {
+  it('rejects NO_MAJORITY and unknown execution states', () => {
     expect(isSuccessfulFinalizedReceipt({
       statusName: TransactionStatus.FINALIZED,
-      txExecutionResultName: ExecutionResult.FINISHED_WITH_ERROR,
-    })).toBe(false);
-    expect(isSuccessfulFinalizedReceipt({
-      statusName: TransactionStatus.FINALIZED,
-      execution_result: 'SUCCESS',
+      result_name: 'NO_MAJORITY',
+      consensus_data: { validators: [], leader_receipt: [] },
     })).toBe(false);
     expect(isSuccessfulFinalizedReceipt({
       statusName: TransactionStatus.FINALIZED,
       result_name: 'MAJORITY_AGREE',
       consensus_data: {
-        validators: [
-          { vote: 'agree', execution_result: 'ERROR', genvm_result: { raw_error: 'execution failed' } },
-        ],
+        validators: [{ mode: 'validator', vote: 'agree', execution_result: 'PENDING', genvm_result: {} }],
+        leader_receipt: [{ mode: 'leader', execution_result: 'SUCCESS', genvm_result: {} }],
+      },
+    })).toBe(false);
+  });
+
+  it('never lets an explicit execution error become success through majority agreement', () => {
+    expect(isSuccessfulFinalizedReceipt({
+      statusName: TransactionStatus.FINALIZED,
+      txExecutionResultName: ExecutionResult.FINISHED_WITH_ERROR,
+      result_name: 'MAJORITY_AGREE',
+      consensus_data: {
+        validators: [{ mode: 'validator', vote: 'agree', execution_result: 'SUCCESS', genvm_result: { raw_error: null, error_code: null, error_description: null } }],
+        leader_receipt: [{ mode: 'leader', execution_result: 'SUCCESS', genvm_result: { raw_error: null, error_code: null, error_description: null } }],
+      },
+    })).toBe(false);
+    expect(isSuccessfulFinalizedReceipt({
+      statusName: TransactionStatus.FINALIZED,
+      result_name: 'MAJORITY_AGREE',
+      consensus_data: {
+        validators: [{ mode: 'validator', vote: 'agree', execution_result: 'ERROR', genvm_result: { raw_error: 'execution failed', error_code: 'GENVM_ERROR' } }],
+        leader_receipt: [{ mode: 'leader', execution_result: 'SUCCESS', genvm_result: { raw_error: null, error_code: null, error_description: null } }],
       },
     })).toBe(false);
   });
@@ -65,5 +111,39 @@ describe('pending transaction persistence', () => {
     ]));
     expect(readPendingTransactions()).toHaveLength(2);
     expect(readPendingTransaction()?.hash).toBe('0xaaa');
+  });
+
+  it('recovers a pending transaction and clears it after successful finality', async () => {
+    values.set('witlock.pending.transactions.v2', JSON.stringify([
+      { hash: '0xabc', method: 'create_agreement', account: '0x1', chainId: 61999, contract: '0x825478432dFECd321C5E5C193829Ad1bAd88043a', submittedAt: 1 },
+    ]));
+    const waitForTransactionReceipt = vi.fn().mockResolvedValue({
+      status_name: TransactionStatus.FINALIZED,
+      tx_execution_result_name: ExecutionResult.FINISHED_WITH_RETURN,
+    });
+    mocks.readClient.mockReturnValue({ waitForTransactionReceipt });
+
+    const recovered = await recoverPendingTransactions();
+
+    expect(recovered).toHaveLength(1);
+    expect(recovered[0].successful).toBe(true);
+    expect(waitForTransactionReceipt).toHaveBeenCalledOnce();
+    expect(readPendingTransactions()).toHaveLength(0);
+  });
+
+  it('surfaces wallet signing rejection without creating a pending entry', async () => {
+    const account = '0x1111111111111111111111111111111111111111';
+    const request = vi.fn(async ({ method }: { method: string }) => {
+      if (method === 'eth_accounts') return [account];
+      if (method === 'eth_chainId') return '0xF22F';
+      return null;
+    });
+    mocks.provider.mockReturnValue({ request });
+    mocks.writeClient.mockReturnValue({
+      writeContract: vi.fn().mockRejectedValue(Object.assign(new Error('User rejected the request'), { code: 4001 })),
+    });
+
+    await expect(submitWrite(account, 'create_agreement', [])).rejects.toMatchObject({ code: 4001 });
+    expect(readPendingTransactions()).toHaveLength(0);
   });
 });

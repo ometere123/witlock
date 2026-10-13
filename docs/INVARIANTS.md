@@ -14,4 +14,4 @@
 12. Accounting conservation: funded = confirmed_paid + in_flight + unresolved + remaining, with no negative component.
 13. No ambiguous retry: an unresolved payment attempt cannot be silently retried or marked paid.
 
-Direct Mode and current StudioNet readbacks demonstrate the zero-value evidence and adjudication invariants. The live cases cover APPROVED, PARTIAL, REJECTED, and INCONCLUSIVE. Native-token transfer and recovery remain unproven because custody is disabled.
+Direct Mode and current StudioNet readbacks demonstrate the zero-value evidence and adjudication invariants. The 35-test adversarial suite covers issuer/verifier independence, immutable GitHub provenance and byte hashing, prompt injection, missing evidence, malformed answers, appeal replay, exact deadline boundaries, terminal-state idempotence, and accounting conservation. The live cases cover APPROVED, PARTIAL, REJECTED, and INCONCLUSIVE; `final-proof-20261013` additionally proves terminal finalization after the real appeal deadline. Native-token transfer and recovery remain unproven because custody is disabled.

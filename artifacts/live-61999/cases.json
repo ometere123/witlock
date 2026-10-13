@@ -9,7 +9,8 @@
   "source": {
     "git_sha": "14315fa82ef6d6f5e2c077de51c93f266801b1cb",
     "sha256": "AB446841A8A16276ED30A431264DEEC015E87751FF594AE92392ECFACB2F7F35",
-    "exact_deployed_match": true
+    "exact_deployed_match": true,
+    "bytes": 62629
   },
   "receipt_profile": {
     "status": "FINALIZED",
@@ -158,5 +159,61 @@
     },
     "consensus_agree_count": 5,
     "leader_execution": "SUCCESS"
+  },
+  "terminal_finalization": {
+    "case_id": "final-proof-20261013",
+    "verdict": "APPROVED",
+    "score": 100,
+    "status": "FINAL_DECISION",
+    "appeal_status": "FINALIZED",
+    "decision_version": 1,
+    "settlement_status": "RECONCILED_NO_CUSTODY",
+    "payment_status": "CUSTODY_DISABLED",
+    "appeal_deadline": 1791853932,
+    "transactions": {
+      "create": "0xec138bd6d2bc216d040487cba59da56faa9171e4d56b0dfc6ec48cd7a119805c",
+      "accept": "0xfde3ae7c56248abd3e43b9e740076be7485d90529f3b865e239dc46104dd7c45",
+      "publish": "0xc2c2c94a240414a138c330c3c940e6dafb3a26071d2e31bc36847a3fede6d89a",
+      "verify": "0x0b472b70d433cbf2bbc735a82896403c08075ac66bd84b458f5537f4dcb55cfe",
+      "submit": "0x2d4d3a39bbf0c9930b950c0b19df8d8e17a15f42a41bb32554245a3cb19dc754",
+      "authenticate": "0xa47ed6828bedd3a9c610387d6e7932c5b555d879930b4eaf801637a65bef19e1",
+      "acknowledge": "0x6761ca23925f295ffe16689cfb007f7ad868ca6b208f907e241a2ab087a71559",
+      "seal": "0x1c86b1388b19f6697179ff80a771e5143e64f1f49eb7d107b40560f431e4d7a2",
+      "adjudicate": "0x667199b25bc52c5ee112f5156daa9888b395c904a347ed925c87bb2ba006d393",
+      "finalize": "0x32f4a74c66e08e99354493c121f24309185e62fbc17e8fb248e189e6a51c4944"
+    },
+    "receipt": {
+      "status": "FINALIZED",
+      "consensus_result": "MAJORITY_AGREE",
+      "leader_execution": "SUCCESS",
+      "validator_execution": "SUCCESS",
+      "validator_votes": [
+        "AGREE",
+        "AGREE",
+        "AGREE",
+        "AGREE",
+        "AGREE"
+      ]
+    },
+    "source_observation": {
+      "url": "https://raw.githubusercontent.com/ometere123/witlock/ae3903773396defc18b5c3682e7a6c0c67cd4527/docs/source-fixtures/pass.txt",
+      "commit": "ae3903773396defc18b5c3682e7a6c0c67cd4527",
+      "bytes": 54,
+      "sha256": "13126b6e375490b80d6b081b3992a798dfcf5cd2b28a30b2d5959c6854109901",
+      "source_verified": true,
+      "evidence_authenticated": true
+    },
+    "history": {
+      "before": {
+        "revision": 7,
+        "status": "APPEAL_WINDOW",
+        "action": "APPEAL_WINDOW_OPENED"
+      },
+      "after": {
+        "revision": 8,
+        "status": "FINAL_DECISION",
+        "action": "FINAL_DECISION"
+      }
+    }
   }
 }

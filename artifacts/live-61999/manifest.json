@@ -1,6 +1,6 @@
 {
   "project": "WITLOCK",
-  "status": "CURRENT_SOURCE_DEPLOYED_LIVE_CASES_AND_BROWSER_WRITE_VERIFIED",
+  "status": "CURRENT_SOURCE_DEPLOYED_LIVE_CASES_BROWSER_ROUTE_VERIFIED_TERMINAL_FINALIZATION_VERIFIED",
   "network": {
     "name": "GenLayer StudioNet stable",
     "chain_id": 61999,
@@ -16,7 +16,7 @@
     "bytes": 62629,
     "sha256": "AB446841A8A16276ED30A431264DEEC015E87751FF594AE92392ECFACB2F7F35",
     "exact_deployed_match": true,
-    "release_git_sha": "38edb83c9fa4fcdf94e9147a9d11b61412d966f2",
+    "release_git_sha": "ae3903773396defc18b5c3682e7a6c0c67cd4527",
     "deployed_contract": "0x825478432dFECd321C5E5C193829Ad1bAd88043a",
     "deployment_transaction": "0x2fb0f9f120d7531f76101472248b44899a7e2380049690f0d92fb5fb89d6a2d8",
     "deployed_source_sha256": "AB446841A8A16276ED30A431264DEEC015E87751FF594AE92392ECFACB2F7F35",
@@ -118,13 +118,13 @@
     "status": "NOT_CURRENT_SOURCE_PARITY"
   },
   "local_verification": {
-    "direct_mode_tests": 34,
+    "direct_mode_tests": 35,
     "genvm_methods": 37,
     "genvm_views": 13,
     "genvm_writes": 24,
     "constructor_params": 0,
     "npm_audit_vulnerabilities": 0,
-    "browser_injected_provider": "DETECTED_ON_CHAIN_0xF22F",
+    "browser_injected_provider": "PRIOR_RECORDED_ON_CHAIN_0xF22F_SESSION_NOT_REPRODUCED_IN_CURRENT_SESSION",
     "browser_signed_write": {
       "case_id": "browser-proof-20261012",
       "transaction": "0xef85a36028a4dc8bad7468de3ec4c71e66769fe08f2b9da585321bc1399ccd9c",
@@ -148,6 +148,22 @@
       },
       "consensus_agree_count": 5,
       "leader_execution": "SUCCESS"
+    },
+    "frontend_transaction_tests": 7,
+    "frontend_typecheck": true,
+    "frontend_production_build": true,
+    "route_smoke": {
+      "url": "https://witlock.vercel.app",
+      "routes": [
+        "/",
+        "/explore",
+        "/new",
+        "/workspace",
+        "/activity",
+        "/verification",
+        "/guide"
+      ],
+      "result": "PUBLIC_RENDERED_NO_ROUTE_ERRORS"
     }
   },
   "custody": {
@@ -166,8 +182,68 @@
       "approved.create",
       "approved.appeal_resolve",
       "rejected.adjudicate",
-      "partial.adjudicate"
+      "partial.adjudicate",
+      "final-proof.create",
+      "final-proof.accept",
+      "final-proof.publish",
+      "final-proof.verify",
+      "final-proof.submit",
+      "final-proof.authenticate",
+      "final-proof.acknowledge",
+      "final-proof.seal",
+      "final-proof.adjudicate",
+      "final-proof.finalize"
     ],
     "idle_validator_errors": "Some validators report CONSENSUS_VALIDATOR_QUORUM_REACHED after majority; these are cancellation-after-quorum records."
+  },
+  "failed_live_attempts": [
+    {
+      "case_id": "final-proof-20261013",
+      "transaction": "0x55cce651b6706ce78352909454bf22f2c607268ca574dace123354e896ebe2b7",
+      "status": "FINALIZED",
+      "consensus_result": "MAJORITY_AGREE",
+      "execution": "ERROR",
+      "error_code": "WL_TERMS_JSON",
+      "state_created": false,
+      "handling": "Preserved as a failed setup receipt; never treated as success."
+    }
+  ],
+  "terminal_finalization": {
+    "case_id": "final-proof-20261013",
+    "transaction": "0x32f4a74c66e08e99354493c121f24309185e62fbc17e8fb248e189e6a51c4944",
+    "status": "FINALIZED",
+    "consensus_result": "MAJORITY_AGREE",
+    "leader_execution": "SUCCESS",
+    "validator_execution": "SUCCESS",
+    "validator_votes": [
+      "AGREE",
+      "AGREE",
+      "AGREE",
+      "AGREE",
+      "AGREE"
+    ],
+    "appeal_deadline": 1791853932,
+    "finalize_observed_at": 1791853997,
+    "readbacks": {
+      "status": "FINAL_DECISION",
+      "result": "APPROVED",
+      "score": 100,
+      "appeal_status": "FINALIZED",
+      "decision_version": 1,
+      "settlement_status": "RECONCILED_NO_CUSTODY",
+      "payment_status": "CUSTODY_DISABLED",
+      "source_verified": true,
+      "evidence_authenticated": true,
+      "history_before": {
+        "revision": 7,
+        "status": "APPEAL_WINDOW",
+        "action": "APPEAL_WINDOW_OPENED"
+      },
+      "history_after": {
+        "revision": 8,
+        "status": "FINAL_DECISION",
+        "action": "FINAL_DECISION"
+      }
+    }
   }
 }

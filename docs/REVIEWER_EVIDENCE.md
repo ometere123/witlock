@@ -21,10 +21,12 @@ The live source observation records the immutable GitHub commit, repository, pat
 
 ## Local and browser verification
 
-- 34 passed Python/Direct Mode tests.
+- 35 passed Python/Direct Mode tests, including prompt-injection, final-state idempotence, and exact deadline-boundary coverage.
 - GenVM lint/check, frontend typecheck, frontend transaction tests, Next production build, StudioNet preflight, and npm audit with 0 vulnerabilities.
-- Route smoke covered the public and dynamic App Router routes.
+- Route smoke covered the public `/`, `/explore`, `/new`, `/workspace`, `/activity`, `/verification`, and `/guide` routes on `https://witlock.vercel.app`; each rendered without a 404 or application error. Dynamic case-route rendering remains covered by the existing route suite and prior smoke evidence.
 - The Chrome profile exposed an injected EIP-1193 wallet on chain 0xf22f. Browser creation transaction https://explorer-studio.genlayer.com/tx/0xef85a36028a4dc8bad7468de3ec4c71e66769fe08f2b9da585321bc1399ccd9c finalized with MAJORITY_AGREE and four successful validator executions; readback confirms browser-proof-20261012.
-- Finalized transaction handling uses the SDK FINISHED_WITH_RETURN enum and the pinned StudioNet validator execution shape, preserves failed finalized receipts, recovers pending entries, and links receipts to the StudioNet explorer.
+- Finalized transaction handling uses the SDK `FINISHED_WITH_RETURN` enum and the pinned StudioNet validator execution shape, preserves failed finalized receipts, accepts only explicit quorum-cancellation validator records after a successful quorum, recovers pending entries, rejects wallet code `4001` without persisting a pending write, and links receipts to the StudioNet explorer.
+- Live terminal proof: [`final-proof-20261013`](https://explorer-studio.genlayer.com/address/0x825478432dFECd321C5E5C193829Ad1bAd88043a) finalized via [`0x32f4a74c66e08e99354493c121f24309185e62fbc17e8fb248e189e6a51c4944`](https://explorer-studio.genlayer.com/tx/0x32f4a74c66e08e99354493c121f24309185e62fbc17e8fb248e189e6a51c4944) after deadline `1791853932`: `FINAL_DECISION`, `APPROVED`, score `100`, `appeal_status=FINALIZED`, decision version `1`, settlement `RECONCILED_NO_CUSTODY`, and history revision `8` `FINAL_DECISION`.
+- A failed live setup transaction [`0x55cce651b6706ce78352909454bf22f2c607268ca574dace123354e896ebe2b7`](https://explorer-studio.genlayer.com/tx/0x55cce651b6706ce78352909454bf22f2c607268ca574dace123354e896ebe2b7) returned `MAJORITY_AGREE` but explicit `WL_TERMS_JSON` execution errors and created no case; it is preserved as failure evidence.
 
 genlayer trace is unavailable because the approved RPC does not implement gen_dbg_traceTransaction. Earlier NO_MAJORITY deployments and the old contract address remain historical.
