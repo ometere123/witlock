@@ -8,7 +8,7 @@ The core path is:
 
 Consensus returns only `PASS`, `FAIL`, or `INCONCLUSIVE` per criterion. Contract code validates the schema and computes the result and integer allocation. A digest proves bytes, an issuer transaction proves publication, and an independent verifier transaction proves source-observation agreement; none alone proves factual truth or human independence.
 
-Native GEN custody is contained behind `custody_enabled() == False`. Non-zero funding, bonds, and payment calls are rejected until StudioNet transfer, recipient delivery, and recovery semantics are proven. Zero-value agreements remain available for the evidence and adjudication lifecycle.
+Native GEN custody is permanently disabled in this release. `custody_enabled() == False`, non-zero funding/bond/payment paths remain guarded, and live agreements are zero-value evidence and adjudication records. WITLOCK makes no operational escrow or payment-delivery claim.
 
 ## Approved stack
 
@@ -34,15 +34,15 @@ The frontend uses addressable workflow pages behind one shared navigation shell:
 - `/activity` — persisted pending and finalized transaction receipts
 - `/verification` and `/guide` — deployment checks and protocol guidance
 
-Each workflow page reads the relevant finalized state and keeps invalid actions disabled for the connected actor or lifecycle state.
+Wallet account, chain, disconnect, and message state are owned by one shared provider. Writes require the injected provider, the connected account, StudioNet 61999, and a finalized successful receipt.
 
 ## Current StudioNet deployment
 
-The current source is deployed at [`0x825478432dFECd321C5E5C193829Ad1bAd88043a`](https://explorer-studio.genlayer.com/address/0x825478432dFECd321C5E5C193829Ad1bAd88043a) from contract commit `14315fa82ef6d6f5e2c077de51c93f266801b1cb`. The 62,629-byte on-chain source has SHA-256 `AB446841A8A16276ED30A431264DEEC015E87751FF594AE92392ECFACB2F7F35`, matching the repository byte-for-byte. Deployment transaction: [`0x2fb0f9f120d7531f76101472248b44899a7e2380049690f0d92fb5fb89d6a2d8`](https://explorer-studio.genlayer.com/tx/0x2fb0f9f120d7531f76101472248b44899a7e2380049690f0d92fb5fb89d6a2d8), finalized with `MAJORITY_AGREE`, one round, and successful leader execution. No contract redeployment was needed for this release because the contract bytes are unchanged.
+The current source is deployed at [`0x8B6e64A6C5c5Bccc3a64Cba4Bd8982218381330d`](https://explorer-studio.genlayer.com/address/0x8B6e64A6C5c5Bccc3a64Cba4Bd8982218381330d) from release commit `7ce1517d82e711aa12604177ddadaa644c1691e8`. `contracts/Witlock.py` is 64,131 bytes with SHA-256 `04352A02F6BFBD7BEF7C5C00BE93FD5779ABD5BC340941C62863BF2ABB1E8C79`; normalized deployed bytes match exactly. Deployment transaction: [`0x298e3e7eed4ec8ad25017600f87f49608cdc5bfb94b5d7eadf0cb0dbfabace1`](https://explorer-studio.genlayer.com/tx/0x298e3e7eed4ec8ad25017600f87f49608cdc5bfb94b5d7eadf0cb0dbfabace1), finalized with `MAJORITY_AGREE` and successful leader execution.
 
-Live StudioNet readbacks prove `APPROVED` 100, `PARTIAL` 50, `REJECTED` 0, and `INCONCLUSIVE` 0. A short-window approved case, `final-proof-20261013`, reached terminal finality after its real appeal deadline: `FINAL_DECISION`, `appeal_status=FINALIZED`, decision version unchanged at 1, and settlement `RECONCILED_NO_CUSTODY`. Its finalization transaction is [`0x32f4a74c66e08e99354493c121f24309185e62fbc17e8fb248e189e6a51c4944`](https://explorer-studio.genlayer.com/tx/0x32f4a74c66e08e99354493c121f24309185e62fbc17e8fb248e189e6a51c4944), with `FINALIZED`, `MAJORITY_AGREE`, and successful leader and validator execution. Custody remains disabled, so the live cases use zero-value agreements and report decision allocation only. See [docs/LIVE_PROOF.md](docs/LIVE_PROOF.md), [artifacts/live-61999/cases.json](artifacts/live-61999/cases.json), and the sanitized [deployment manifest](artifacts/live-61999/manifest.json).
+The release adds a minimum first appeal window of 900 seconds when adjudication occurs after the original deadline. The effective deadline is captured once at the first ruling and reused by `open_appeal()` and `finalize_decision()`; replay cannot extend it. Receipt validation fails closed for contradictory top-level execution/consensus metadata and accepts idle validators only for explicit post-quorum cancellation.
 
-The earlier injected-wallet browser proof created `browser-proof-20261012` from a connected StudioNet wallet and finalized transaction [`0xef85a36028a4dc8bad7468de3ec4c71e66769fe08f2b9da585321bc1399ccd9c`](https://explorer-studio.genlayer.com/tx/0xef85a36028a4dc8bad7468de3ec4c71e66769fe08f2b9da585321bc1399ccd9c) with `MAJORITY_AGREE`. The current release browser session reproduced public route rendering, but its debugger disconnected during wallet connection; wallet signing and rejection are therefore reported as prior evidence plus automated tests, not as a fresh browser path.
+Live proof, exact transaction hashes, state readbacks, source parity, browser observations, and limitations are maintained in [docs/LIVE_PROOF.md](docs/LIVE_PROOF.md), [artifacts/live-61999/cases.json](artifacts/live-61999/cases.json), and the sanitized [deployment manifest](artifacts/live-61999/manifest.json).
 
 ## Local verification
 
@@ -56,6 +56,7 @@ python -m compileall -q contracts policy
 npm run contracts:lint
 npm run contracts:check
 npm audit --audit-level=moderate
+npm run web:test
 npm run web:typecheck
 npm run web:build
 ```

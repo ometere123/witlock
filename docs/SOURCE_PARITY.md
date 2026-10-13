@@ -1,21 +1,13 @@
-# Source parity
+# Source parity record
 
-contracts/Witlock.py is the only canonical deployable source.
+The current monolith is deployed on GenLayer StudioNet stable (chain 61999, RPC `https://studio.genlayer.com/api`).
 
-- Contract source commit: 14315fa82ef6d6f5e2c077de51c93f266801b1cb
-- Release commit: 38edb83c9fa4fcdf94e9147a9d11b61412d966f2
-- Local and deployed source bytes: 62,629
-- Local and deployed SHA-256: AB446841A8A16276ED30A431264DEEC015E87751FF594AE92392ECFACB2F7F35
-- Current address: https://explorer-studio.genlayer.com/address/0x825478432dFECd321C5E5C193829Ad1bAd88043a
-- Deployment: https://explorer-studio.genlayer.com/tx/0x2fb0f9f120d7531f76101472248b44899a7e2380049690f0d92fb5fb89d6a2d8
+- Current address: [`0x8B6e64A6C5c5Bccc3a64Cba4Bd8982218381330d`](https://explorer-studio.genlayer.com/address/0x8B6e64A6C5c5Bccc3a64Cba4Bd8982218381330d)
+- Deployment: [`0x298e3e7eed4ec8ad25017600f87f49608cdc5bfb94b5d7eadf0cb0dbfabace1`](https://explorer-studio.genlayer.com/tx/0x298e3e7eed4ec8ad25017600f87f49608cdc5bfb94b5d7eadf0cb0dbfabace1)
+- Release source commit: `7ce1517d82e711aa12604177ddadaa644c1691e8`
+- Local source: 64,131 bytes
+- Local and normalized deployed SHA-256: `04352A02F6BFBD7BEF7C5C00BE93FD5779ABD5BC340941C62863BF2ABB1E8C79`
 - Schema: 37 methods, 13 views, 24 writes, zero constructor parameters
+- Exact normalized byte comparison: `true`
 
-The parity check used the repository-local CLI and built-in studionet chain definition:
-
-    npx --no-install genlayer network set studionet
-    npx --no-install genlayer code 0x825478432dFECd321C5E5C193829Ad1bAd88043a > deployed.py
-    Get-FileHash contracts/Witlock.py -Algorithm SHA256
-    Get-FileHash deployed.py -Algorithm SHA256
-    npx --no-install genlayer schema 0x825478432dFECd321C5E5C193829Ad1bAd88043a
-
-The deployed source hash and schema match the repository. genlayer trace remains unavailable because the RPC returns method-not-found for gen_dbg_traceTransaction. The old address 0x4D39aBdF8F574B44Ff178CBf974042a36D70c9A0 is historical and is not parity evidence.
+The parity check was performed with repository-local CLI 0.39.1 using `genlayer code` and `genlayer schema`; CLI framing and line-ending differences were removed before comparing source bytes. The complete sanitized deployment and lifecycle evidence is in [LIVE_PROOF.md](LIVE_PROOF.md) and [the manifest](../artifacts/live-61999/manifest.json).

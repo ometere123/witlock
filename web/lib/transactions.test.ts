@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ExecutionResult, TransactionStatus } from 'genlayer-js/types';
 
 const mocks = vi.hoisted(() => {
-  process.env.NEXT_PUBLIC_WITLOCK_CONTRACT = '0x825478432dFECd321C5E5C193829Ad1bAd88043a';
+  process.env.NEXT_PUBLIC_WITLOCK_CONTRACT = '0x8B6e64A6C5c5Bccc3a64Cba4Bd8982218381330d';
   return {
     provider: vi.fn(),
     readClient: vi.fn(),
@@ -215,7 +215,7 @@ describe('pending transaction persistence', () => {
 
   it('recovers a pending transaction and clears it after successful finality', async () => {
     values.set('witlock.pending.transactions.v2', JSON.stringify([
-      { hash: '0xabc', method: 'create_agreement', account: '0x1', chainId: 61999, contract: '0x825478432dFECd321C5E5C193829Ad1bAd88043a', submittedAt: 1 },
+      { hash: '0xabc', method: 'create_agreement', account: '0x1', chainId: 61999, contract: '0x8B6e64A6C5c5Bccc3a64Cba4Bd8982218381330d', submittedAt: 1 },
     ]));
     const waitForTransactionReceipt = vi.fn().mockResolvedValue({
       status_name: TransactionStatus.FINALIZED,
@@ -247,3 +247,4 @@ describe('pending transaction persistence', () => {
     expect(readPendingTransactions()).toHaveLength(0);
   });
 });
+
