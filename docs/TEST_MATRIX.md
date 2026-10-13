@@ -17,6 +17,6 @@
 
 | Mutation smoke | `npm run test:mutation` | 3/3 targeted mutants killed |
 
-The final GitHub Actions run URL and commit SHA are recorded in `REVIEWER_EVIDENCE.md` and the live manifest after the source push completes.
+GitHub Actions final recorded run: [quality-gates 38481131144](https://github.com/ometere123/witlock/actions/runs/38481131144), commit `0a67d5f4c652f48dbe3ec74ab5eb3c636acbc408`; `policy` and `frontend` passed.
 
 Direct Mode covers issuer/verifier independence, source-byte hashing, prompt injection, missing evidence, malformed answers, four-criteria partial outcomes, delayed adjudication, late appeals, expiry boundaries, appeal replay, state-transition replay, terminal idempotency, accounting conservation, and adversarial receipt fixtures. The live evidence is deliberately stronger for transfer/refund than the mocked Direct Mode environment.
