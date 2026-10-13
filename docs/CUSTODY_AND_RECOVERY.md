@@ -14,7 +14,7 @@ After `FINAL_DECISION`, `begin_payment(key, role)` reads the frozen role entitle
 
 The contract records `DISPATCHED`, `in_flight`, and `delivery_status=EXTERNAL_OBSERVATION_REQUIRED`. It does not accept a caller-supplied receipt hash as proof of payment. A reviewer must inspect the finalized parent receipt, the value-bearing child message, and the recipient balance. The live proof shows a 0.001 GEN requester balance increase and an exact conservation equation, while the contract settlement status remains `DISPATCHED_PENDING_DELIVERY` until that external observation is recorded by the reviewer.
 
-If a dispatch remains unresolved beyond its seven-day observation deadline, `mark_payment_ambiguous` moves it to `AMBIGUOUS`, decreases `in_flight), increases `unresolved), and requires a digest-bound incident record. No retry path can create a second payout. `RECONCILED_DELIVERED` is reserved for an authenticated in-contract delivery state and is not claimed by the current StudioNet proof.
+If a dispatch remains unresolved beyond its seven-day observation deadline, `mark_payment_ambiguous` moves it to `AMBIGUOUS`, decreases `in_flight`, increases `unresolved`, and requires a digest-bound incident record. No retry path can create a second payout. `RECONCILED_DELIVERED` is reserved for an authenticated in-contract delivery state and is not claimed by the current StudioNet proof.
 
 ## Evidence
 

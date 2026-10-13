@@ -47,11 +47,11 @@ Case `refund-live-20261013-a` used receipt `0x3b66251ea887766e97839ff2ebdc7dbdc1
 
 ## Frontend and browser status
 
-The production URL is [https://witlock.vercel.app](https://witlock.vercel.app), configured for the current address. Automated route/build checks passed. Existing Chrome evidence proved injected wallet detection, StudioNet chain detection, disconnect/reconnect, and a finalized browser write against the superseded noncustodial address. A new-address browser session still needs independent reproduction of account switching, wrong-network blocking, signature rejection, interrupted writes, and persisted recovery; those paths are not marked as passed here.
+The production URL is [https://witlock.vercel.app](https://witlock.vercel.app), configured for the current address. In Chrome, `/verification` rendered the current address, StudioNet 61999, the approved RPC, metadata availability, and finalized-only native dispatch; it also showed wallet chain `0x1`, `WRONG NETWORK`, and the guarded `Switch network` action. `/new` rendered the funded creation flow with exact wei funding and separate payable-signature copy. The browser automation surface did not expose `window.ethereum`, so current-address wallet writes, account changes, signature rejection, interrupted writes, persisted recovery, and disconnect/reconnect are not marked passed. The public route, current address, and wrong-network guard were observed.
 
 ## CI and limitations
 
 - Local checks: 38 Python tests, 13 frontend receipt tests, typecheck, production build, contract check, compileall, preflight, and dependency audit.
-- The post-push GitHub Actions run for the final commit must be linked in the manifest when available.
+- GitHub Actions: [quality-gates run 38452216449](https://github.com/ometere123/witlock/actions/runs/38452216449), commit `2604533935ec102efa026e0a2067ea7efe489c2e`, both `policy` and `frontend` jobs successful.
 - StudioNet does not expose `gen_dbg_traceTransaction` through the approved RPC.
 - The first live source-authentication hash was lost to an RPC polling failure; the successful on-chain state and the duplicate rejection receipt are retained.

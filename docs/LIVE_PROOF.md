@@ -69,7 +69,7 @@ This proves the candidate does not strand incoming value on a known funded rejec
 
 ## Frontend status
 
-Production is [https://witlock.vercel.app](https://witlock.vercel.app), with public configuration set to the current contract. Automated route, receipt, type, and build checks pass. Existing Chrome evidence proved injected EIP-1193 detection, StudioNet chain detection, disconnect/reconnect, and a finalized browser write against the superseded address. New-address account switching, wrong-network blocking, signature rejection, interrupted transaction recovery, and persisted recovery still require independent browser reproduction and remain unclaimed.
+Production is [https://witlock.vercel.app](https://witlock.vercel.app), with public configuration set to the current contract. In Chrome, `/verification` rendered the current address, StudioNet 61999, the approved RPC, metadata availability, and `NATIVE GEN DISPATCH · ENABLED · FINALIZED ONLY`; the same view showed wallet chain `0x1`, `WRONG NETWORK`, and the guarded `Switch network` action. `/new` rendered the funded creation flow, exact wei funding field, separate payable-signature explanation, and disabled operator bond. The browser automation surface did not expose `window.ethereum`, so no current-address wallet write, account change, signature rejection, interrupted transaction recovery, or persisted recovery is claimed. The route and wrong-network guard are observed; the injected-wallet paths remain pending independent reproduction.
 
 ## Limitations
 
