@@ -27,6 +27,8 @@ MAX_APPEAL_BASIS_CHARS = 400
 MAX_APPEAL_JSON_CHARS = 3500
 MIN_APPEAL_WINDOW_SECONDS = 15 * 60
 MAX_FUNDING_WEI = 10**21
+MAX_BPS = 10_000
+RECOVERY_OBSERVATION_SECONDS = 7 * 24 * 60 * 60
 
 
 @gl.evm.contract_interface
@@ -46,9 +48,21 @@ class Witlock(gl.Contract):
     audit: TreeMap[str, str]
     payments: TreeMap[str, str]
     agreement_count: u256
+    total_funding_received: u256
+    total_bond_received: u256
+    total_confirmed_paid: u256
+    total_payment_in_flight: u256
+    total_refund_in_flight: u256
+    total_unresolved: u256
 
     def __init__(self):
         self.agreement_count = u256(0)
+        self.total_funding_received = u256(0)
+        self.total_bond_received = u256(0)
+        self.total_confirmed_paid = u256(0)
+        self.total_payment_in_flight = u256(0)
+        self.total_refund_in_flight = u256(0)
+        self.total_unresolved = u256(0)
 
     def _reject(self, code: str) -> None:
         raise gl.vm.UserError("WL_" + code)
@@ -478,6 +492,18 @@ class Witlock(gl.Contract):
             "consensus_status": "AGREED",
         }
 
+    def _apply_inconclusive_policy(self, agreement: dict, decision: dict) -> dict:
+        if decision.get("result") != "INCONCLUSIVE":
+            return decision
+        funded = int(agreement["funding_received"])
+        provider_bps = int(agreement["inconclusive_provider_bps"])
+        provider_entitlement = (funded * provider_bps) // MAX_BPS
+        decision["provider_entitlement"] = provider_entitlement
+        decision["requester_entitlement"] = funded - provider_entitlement
+        decision["economic_rule"] = "pre-agreed inconclusive recovery split; provider_bps=" + str(provider_bps)
+        decision["payment_status"] = "RECOVERY_PAYABLE" if funded > 0 else "BLOCKED_INCONCLUSIVE"
+        return decision
+
     def _classify(self, key: str, agreement: dict, records: list, appeal_grounds: dict) -> dict:
         def assess():
             assessed_records = []
@@ -578,7 +604,9 @@ class Witlock(gl.Contract):
         self._append_history(key, agreement, action, actor)
 
     def _set_final_settlement_state(self, agreement: dict) -> None:
-        if agreement["result"] == "INCONCLUSIVE":
+        if agreement["result"] == "INCONCLUSIVE" and (
+            int(agreement["provider_entitlement"]) + int(agreement["requester_entitlement"]) == 0
+        ):
             agreement["settlement_status"] = "BLOCKED_INCONCLUSIVE"
         elif int(agreement["funding_received"]) == 0:
             agreement["settlement_status"] = "RECONCILED_ZERO"
@@ -586,7 +614,9 @@ class Witlock(gl.Contract):
             agreement["settlement_status"] = "PAYABLE"
 
     def _refresh_settlement_state(self, agreement: dict) -> None:
-        if agreement["result"] == "INCONCLUSIVE":
+        if agreement["result"] == "INCONCLUSIVE" and (
+            int(agreement["provider_entitlement"]) + int(agreement["requester_entitlement"]) == 0
+        ):
             agreement["settlement_status"] = "BLOCKED_INCONCLUSIVE"
         elif int(agreement["funding_received"]) == 0:
             agreement["settlement_status"] = "RECONCILED_ZERO"
@@ -611,6 +641,7 @@ class Witlock(gl.Contract):
         appeal_deadline: u256,
         funding_amount: u256,
         operator_bond: u256,
+        inconclusive_provider_bps: u256,
     ) -> None:
         if not self._key(key, 64) or self.agreements.get(key, ""):
             self._reject("KEY_UNAVAILABLE")
@@ -665,6 +696,8 @@ class Witlock(gl.Contract):
             self._reject("FUNDING_BOUNDS")
         if int(operator_bond) != 0:
             self._reject("BOND_UNSUPPORTED")
+        if int(inconclusive_provider_bps) < 0 or int(inconclusive_provider_bps) > MAX_BPS:
+            self._reject("INCONCLUSIVE_POLICY")
         now = self._now()
         accept_at = int(accept_deadline)
         delivery_at = int(delivery_deadline)
@@ -687,6 +720,8 @@ class Witlock(gl.Contract):
             "revision": 0,
             "funding_required": int(funding_amount),
             "funding_received": 0,
+            "inconclusive_provider_bps": int(inconclusive_provider_bps),
+            "inconclusive_recovery_policy": "PREAGREED_BPS_SPLIT",
             "bond_required": int(operator_bond),
             "bond_received": 0,
             "funding_status": "UNFUNDED",
@@ -705,6 +740,11 @@ class Witlock(gl.Contract):
             "requester_payment_attempt": 0,
             "provider_payment_status": "NOT_STARTED",
             "requester_payment_status": "NOT_STARTED",
+            "funding_refund_attempt": 0,
+            "funding_refund_status": "NOT_STARTED",
+            "funding_refund_deadline": 0,
+            "funding_refund_in_flight": 0,
+            "funding_refunded": 0,
             "appeal_count": 0,
             "appeal_status": "NONE",
             "appeal_grounds": "",
@@ -744,6 +784,7 @@ class Witlock(gl.Contract):
         agreement["funding_received"] = int(amount)
         agreement["funding_status"] = "FUNDED"
         agreement["settlement_status"] = "FUNDED"
+        self.total_funding_received = u256(int(self.total_funding_received) + int(amount))
         self._append_history(key, agreement, "FUNDED", self._party())
         self._save(key, agreement)
         return "FUNDED"
@@ -778,11 +819,65 @@ class Witlock(gl.Contract):
         if agreement["status"] != "DRAFT" or self._now() <= agreement["accept_deadline"]:
             self._reject("DRAFT_EXPIRY")
         if int(agreement["funding_received"]) != 0 or int(agreement["bond_received"]) != 0:
-            self._reject("DRAFT_FUNDED")
+            self._reject("DRAFT_FUNDED_RECOVERY_REQUIRED")
         agreement["status"] = "EXPIRED"
         agreement["settlement_status"] = "EXPIRED"
         agreement["terminal_reason"] = "ACCEPTANCE_DEADLINE_ELAPSED"
         self._append_history(key, agreement, "DRAFT_EXPIRED", self._party())
+        self._save(key, agreement)
+
+    @gl.public.write
+    def recover_expired_funding(self, key: str) -> str:
+        """Dispatch the exact funding back when a provider never accepts.
+
+        The requester may call this only after the immutable acceptance deadline.
+        The draft becomes terminal before the native child is emitted, and the
+        one-use latch prevents either replay or later provider acceptance. If the
+        child cannot be observed, the bounded ambiguity method preserves the
+        amount as unresolved instead of authorizing a second transfer.
+        """
+        agreement = self._load(key)
+        if agreement["status"] != "DRAFT" or self._now() <= agreement["accept_deadline"]:
+            self._reject("DRAFT_RECOVERY_EARLY")
+        if self._party() != agreement["requester"]:
+            self._reject("DRAFT_RECOVERY_UNAUTHORIZED")
+        if int(agreement["funding_received"]) != int(agreement["funding_required"]) or int(agreement["funding_received"]) <= 0:
+            self._reject("DRAFT_RECOVERY_NOT_FUNDED")
+        if int(agreement["funding_refund_attempt"]) != 0:
+            self._reject("DRAFT_RECOVERY_REPLAY")
+        amount = int(agreement["funding_received"])
+        agreement["status"] = "EXPIRED"
+        agreement["settlement_status"] = "REFUND_PENDING_DELIVERY"
+        agreement["funding_status"] = "REFUND_DISPATCHED"
+        agreement["funding_refund_attempt"] = 1
+        agreement["funding_refund_status"] = "DISPATCHED"
+        agreement["funding_refund_deadline"] = self._now() + RECOVERY_OBSERVATION_SECONDS
+        agreement["funding_refund_in_flight"] = amount
+        agreement["terminal_reason"] = "ACCEPTANCE_DEADLINE_ELAPSED_FUNDED_REFUND"
+        self.total_refund_in_flight = u256(int(self.total_refund_in_flight) + amount)
+        self._append_history(key, agreement, "FUNDED_DRAFT_REFUND_DISPATCHED", self._party())
+        self._save(key, agreement)
+        self._pay(agreement["requester"], u256(amount))
+        return "REFUND_DISPATCHED"
+
+    @gl.public.write
+    def mark_funding_refund_ambiguous(self, key: str, incident_hash: str) -> None:
+        agreement = self._load(key)
+        if agreement["status"] != "EXPIRED" or agreement["funding_refund_status"] != "DISPATCHED":
+            self._reject("DRAFT_REFUND_STATE")
+        if self._now() <= int(agreement["funding_refund_deadline"]):
+            self._reject("DRAFT_REFUND_AMBIGUOUS_EARLY")
+        if not self._digest(incident_hash):
+            self._reject("DRAFT_REFUND_INCIDENT")
+        amount = int(agreement["funding_refund_in_flight"])
+        agreement["funding_refund_status"] = "AMBIGUOUS"
+        agreement["funding_refund_in_flight"] = 0
+        agreement["unresolved"] = int(agreement["unresolved"]) + amount
+        agreement["settlement_status"] = "UNRESOLVED_PAYMENT"
+        agreement["terminal_reason"] = "FUNDED_DRAFT_REFUND_AMBIGUOUS"
+        self.total_refund_in_flight = u256(int(self.total_refund_in_flight) - amount)
+        self.total_unresolved = u256(int(self.total_unresolved) + amount)
+        self._append_history(key, agreement, "FUNDED_DRAFT_REFUND_AMBIGUOUS", self._party())
         self._save(key, agreement)
 
     @gl.public.write
@@ -1045,6 +1140,7 @@ class Witlock(gl.Contract):
             self._reject("ADJUDICATION_STATE")
         records = self._records(key, agreement)
         decision = self._classify(key, agreement, records, "")
+        decision = self._apply_inconclusive_policy(agreement, decision)
         self._open_first_appeal_window(agreement)
         agreement["status"] = "DECIDED"
         self._record_decision(key, agreement, decision, self._party(), "ADJUDICATED")
@@ -1059,14 +1155,18 @@ class Witlock(gl.Contract):
             self._reject("INCONCLUSIVE_EARLY")
         if self._all_authenticated(key, agreement):
             self._reject("ADJUDICATION_REQUIRED")
+        funded = int(agreement["funding_received"])
+        provider_bps = int(agreement["inconclusive_provider_bps"])
+        provider_entitlement = (funded * provider_bps) // MAX_BPS
+        requester_entitlement = funded - provider_entitlement
         decision = {
             "result": "INCONCLUSIVE",
             "score": 0,
             "answers": {},
-            "provider_entitlement": 0,
-            "requester_entitlement": 0,
-            "economic_rule": "no authenticated dossier; no allocation",
-            "payment_status": "BLOCKED_INCONCLUSIVE",
+            "provider_entitlement": provider_entitlement,
+            "requester_entitlement": requester_entitlement,
+            "economic_rule": "pre-agreed inconclusive recovery split; provider_bps=" + str(provider_bps),
+            "payment_status": "RECOVERY_PAYABLE" if funded > 0 else "RECONCILED_ZERO",
         }
         self._open_first_appeal_window(agreement)
         agreement["status"] = "DECIDED"
@@ -1219,6 +1319,7 @@ class Witlock(gl.Contract):
             self._reject("APPEAL_EVIDENCE_INCOMPLETE")
         grounds = self._parse(agreement["appeal_grounds"], "APPEAL_GROUNDS_JSON")
         decision = self._classify(key, agreement, records, grounds)
+        decision = self._apply_inconclusive_policy(agreement, decision)
         decision["appeal"] = True
         agreement["status"] = "DECIDED"
         self._record_decision(key, agreement, decision, self._party(), "APPEAL_RESOLVED")
@@ -1294,6 +1395,7 @@ class Witlock(gl.Contract):
         agreement[attempt_field] = attempt
         agreement[status_field] = "DISPATCHED"
         agreement["in_flight"] = int(agreement["in_flight"]) + amount
+        self.total_payment_in_flight = u256(int(self.total_payment_in_flight) + amount)
         self.payments[key + ":" + str(attempt)] = json.dumps(
             {
                 "agreement": key,
@@ -1325,6 +1427,8 @@ class Witlock(gl.Contract):
         payment["incident_hash"] = incident_hash
         agreement["unresolved"] = int(agreement["unresolved"]) + int(payment["amount"])
         agreement["in_flight"] = int(agreement["in_flight"]) - int(payment["amount"])
+        self.total_payment_in_flight = u256(int(self.total_payment_in_flight) - int(payment["amount"]))
+        self.total_unresolved = u256(int(self.total_unresolved) + int(payment["amount"]))
         status_field = "provider_payment_status" if payment["beneficiary_role"] == "PROVIDER" else "requester_payment_status"
         agreement[status_field] = "AMBIGUOUS"
         self.payments[key + ":" + str(int(attempt))] = json.dumps(payment, sort_keys=True)
@@ -1405,6 +1509,9 @@ class Witlock(gl.Contract):
                 "payment_attempt": agreement["payment_attempt"],
                 "provider_payment_status": agreement["provider_payment_status"],
                 "requester_payment_status": agreement["requester_payment_status"],
+                "funding_refund_status": agreement["funding_refund_status"],
+                "funding_refund_in_flight": agreement["funding_refund_in_flight"],
+                "inconclusive_provider_bps": agreement["inconclusive_provider_bps"],
                 "delivery_model": "external_balance_observation_required",
             },
             sort_keys=True,
@@ -1421,16 +1528,48 @@ class Witlock(gl.Contract):
         discharged = int(agreement["paid"])
         in_flight = int(agreement["in_flight"])
         unresolved = int(agreement["unresolved"])
-        remaining = funded - discharged - in_flight - unresolved
+        refund_in_flight = int(agreement["funding_refund_in_flight"])
+        remaining = funded - discharged - in_flight - refund_in_flight - unresolved
+        contract_funded = int(self.total_funding_received) + int(self.total_bond_received)
+        contract_discharged = int(self.total_confirmed_paid)
+        contract_in_flight = int(self.total_payment_in_flight)
+        contract_refund_in_flight = int(self.total_refund_in_flight)
+        contract_unresolved = int(self.total_unresolved)
+        contract_remaining = (
+            contract_funded
+            - contract_discharged
+            - contract_in_flight
+            - contract_refund_in_flight
+            - contract_unresolved
+        )
+        actual_balance = int(self.balance)
+        balance_lower_bound = contract_remaining
+        balance_upper_bound = contract_remaining + contract_in_flight + contract_refund_in_flight + contract_unresolved
+        balance_matches_bookkeeping = (
+            contract_remaining >= 0
+            and balance_lower_bound <= actual_balance <= balance_upper_bound
+        )
         return json.dumps(
             {
                 "funded": funded,
                 "confirmed_paid": discharged,
                 "in_flight": in_flight,
+                "refund_in_flight": refund_in_flight,
                 "unresolved": unresolved,
                 "remaining": remaining,
-                "equation": "funded=confirmed_paid+in_flight+unresolved+remaining",
-                "conservation_holds": remaining >= 0,
+                "equation": "funded=confirmed_paid+in_flight+refund_in_flight+unresolved+remaining",
+                "contract_funded": contract_funded,
+                "contract_confirmed_paid": contract_discharged,
+                "contract_payment_in_flight": contract_in_flight,
+                "contract_refund_in_flight": contract_refund_in_flight,
+                "contract_unresolved": contract_unresolved,
+                "contract_remaining": contract_remaining,
+                "actual_contract_balance": actual_balance,
+                "actual_balance_lower_bound": balance_lower_bound,
+                "actual_balance_upper_bound": balance_upper_bound,
+                "balance_matches_bookkeeping": balance_matches_bookkeeping,
+                "conservation_holds": remaining >= 0 and balance_matches_bookkeeping,
+                "balance_scope": "all_agreements_global",
             },
             sort_keys=True,
         )

@@ -10,6 +10,8 @@ Consensus returns only `PASS`, `FAIL`, or `INCONCLUSIVE` for each frozen criteri
 
 Native GEN dispatch is enabled only after `FINAL_DECISION`. Funding must match the agreement exactly. Any funded rejection returns the incoming value through an explicit value-bearing message and reports `REJECTED_FUNDED`. Each beneficiary role has one dispatch latch, and the contract records `DISPATCHED` until an external observer confirms the child transfer and recipient balance. Operator bonds remain unsupported and are refunded.
 
+If a funded draft reaches its acceptance deadline without provider acceptance, the requester can call `recover_expired_funding` once for an exact-value refund dispatch. Each agreement also freezes an INCONCLUSIVE provider share in basis points; the residual goes to the requester after terminal finalization. Both paths have bounded ambiguity handling and no retry-based second payout.
+
 ## Approved stack
 
 - GenLayer StudioNet stable, chain `61999` (`0xF22F`)
@@ -22,7 +24,7 @@ Native GEN dispatch is enabled only after `FINAL_DECISION`. Funding must match t
 
 ## Current deployment
 
-The current candidate contract is [`0x8d90aE2C95E320Ea61774a797D92ef84F6831bC2`](https://explorer-studio.genlayer.com/address/0x8d90aE2C95E320Ea61774a797D92ef84F6831bC2). Its deployment transaction is [`0xd38499ccb036e6188428a47707e5cdb71f289cd3e9dc47af7c3dc30e061cfe68`](https://explorer-studio.genlayer.com/tx/0xd38499ccb036e6188428a47707e5cdb71f289cd3e9dc47af7c3dc30e061cfe68). The deployed source is 64,862 bytes with SHA-256 `93de46c2c0749f9016cd4297658679b0f25f12e0bce91ab6fe867d328835dff9`, and the readback source matches the candidate byte-for-byte. The schema is 35 methods, 13 views, 22 writes, and zero constructor parameters.
+The current monolith is [`0xC2523f90a89B0A989a15BE81fA124b435f0190cF`](https://explorer-studio.genlayer.com/address/0xC2523f90a89B0A989a15BE81fA124b435f0190cF). Its deployment transaction is [`0x68238f2d8b195d8f753a0a1ca4d9934bbded309d5b2cd7480e64ab34da13938f`](https://explorer-studio.genlayer.com/tx/0x68238f2d8b195d8f753a0a1ca4d9934bbded309d5b2cd7480e64ab34da13938f). The deployed source is 72,967 bytes with SHA-256 `caea7d3d630581256f679010b946cad4204fac7f9f3148d639b73899b65a41eb`, and the readback source matches the candidate byte-for-byte. The schema is 37 methods, 13 views, 24 writes, and zero constructor parameters.
 
 The production frontend is [witlock.vercel.app](https://witlock.vercel.app). Its public configuration targets the current address, StudioNet 61999, and the approved RPC. Exact lifecycle receipts and state readbacks are in [docs/LIVE_PROOF.md](docs/LIVE_PROOF.md), [docs/WITLOCK_MORE_INFO_CLOSEOUT.md](docs/WITLOCK_MORE_INFO_CLOSEOUT.md), [artifacts/live-61999/cases.json](artifacts/live-61999/cases.json), and [artifacts/live-61999/manifest.json](artifacts/live-61999/manifest.json).
 
@@ -56,6 +58,7 @@ npm audit --audit-level=moderate
 npm run web:test
 npm run web:typecheck
 npm run web:build
+npm run test:mutation
 ```
 
 Deployment and source-parity rules are in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). The custody state machine and recovery model are in [docs/CUSTODY_AND_RECOVERY.md](docs/CUSTODY_AND_RECOVERY.md). Security limitations are in [docs/SECURITY.md](docs/SECURITY.md).

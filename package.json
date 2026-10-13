@@ -9,6 +9,7 @@
     "cli:version": "genlayer --version",
     "preflight": "node scripts/preflight.mjs",
     "test": "python -m pytest -q tests",
+    "test:mutation": "python scripts/mutation_smoke.py",
     "contracts:lint": "python scripts/genvm_lint.py lint contracts/Witlock.py --json",
     "contracts:check": "python scripts/genvm_lint.py check contracts/Witlock.py --json",
     "web:dev": "npm --workspace web run dev",

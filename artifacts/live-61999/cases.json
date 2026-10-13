@@ -1,6 +1,83 @@
 {
-  "network": {"name": "GenLayer StudioNet stable", "chain_id": 61999, "chain_hex": "0xF22F", "rpc": "https://studio.genlayer.com/api", "explorer": "https://explorer-studio.genlayer.com"},
-  "contract": {"address": "0x8d90aE2C95E320Ea61774a797D92ef84F6831bC2", "deployment_transaction": "0xd38499ccb036e6188428a47707e5cdb71f289cd3e9dc47af7c3dc30e061cfe68", "source_bytes": 64862, "source_sha256": "93de46c2c0749f9016cd4297658679b0f25f12e0bce91ab6fe867d328835dff9", "schema": {"methods": 35, "view_methods": 13, "write_methods": 22, "constructor_params": 0}},
-  "terminal_case": {"id": "custody-live-20261013-b", "result": "REJECTED", "score": 0, "status": "FINAL_DECISION", "appeal_status": "FINALIZED", "appeal_authenticated": true, "decision_version": 2, "revision": 13, "original_appeal_deadline": 1791916379, "appeal_window_started_at": 1791916388, "effective_appeal_deadline": 1791917288, "settlement_status": "DISPATCHED_PENDING_DELIVERY", "custody_enabled": true, "funding_received": 1000000000000000, "paid": 0, "in_flight": 1000000000000000, "unresolved": 0, "requester_balance_delta": 1000000000000000, "source_initial": {"commit": "7ce1517d82e711aa12604177ddadaa644c1691e8", "path": "docs/source-fixtures/pass.txt", "bytes": 54, "sha256": "13126b6e375490b80d6b081b3992a798dfcf5cd2b28a30b2d5959c6854109901"}, "source_appeal": {"commit": "cbe4438d44abc6112a5714caf3c8c60ac80b1fbe", "path": "docs/source-fixtures/reversal.txt", "bytes": 56, "sha256": "8e29f1d1cf0b3f02bc57b1f65538d2d1bc118781c2d29334ad7d9f0eb3975005", "source_class": "GITHUB_RAW_COMMIT"}, "transactions": {"create": "0x99f87e996e61cec8539c43daead620d2e27d1be9e764650b95125d9ac5c3fcd3", "fund": "0x31b3319830a2afbef0f0737dc6f6669dfe9adff7f3daa7aba71d061d8ab6ced7", "accept": "0xa4f823b8d7cd142019f0b675979f50fd3b021c6813c0007d38c2e9ed6e3a5f16", "publish": "0x463742e0c3eb84fe31aa2002dec6bc0bb6eb0deb93b365b8a67fbc9238ae4617", "verify": "0xf55beebc8d4421d5847868f813b7ea053dd2c43f183a5d5ff5500f8c6b6d5c75", "submit": "0x0144bc2527c10ed9878c93fbe998ae3c78533e1d7f8267d194a1ac6c55eeed94", "authenticate_evidence": null, "authenticate_evidence_note": "State authenticated; successful receipt hash not retained after RPC polling failure. Duplicate rejection: 0x9ebcf4dec0759bd2b6a7e4057c7fc23f13941bad0b132fa3ed2bd88c20b7d806", "timeout": "0x74698d0a1ba6412f697f2a70cca21246878fb5cec5c7eca0f2361b63cce221ef", "seal": "0xbf2a07209455c409d34e7f8ced3d0e3af5c7ee92302a57548cbd79fe1ad26429", "adjudicate": "0x1887690cf768db5b205960f823d4a4491379f596ff7795ac776f51743d5ebd7b", "appeal_open": "0x9f2b0e85b9e09da442cffd0869c4d6a062345387571f2dfa8d366051d91add79", "appeal_authenticate": "0x0fc095e4902563bb353a3610ba703cdcba9603d5d95ae710806ea283459cb147", "appeal_resolve": "0xb6d7195c2be4830533643b03a4b1ebce7fb8459d9bf6a1afb887b3e2640ddc2a", "finalize": "0x383cf0ad3bd82b7f76221a43f959febf0f77d8ed6881bda49b33987ca433b610", "finalize_idempotent": "0xf9c1cf45cc9b78d14af5be7d2f4c8cd83dc163da8221d3b72bde38daa1f56d1f", "begin_payment": "0x31b2e1d048e3b6366686c8aab3e82d7916f2a9143eedce8a901c719435413b63"}},
-  "funded_refusal_case": {"id": "refund-live-20261013-a", "transaction": "0x3b66251ea887766e97839ff2ebdc7dbdc1186b2361f6383266199da69c1aa190", "attempted_value": 1000000000000000, "return_prefix": "REJECTED_FUNDED", "reason": "WL_FUNDING_ZERO", "refund_message": {"recipient": "0x21892bba93381d94037fb4aab01cafbdf4453b56", "value": 1000000000000000, "onAcceptance": false}, "agreement_funding_received": 0, "requester_net_delta": 0, "contract_net_delta": 0}
+  "contract": {
+    "address": "0xC2523f90a89B0A989a15BE81fA124b435f0190cF",
+    "deployment_transaction": "0x68238f2d8b195d8f753a0a1ca4d9934bbded309d5b2cd7480e64ab34da13938f",
+    "source_bytes": 72967,
+    "source_sha256": "caea7d3d630581256f679010b946cad4204fac7f9f3148d639b73899b65a41eb",
+    "schema": {"methods": 37, "view_methods": 13, "write_methods": 24, "constructor_params": 0}
+  },
+  "approved": {
+    "key": "live-approved-1791927477837",
+    "result": "APPROVED",
+    "status": "FINAL_DECISION",
+    "appeal_status": "FINALIZED",
+    "decision_version": 1,
+    "provider_entitlement": 100000000000000,
+    "requester_entitlement": 0,
+    "finalize_transaction": "0xd1a58a1adfc169e47c8f8a86228cdeefcf9d836423279a22b9c84e9badc2bf05",
+    "payment_transaction": "0x4f6388b631a79fd0427b204f7ee402a1601f05ca168ddabfd0f7f38bb57c98eb",
+    "recipient": "0x951e6B75530774fF82321a5ae54e14F778F0C855",
+    "recipient_delta": "100000000000000",
+    "contract_delta": "-100000000000000",
+    "settlement_status": "DISPATCHED_PENDING_DELIVERY",
+    "conservation_holds": true
+  },
+  "draft_recovery": {
+    "key": "live-draft-recovery-1791928120240",
+    "recover_transaction": "0x811894ef142d1e028c7069e34bd6f82a488097f61a0897a569d04b7e85cb994b",
+    "status": "EXPIRED",
+    "funding_refund_status": "DISPATCHED",
+    "funding_refund_attempt": 1,
+    "funding_refund_in_flight": 100000000000000,
+    "requester_delta": "100000000000000",
+    "settlement_status": "REFUND_PENDING_DELIVERY",
+    "conservation_holds": true
+  },
+  "partial": {
+    "key": "partial-1791928102021",
+    "result": "PARTIAL",
+    "status": "FINAL_DECISION",
+    "appeal_status": "FINALIZED",
+    "decision_version": 1,
+    "provider_entitlement": 50000000000000,
+    "requester_entitlement": 50000000000000,
+    "finalize_transaction": "0xd16b17cbe191fa6f36400f18101da10a55b7d28cfb9e1ca728baeac7ec8dd497",
+    "provider_payment_transaction": "0x2c5d45047e47adce198799198554cfa94541535f8ee2d24cd24d16bd26ed5b96",
+    "requester_payment_transaction": "0xac0b01e2dafe869eef5aae1264c7b72482c516d95a18e8d991287ebadacd3328",
+    "provider_delta": "50000000000000",
+    "requester_delta": "50000000000000",
+    "provider_contract_delta": "-50000000000000",
+    "requester_contract_delta": "-50000000000000",
+    "conservation_holds": true
+  },
+  "rejected": {
+    "key": "rejected-1791929685702",
+    "result": "REJECTED",
+    "status": "FINAL_DECISION",
+    "appeal_status": "FINALIZED",
+    "decision_version": 1,
+    "provider_entitlement": 0,
+    "requester_entitlement": 100000000000000,
+    "finalize_transaction": "0xf4fd5c017c50e07145741f5d872074844d1d97ada8109ef61e218092000dacb8",
+    "payment_transaction": "0xf1241c40c7293169f357aa35ab7ca9545642d07a1eb4191737fe86afef3c95dd",
+    "recipient": "0x24fAe7cD031Ed702Be63BDeA8912141805B996bd",
+    "recipient_delta": "100000000000000",
+    "contract_delta": "-100000000000000",
+    "settlement_status": "DISPATCHED_PENDING_DELIVERY",
+    "conservation_holds": true
+  },
+  "source_fixtures": {
+    "pass": {
+      "commit": "7ce1517d82e711aa12604177ddadaa644c1691e8",
+      "path": "docs/source-fixtures/pass.txt",
+      "bytes": 54,
+      "sha256": "13126b6e375490b80d6b081b3992a798dfcf5cd2b28a30b2d5959c6854109901"
+    },
+    "reversal": {
+      "commit": "cbe4438d44abc6112a5714caf3c8c60ac80b1fbe",
+      "path": "docs/source-fixtures/reversal.txt",
+      "bytes": 56,
+      "sha256": "8e29f1d1cf0b3f02bc57b1f65538d2d1bc118781c2d29334ad7d9f0eb3975005"
+    }
+  }
 }

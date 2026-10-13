@@ -25,6 +25,7 @@ jobs:
               --output "$tarball"
           fi
       - run: python -m pytest -q tests
+      - run: python scripts/mutation_smoke.py
       - run: python -m compileall -q contracts policy
       - run: python scripts/genvm_lint.py lint contracts/Witlock.py --json
       - run: python scripts/genvm_lint.py check contracts/Witlock.py --json

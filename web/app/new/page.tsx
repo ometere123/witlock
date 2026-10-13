@@ -8,7 +8,7 @@ export default function NewAgreementPage() {
     <section className="route-grid">
       <RouteCard title="Creation sequence">
         <StatusRow label="1 · Parties" value="Requester and provider" ok />
-        <StatusRow label="2 · Criteria" value="1–2 bounded weighted questions" ok />
+        <StatusRow label="2 · Criteria" value="1–4 bounded weighted questions" ok />
         <StatusRow label="3 · Issuers" value="External nominated wallets" ok />
         <StatusRow label="4 · Deadlines" value="Acceptance · delivery · appeal" ok />
         <Link className="button" href="/guide">Read the creation guide</Link>

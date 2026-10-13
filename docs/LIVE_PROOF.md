@@ -1,76 +1,71 @@
-# Live proof
+# WITLOCK live proof
 
-Current deployment: [WITLOCK on StudioNet stable](https://explorer-studio.genlayer.com/address/0x8d90aE2C95E320Ea61774a797D92ef84F6831bC2), chain 61999 (`0xF22F`), RPC `https://studio.genlayer.com/api`.
+This record covers the fresh monolith on stable StudioNet 61999 (`0xF22F`) at `https://studio.genlayer.com/api`.
 
-- Contract: `0x8d90aE2C95E320Ea61774a797D92ef84F6831bC2`
-- Deployment: [`0xd38499ccb036e6188428a47707e5cdb71f289cd3e9dc47af7c3dc30e061cfe68`](https://explorer-studio.genlayer.com/tx/0xd38499ccb036e6188428a47707e5cdb71f289cd3e9dc47af7c3dc30e061cfe68)
-- Deployment receipt: `FINALIZED`, `MAJORITY_AGREE`, successful leader execution
-- Deployed source: 64,862 bytes, SHA-256 `93de46c2c0749f9016cd4297658679b0f25f12e0bce91ab6fe867d328835dff9`
-- Exact source parity: `true`
-- Schema: 35 methods, 13 views, 22 writes, zero constructor parameters
-- Repository-local CLI: `0.39.1`
-- `genlayer-js`: `1.1.8`
-- `custody_enabled()`: `true`
+## Deployment and parity
 
-## Terminal custody case
+- Contract: [`0xC2523f90a89B0A989a15BE81fA124b435f0190cF`](https://explorer-studio.genlayer.com/address/0xC2523f90a89B0A989a15BE81fA124b435f0190cF)
+- Deployment: [`0x68238f2d8b195d8f753a0a1ca4d9934bbded309d5b2cd7480e64ab34da13938f`](https://explorer-studio.genlayer.com/tx/0x68238f2d8b195d8f753a0a1ca4d9934bbded309d5b2cd7480e64ab34da13938f)
+- Deployment outcome: `FINALIZED`, `MAJORITY_AGREE`; validator execution readbacks were successful.
+- Production frontend deployment: [`dpl_PfPcoQk1w5koNhF5AoLLrKyhsrEM`](https://vercel.com/delealufejoel-4184s-projects/witlock/PfPcoQk1w5koNhF5AoLLrKyhsrEM), aliased to [https://witlock.vercel.app](https://witlock.vercel.app), `READY`.
+- Local and deployed source: 72,967 bytes, SHA-256 `caea7d3d630581256f679010b946cad4204fac7f9f3148d639b73899b65a41eb`, exact byte comparison `true`.
+- Schema: 37 methods, 13 views, 24 writes, zero constructor parameters.
+- Repository-local CLI: `0.39.1`.
+- `custody_enabled()`: `true`.
 
-Case `custody-live-20261013-b` used requester `0x21892bba93381d94037fb4aab01cafbdf4453b56`, provider `0xa7eeae0e93793e3146cb14b0700251b8b0ebadfb`, issuer `0xb5ecd6dda36b370aca4af5e2005d8e2ae89c6db2`, and verifier `0xac3ac69dc0bde389256dd6748c75817ead9286d9`.
+The sanitized machine-readable records are [`../artifacts/live-61999/cases.json`](../artifacts/live-61999/cases.json), [`../artifacts/live-61999/manifest.json`](../artifacts/live-61999/manifest.json), and the four case files beside them.
 
-| Step | Transaction | Outcome |
+## Funded APPROVED provider payout
+
+Case `live-approved-1791927477837` used walletB as requester, walletA as provider, the authenticated termsmet wallet as issuer, and party_a as independent verifier. The one criterion used the immutable pass fixture.
+
+| Step | Transaction | Readback |
 | --- | --- | --- |
-| Create | `0x99f87e996e61cec8539c43daead620d2e27d1be9e764650b95125d9ac5c3fcd3` | FINALIZED / MAJORITY_AGREE / successful leader |
-| Exact funding, 0.001 GEN | `0x31b3319830a2afbef0f0737dc6f6669dfe9adff7f3daa7aba71d061d8ab6ced7` | FINALIZED / MAJORITY_AGREE / value credited |
-| Accept | `0xa4f823b8d7cd142019f0b675979f50fd3b021c6813c0007d38c2e9ed6e3a5f16` | FINALIZED / MAJORITY_AGREE |
-| Publish attestation | `0x463742e0c3eb84fe31aa2002dec6bc0bb6eb0deb93b365b8a67fbc9238ae4617` | FINALIZED / MAJORITY_AGREE |
-| Verify immutable source | `0xf55beebc8d4421d5847868f813b7ea053dd2c43f183a5d5ff5500f8c6b6d5c75` | FINALIZED / MAJORITY_AGREE |
-| Submit evidence | `0x0144bc2527c10ed9878c93fbe998ae3c78533e1d7f8267d194a1ac6c55eeed94` | FINALIZED / MAJORITY_AGREE |
-| Authenticate evidence | Initial successful hash was not retained after an RPC polling failure; duplicate `0x9ebcf4dec0759bd2b6a7e4057c7fc23f13941bad0b132fa3ed2bd88c20b7d806` finalized with explicit `WL_EVIDENCE_ALREADY_AUTHENTICATED` | State readback authenticated |
-| Delivery timeout | `0x74698d0a1ba6412f697f2a70cca21246878fb5cec5c7eca0f2361b63cce221ef` | FINALIZED / MAJORITY_AGREE |
-| Seal | `0xbf2a07209455c409d34e7f8ced3d0e3af5c7ee92302a57548cbd79fe1ad26429` | FINALIZED / MAJORITY_AGREE |
-| Delayed adjudication | `0x1887690cf768db5b205960f823d4a4491379f596ff7795ac776f51743d5ebd7b` | FINALIZED / MAJORITY_AGREE |
-| Open appeal | `0x9f2b0e85b9e09da442cffd0869c4d6a062345387571f2dfa8d366051d91add79` | FINALIZED / MAJORITY_AGREE |
-| Authenticate appeal | `0x0fc095e4902563bb353a3610ba703cdcba9603d5d95ae710806ea283459cb147` | FINALIZED / MAJORITY_AGREE |
-| Resolve appeal | `0xb6d7195c2be4830533643b03a4b1ebce7fb8459d9bf6a1afb887b3e2640ddc2a` | FINALIZED / MAJORITY_AGREE |
-| Terminal finalization | `0x383cf0ad3bd82b7f76221a43f959febf0f77d8ed6881bda49b33987ca433b610` | FINALIZED / MAJORITY_AGREE |
-| Idempotent finalization | `0xf9c1cf45cc9b78d14af5be7d2f4c8cd83dc163da8221d3b72bde38daa1f56d1f` | FINALIZED / MAJORITY_AGREE; revision unchanged |
-| Native dispatch | `0x31b2e1d048e3b6366686c8aab3e82d7916f2a9143eedce8a901c719435413b63` | FINALIZED / MAJORITY_AGREE; 0.001 GEN recipient delta |
+| Create | `0x5879bc74a1289cb986d9c95243df72ae464291b631d8a7ee43b9945281c5384f` | finalized majority agreement |
+| Fund exact `100000000000000` wei | `0xe0934ed4cab33533c98ff618f0a91b3f72fcae651933919bf8d25f780f4218bd` | funded |
+| Accept | `0xbe4b07087409a7791f735e5154cd0ac0ce4e180c439475750fe89b0131e8a190` | active |
+| Publish / verify / submit / authenticate | `0xba0c7cdd1646d59521c9a4ed81041f6041559bb9cf91991df4b4ac8e6153be36`, `0x8258f5bd3569ab7e8c4277202beb8e7542a23f64548563ed140dc95e68d7f4ab`, `0x2a7ee30ca4c0dbce8c26a14cadb5e381280c2cc46fdd8d9194795030835e49e32`, `0xca5ec8a9e1d54b97f82ce2157e5f78de4bcb2e1f4ca6ee7e730b133c889ec2ab` | source authenticated |
+| Acknowledge / seal / adjudicate | `0x3f0701b40069970d5f2e71f2ee797173d801bad788990c3058b2e40b5e29ce87`, `0xb84f0e377eb0c67579364c56a39b750321bbb425e79fecf22a04ed9e30807b3d`, `0xd0310adeea53cb7b8546b2124af7e3e12448066f76bffb4e1080d97db69be98b` | `APPROVED`, score 100 |
+| Terminal finalization | `0xd1a58a1adfc169e47c8f8a86228cdeefcf9d836423279a22b9c84e9badc2bf05` | `FINAL_DECISION`, `appeal_status=FINALIZED`, version 1 |
+| Provider dispatch | `0x4f6388b631a79fd0427b204f7ee402a1601f05ca168ddabfd0f7f38bb57c98eb` | child to `0x951e6B75530774fF82321a5ae54e14F778F0C855`, value `100000000000000` wei |
 
-The first ruling started at `1791916388`, after the original deadline `1791916379`, and set the effective deadline to `1791917288`, exactly 900 seconds later. The authenticated appeal resolved to a second decision version. Terminal readback is `FINAL_DECISION`, `REJECTED`, `appeal_status=FINALIZED`, `appeal_authenticated=true`, `decision_version=2`, `revision=13`. Final entitlements are provider `0`, requester `1000000000000000` wei.
+The provider balance delta was exactly `100000000000000` wei and the contract balance delta was `-100000000000000` wei. The requester entitlement was zero. The parent receipt included the value-bearing child message; settlement remains `DISPATCHED_PENDING_DELIVERY` because child delivery is externally observed.
 
-Settlement readback is:
+## Funded PARTIAL two-recipient split
 
-```json
-{
-  "custody_enabled": true,
-  "status": "DISPATCHED_PENDING_DELIVERY",
-  "funding_received": 1000000000000000,
-  "paid": 0,
-  "in_flight": 1000000000000000,
-  "unresolved": 0,
-  "payment_attempt": 1
-}
-```
+Case `partial-1791928102021` used two non-critical criteria with equal weights. The pass and reversal fixtures produced `PARTIAL`, with provider and requester entitlements of `50000000000000` wei each.
 
-Accounting readback is `funded=confirmed_paid+in_flight+unresolved+remaining` with funded `1000000000000000`, confirmed paid `0`, in flight `1000000000000000`, unresolved `0`, remaining `0`. The requester balance increased by exactly `1000000000000000` wei after the native dispatch. The child message and balance were observed externally; the contract deliberately keeps the state pending delivery.
+- Finalization: `0xd16b17cbe191fa6f36400f18101da10a55b7d28cfb9e1ca728baeac7ec8dd497`
+- Provider dispatch: `0x2c5d45047e47adce198799198554cfa94541535f8ee2d24cd24d16bd26ed5b96`
+- Requester dispatch: `0xac0b01e2dafe869eef5aae1264c7b72482c516d95a18e8d991287ebadacd3328`
+- Provider recipient delta: `50000000000000` wei; contract delta: `-50000000000000` wei.
+- Requester recipient delta: `50000000000000` wei; contract delta: `-50000000000000` wei.
+- Terminal readback: `FINAL_DECISION`, `appeal_status=FINALIZED`, version `1`, settlement `DISPATCHED_PENDING_DELIVERY`.
 
-The initial source was the immutable GitHub raw commit `7ce1517d82e711aa12604177ddadaa644c1691e8`, path `docs/source-fixtures/pass.txt`, 54 bytes, digest `13126b6e375490b80d6b081b3992a798dfcf5cd2b28a30b2d5959c6854109901`. The appeal source was commit `cbe4438d44abc6112a5714caf3c8c60ac80b1fbe`, path `docs/source-fixtures/reversal.txt`, 56 bytes, digest `8e29f1d1cf0b3f02bc57b1f65538d2d1bc118781c2d29334ad7d9f0eb3975005`, source class `GITHUB_RAW_COMMIT`.
+The first ruling was delayed past the original appeal deadline: `appeal_window_started_at=1791929610`, original deadline `1791930002`, effective deadline `1791930510`. This is the live proof that the first ruling gets a full 900-second minimum window and that finalization waits for that captured deadline.
 
-## Funded rejection and refund
+## Funded REJECTED requester refund
 
-Case `refund-live-20261013-a` was created with `funding_required=0). Funding it with `1000000000000000` wei produced:
+Case `rejected-1791929685702` used the reversal fixture and produced `REJECTED` with provider entitlement `0` and requester entitlement `100000000000000` wei.
 
-- transaction [`0x3b66251ea887766e97839ff2ebdc7dbdc1186b2361f6383266199da69c1aa190`](https://explorer-studio.genlayer.com/tx/0x3b66251ea887766e97839ff2ebdc7dbdc1186b2361f6383266199da69c1aa190)
-- `FINALIZED` / `MAJORITY_AGREE` / successful leader
-- leader return `REJECTED_FUNDED UserError(message='WL_FUNDING_ZERO')`
-- value-bearing message to the sender, `onAcceptance=false`
-- `funding_received=0`, requester net delta `0`, contract net delta `0`
+- Finalization: `0xf4fd5c017c50e07145741f5d872074844d1d97ada8109ef61e218092000dacb8`
+- Requester dispatch: `0xf1241c40c7293169f357aa35ab7ca9545642d07a1eb4191737fe86afef3c95dd`
+- Recipient: `0x24fAe7cD031Ed702Be63BDeA8912141805B996bd`
+- Recipient delta: `100000000000000` wei; contract delta: `-100000000000000` wei.
+- Terminal readback: `FINAL_DECISION`, `appeal_status=FINALIZED`, version `1`, settlement `DISPATCHED_PENDING_DELIVERY`.
 
-This proves the candidate does not strand incoming value on a known funded rejection.
+## Funded draft recovery
 
-## Frontend status
+Case `live-draft-recovery-1791928120240` was funded exactly and left unaccepted. After the acceptance deadline, `recover_expired_funding` finalized at `0x811894ef142d1e028c7069e34bd6f82a488097f61a0897a569d04b7e85cb994b` with the quorum-cancellation metadata recorded separately. Readback is `EXPIRED`, `funding_refund_attempt=1`, `funding_refund_status=DISPATCHED`, `funding_refund_in_flight=100000000000000`, and `settlement_status=REFUND_PENDING_DELIVERY`. The requester balance increased by exactly `100000000000000` wei. Replay is latched off; the seven-day ambiguity deadline is recorded on-chain.
 
-Production is [https://witlock.vercel.app](https://witlock.vercel.app), with public configuration set to the current contract. In Chrome, `/verification` rendered the current address, StudioNet 61999, the approved RPC, metadata availability, and `NATIVE GEN DISPATCH · ENABLED · FINALIZED ONLY`; the same view showed wallet chain `0x1`, `WRONG NETWORK`, and the guarded `Switch network` action. `/new` rendered the funded creation flow, exact wei funding field, separate payable-signature explanation, and disabled operator bond. The browser automation surface did not expose `window.ethereum`, so no current-address wallet write, account change, signature rejection, interrupted transaction recovery, or persisted recovery is claimed. The route and wrong-network guard are observed; the injected-wallet paths remain pending independent reproduction.
+## Source fixtures and accounting
 
-## Limitations
+- Pass fixture: commit `7ce1517d82e711aa12604177ddadaa644c1691e8`, 54 bytes, digest `13126b6e375490b80d6b081b3992a798dfcf5cd2b28a30b2d5959c6854109901`.
+- Reversal fixture: commit `cbe4438d44abc6112a5714caf3c8c60ac80b1fbe`, 56 bytes, digest `8e29f1d1cf0b3f02bc57b1f65538d2d1bc118781c2d29334ad7d9f0eb3975005`.
+- Each live accounting readback reported `conservation_holds=true`, with `actual_contract_balance` inside the reported liability range. The global counters include other deliberately retained live test agreements on this deployment, so the per-case child deltas and the global balance readback are both recorded.
 
-The successful source-authentication transaction hash was lost during an RPC polling failure; the on-chain authenticated state and duplicate rejection receipt are preserved. StudioNet does not expose `gen_dbg_traceTransaction` through the approved RPC.
+## Browser evidence
+
+Production is [https://witlock.vercel.app](https://witlock.vercel.app). Public HTTP checks returned 200 for `/`, `/verification`, `/new`, and `/settlement/browser-proof`; the settlement page no longer shows “Deposit unavailable”. The verification route rendered the current address, chain 61999, approved RPC, and the wrong-network guard. In Chrome, an injected wallet connected, switched from wallet chain `0x1` to StudioNet, disconnected, reconnected, and submitted a real zero-value `create_agreement` signing attempt against the current address. The UI remained in `Waiting for finality`, and a fresh creation route did not show a finalized browser receipt.
+
+Account switching and explicit wallet rejection were not independently controllable in the available injected-wallet surface. Persisted recovery after the interrupted browser attempt was not claimed because the refreshed activity route showed no stored pending hash. Those paths remain clearly unverified.

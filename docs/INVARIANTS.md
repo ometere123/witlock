@@ -6,14 +6,14 @@
 4. Independent source gate: evidence requires immutable source verification and issuer authentication before sealing.
 5. Case scope: one criterion binds one immutable attestation; records cannot be replaced or replayed across cases.
 6. Deterministic economics: consensus supplies labels only; integer score and role-derived allocation are contract calculations.
-7. Consensus schema: every criterion appears exactly once with PASS, FAIL, or INCONCLUSIVE; failures close safely to no allocation.
+7. Consensus schema: every criterion appears exactly once with PASS, FAIL, or INCONCLUSIVE; funded failures use only the frozen bounded recovery split after finalization, while zero-funded failures have no allocation.
 8. Deadline safety: acceptance, delivery, appeal, appeal resolution, draft expiry, and finalization methods reject early calls.
 9. Delayed adjudication safety: the first ruling captures one effective appeal deadline at least 900 seconds after the ruling when the original deadline has elapsed; later rulings never extend it.
 10. Append-only history: every transition and decision version receives a new audit key.
 11. Appeal safety: structured grounds are frozen, independently authenticated, resolved appeals return to the same window, and expiry preserves the prior ruling.
 12. Receipt safety: contradictory top-level execution/consensus metadata, explicit execution errors, unknown execution, NO_MAJORITY, inconsistent validators, and malformed fields fail closed; post-quorum idle cancellation is accepted only with its explicit cancellation marker.
 13. Custody containment: `custody_enabled()` is true only for exact requester funding and terminal role-derived dispatch; operator bonds and arbitrary recipients remain unsupported.
-14. Accounting conservation: funded = confirmed_paid + in_flight + unresolved + remaining, with no negative component.
+14. Accounting conservation: funded = confirmed_paid + in_flight + refund_in_flight + unresolved + remaining, with no negative component; global liability counters are reconciled against `self.balance`.
 15. No ambiguous retry: an unresolved payment attempt cannot be silently retried or marked paid.
 
 Direct Mode and current StudioNet readbacks cover issuer/verifier independence, immutable GitHub provenance and byte hashing, prompt injection, missing evidence, malformed answers, delayed adjudication, late appeals, expiry boundaries, appeal replay, state-transition replay, terminal idempotency, adversarial receipt fixtures, funded refusal refunds, native dispatch, and accounting conservation. Recipient delivery remains an external observation and ambiguous-transfer recovery is bounded rather than caller-confirmed.

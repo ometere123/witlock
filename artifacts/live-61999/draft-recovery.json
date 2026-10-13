@@ -1,0 +1,244 @@
+{
+  "network": {
+    "rpc": "https://studio.genlayer.com/api",
+    "chainId": 61999
+  },
+  "contract": "0xC2523f90a89B0A989a15BE81fA124b435f0190cF",
+  "requester": "0xB845a69860ba4CDf19CfDC5AfbAF2e20b6bE86b0",
+  "provider": "0x951e6B75530774fF82321a5ae54e14F778F0C855",
+  "key": "live-draft-recovery-1791928120240",
+  "receipts": {
+    "create": {
+      "hash": "0x8096d98d85368a90ee84685773ea313f5be7dfb088e5081730d575e77a27fe6f",
+      "status": "FINALIZED",
+      "result": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "validatorVotes": [
+        "agree",
+        "agree",
+        "agree",
+        "agree"
+      ],
+      "validatorExecutions": [
+        "SUCCESS",
+        "SUCCESS",
+        "SUCCESS",
+        "SUCCESS"
+      ]
+    },
+    "fund": {
+      "hash": "0x6e6a21f92a0d1823e758ec75fe06ee3d45e51f3bdbea256b0a8aa40b4a309401",
+      "status": "FINALIZED",
+      "result": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "validatorVotes": [
+        "agree",
+        "agree",
+        "agree",
+        "agree"
+      ],
+      "validatorExecutions": [
+        "SUCCESS",
+        "SUCCESS",
+        "SUCCESS",
+        "SUCCESS"
+      ]
+    },
+    "recover": {
+      "hash": "0x811894ef142d1e028c7069e34bd6f82a488097f61a0897a569d04b7e85cb994b",
+      "status": "FINALIZED",
+      "result": "MAJORITY_AGREE",
+      "execution": "SUCCESS_WITH_QUORUM_CANCELLATION",
+      "validatorVotes": [
+        "idle",
+        "idle",
+        "agree",
+        "agree"
+      ],
+      "validatorExecutions": [
+        "ERROR",
+        "ERROR",
+        "SUCCESS",
+        "SUCCESS"
+      ]
+    }
+  },
+  "before": {
+    "agreement": {
+      "accept_deadline": 1791928270,
+      "appeal_authenticated": false,
+      "appeal_authenticated_by": "",
+      "appeal_by": "",
+      "appeal_count": 0,
+      "appeal_deadline": 1791928570,
+      "appeal_grounds": "",
+      "appeal_observation": "",
+      "appeal_resolution_deadline": 0,
+      "appeal_status": "NONE",
+      "appeal_task_id": "",
+      "appeal_verification_status": "UNVERIFIED",
+      "appeal_window_started_at": 0,
+      "bond_received": 0,
+      "bond_required": 0,
+      "decision_version": 0,
+      "delivery_acknowledged": false,
+      "delivery_deadline": 1791928420,
+      "details_hash": "e0385a98c351e241c0e4180e40f7a400f6db0f5ec668b4cc55f30696541ac49f",
+      "funding_received": 100000000000000,
+      "funding_refund_attempt": 0,
+      "funding_refund_deadline": 0,
+      "funding_refund_in_flight": 0,
+      "funding_refund_status": "NOT_STARTED",
+      "funding_refunded": 0,
+      "funding_required": 100000000000000,
+      "funding_status": "FUNDED",
+      "id": "live-draft-recovery-1791928120240",
+      "in_flight": 0,
+      "inconclusive_provider_bps": 0,
+      "inconclusive_recovery_policy": "PREAGREED_BPS_SPLIT",
+      "original_appeal_deadline": 1791928570,
+      "paid": 0,
+      "payment_attempt": 0,
+      "provider": "0x951e6b75530774ff82321a5ae54e14f778f0c855",
+      "provider_entitlement": 0,
+      "provider_payment_attempt": 0,
+      "provider_payment_status": "NOT_STARTED",
+      "requester": "0xb845a69860ba4cdf19cfdc5afbaf2e20b6be86b0",
+      "requester_entitlement": 0,
+      "requester_payment_attempt": 0,
+      "requester_payment_status": "NOT_STARTED",
+      "result": "",
+      "revision": 2,
+      "score": 0,
+      "settlement_status": "FUNDED",
+      "status": "DRAFT",
+      "terminal_reason": "",
+      "terms": {
+        "tasks": [
+          {
+            "critical": true,
+            "id": "source",
+            "issuer": "0xB5EcD6dDa36B370aca4af5E2005d8E2Ae89c6db2",
+            "question": "Does the independently verified source support the frozen acceptance criterion?",
+            "verifier": "0xac3AC69dC0Bde389256dD6748C75817ead9286D9",
+            "weight": 100
+          }
+        ]
+      },
+      "unresolved": 0
+    },
+    "requesterBalance": "34840899999999999000"
+  },
+  "after": {
+    "agreement": {
+      "accept_deadline": 1791928270,
+      "appeal_authenticated": false,
+      "appeal_authenticated_by": "",
+      "appeal_by": "",
+      "appeal_count": 0,
+      "appeal_deadline": 1791928570,
+      "appeal_grounds": "",
+      "appeal_observation": "",
+      "appeal_resolution_deadline": 0,
+      "appeal_status": "NONE",
+      "appeal_task_id": "",
+      "appeal_verification_status": "UNVERIFIED",
+      "appeal_window_started_at": 0,
+      "bond_received": 0,
+      "bond_required": 0,
+      "decision_version": 0,
+      "delivery_acknowledged": false,
+      "delivery_deadline": 1791928420,
+      "details_hash": "e0385a98c351e241c0e4180e40f7a400f6db0f5ec668b4cc55f30696541ac49f",
+      "funding_received": 100000000000000,
+      "funding_refund_attempt": 1,
+      "funding_refund_deadline": 1792533113,
+      "funding_refund_in_flight": 100000000000000,
+      "funding_refund_status": "DISPATCHED",
+      "funding_refunded": 0,
+      "funding_required": 100000000000000,
+      "funding_status": "REFUND_DISPATCHED",
+      "id": "live-draft-recovery-1791928120240",
+      "in_flight": 0,
+      "inconclusive_provider_bps": 0,
+      "inconclusive_recovery_policy": "PREAGREED_BPS_SPLIT",
+      "original_appeal_deadline": 1791928570,
+      "paid": 0,
+      "payment_attempt": 0,
+      "provider": "0x951e6b75530774ff82321a5ae54e14f778f0c855",
+      "provider_entitlement": 0,
+      "provider_payment_attempt": 0,
+      "provider_payment_status": "NOT_STARTED",
+      "requester": "0xb845a69860ba4cdf19cfdc5afbaf2e20b6be86b0",
+      "requester_entitlement": 0,
+      "requester_payment_attempt": 0,
+      "requester_payment_status": "NOT_STARTED",
+      "result": "",
+      "revision": 3,
+      "score": 0,
+      "settlement_status": "REFUND_PENDING_DELIVERY",
+      "status": "EXPIRED",
+      "terminal_reason": "ACCEPTANCE_DEADLINE_ELAPSED_FUNDED_REFUND",
+      "terms": {
+        "tasks": [
+          {
+            "critical": true,
+            "id": "source",
+            "issuer": "0xB5EcD6dDa36B370aca4af5E2005d8E2Ae89c6db2",
+            "question": "Does the independently verified source support the frozen acceptance criterion?",
+            "verifier": "0xac3AC69dC0Bde389256dD6748C75817ead9286D9",
+            "weight": 100
+          }
+        ]
+      },
+      "unresolved": 0
+    },
+    "settlement": {
+      "agreement": "live-draft-recovery-1791928120240",
+      "appeal_authenticated": false,
+      "appeal_status": "NONE",
+      "bond_received": 0,
+      "bond_required": 0,
+      "custody_enabled": true,
+      "delivery_model": "external_balance_observation_required",
+      "funding_received": 100000000000000,
+      "funding_refund_in_flight": 100000000000000,
+      "funding_refund_status": "DISPATCHED",
+      "funding_required": 100000000000000,
+      "in_flight": 0,
+      "inconclusive_provider_bps": 0,
+      "paid": 0,
+      "payment_attempt": 0,
+      "provider_entitlement": 0,
+      "provider_payment_status": "NOT_STARTED",
+      "requester_entitlement": 0,
+      "requester_payment_status": "NOT_STARTED",
+      "status": "REFUND_PENDING_DELIVERY",
+      "unresolved": 0
+    },
+    "accounting": {
+      "actual_balance_lower_bound": 500000000000000,
+      "actual_balance_upper_bound": 600000000000000,
+      "actual_contract_balance": 500000000000000,
+      "balance_matches_bookkeeping": true,
+      "balance_scope": "all_agreements_global",
+      "confirmed_paid": 0,
+      "conservation_holds": true,
+      "contract_confirmed_paid": 0,
+      "contract_funded": 600000000000000,
+      "contract_payment_in_flight": 0,
+      "contract_refund_in_flight": 100000000000000,
+      "contract_remaining": 500000000000000,
+      "contract_unresolved": 0,
+      "equation": "funded=confirmed_paid+in_flight+refund_in_flight+unresolved+remaining",
+      "funded": 100000000000000,
+      "in_flight": 0,
+      "refund_in_flight": 100000000000000,
+      "remaining": 0,
+      "unresolved": 0
+    },
+    "requesterBalance": "34840999999999999000",
+    "requesterDelta": "100000000000000"
+  },
+  "finishedAt": "2026-10-13T21:51:57.735Z"
+}

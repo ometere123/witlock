@@ -1,4 +1,4 @@
-import { RouteCard, RouteShell, StatusRow, DisabledAction } from '@/app/_components/RouteShell';
+import { RouteCard, RouteShell, StatusRow } from '@/app/_components/RouteShell';
 import CaseConsole from '@/app/_components/CaseConsole';
 
 export default async function SettlementPage({ params }: { params: Promise<{ id: string }> }) {
@@ -9,7 +9,7 @@ export default async function SettlementPage({ params }: { params: Promise<{ id:
         <StatusRow label="Decision" value="May be approved independently" />
         <StatusRow label="Native dispatch" value="Finalized decision only" ok />
         <StatusRow label="Delivery" value="External balance observation required" />
-        <DisabledAction>Deposit unavailable</DisabledAction>
+        <a className="button alt" href="/new">Start or fund an agreement</a>
       </RouteCard>
       <RouteCard title="Why it stays closed" tone="warning">
         <p className="muted">An accepted or finalized parent transaction cannot prove that an asynchronous child transfer succeeded or reached its recipient. WITLOCK will not retry ambiguous transfers or recreate missing funds in accounting.</p>

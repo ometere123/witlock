@@ -9,6 +9,6 @@
 7. Treat `FINALIZED`, `MAJORITY_AGREE`, execution result, leader execution, validator results, and value-bearing child messages as separate facts. Preserve failed receipts as failures.
 8. Update every public frontend contract configuration only after the new contract passes the live proof. Verify the production URL after the deployment completes.
 
-The current contract is `0x8d90aE2C95E320Ea61774a797D92ef84F6831bC2`, deployed by transaction `0xd38499ccb036e6188428a47707e5cdb71f289cd3e9dc47af7c3dc30e061cfe68`. The deployed source is 64,862 bytes and SHA-256 `93de46c2c0749f9016cd4297658679b0f25f12e0bce91ab6fe867d328835dff9`. The current Vercel public contract configuration is the same address. No keys or tokens belong in the repository.
+The current contract is `0xC2523f90a89B0A989a15BE81fA124b435f0190cF`, deployed by transaction `0x68238f2d8b195d8f753a0a1ca4d9934bbded309d5b2cd7480e64ab34da13938f`. The deployed source is 72,967 bytes and SHA-256 `caea7d3d630581256f679010b946cad4204fac7f9f3148d639b73899b65a41eb`. The current Vercel public contract configuration is the same address. No keys or tokens belong in the repository.
 
 Full receipts, source parity, browser status, and remaining limitations are recorded in [LIVE_PROOF.md](LIVE_PROOF.md) and [REVIEWER_EVIDENCE.md](REVIEWER_EVIDENCE.md).

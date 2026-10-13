@@ -1,13 +1,39 @@
 {
   "project": "WITLOCK",
-  "status": "LIVE_CUSTODY_PROOF_COMPLETE_CURRENT_ADDRESS_PUBLIC_ROUTE_REPRODUCED",
-  "network": {"name": "GenLayer StudioNet stable", "chain_id": 61999, "chain_hex": "0xF22F", "rpc": "https://studio.genlayer.com/api", "explorer": "https://explorer-studio.genlayer.com", "cli": "0.39.1", "genlayer_js": "1.1.8"},
-  "source": {"path": "contracts/Witlock.py", "bytes": 64862, "sha256": "93de46c2c0749f9016cd4297658679b0f25f12e0bce91ab6fe867d328835dff9", "exact_deployed_match": true, "deployed_contract": "0x8d90aE2C95E320Ea61774a797D92ef84F6831bC2", "deployment_transaction": "0xd38499ccb036e6188428a47707e5cdb71f289cd3e9dc47af7c3dc30e061cfe68", "schema": {"methods": 35, "view_methods": 13, "write_methods": 22, "constructor_params": 0}},
-  "receipt_profile": {"deployment_status": "FINALIZED", "consensus_result": "MAJORITY_AGREE", "leader_execution": "SUCCESS", "quorum_cancellation": "Explicit post-quorum idle records accepted only when the cancellation marker is present"},
-  "terminal_finalization": {"case_id": "custody-live-20261013-b", "transaction": "0x383cf0ad3bd82b7f76221a43f959febf0f77d8ed6881bda49b33987ca433b610", "idempotent_replay": "0xf9c1cf45cc9b78d14af5be7d2f4c8cd83dc163da8221d3b72bde38daa1f56d1f", "status": "FINALIZED", "consensus_result": "MAJORITY_AGREE", "leader_execution": "SUCCESS", "original_appeal_deadline": 1791916379, "appeal_window_started_at": 1791916388, "effective_appeal_deadline": 1791917288, "readbacks": {"status": "FINAL_DECISION", "result": "REJECTED", "appeal_status": "FINALIZED", "appeal_authenticated": true, "decision_version": 2, "revision": 13, "settlement_status": "DISPATCHED_PENDING_DELIVERY", "custody_enabled": true, "funding_received": 1000000000000000, "paid": 0, "in_flight": 1000000000000000, "unresolved": 0, "requester_balance_delta": 1000000000000000}},
-  "funded_refusal": {"case_id": "refund-live-20261013-a", "transaction": "0x3b66251ea887766e97839ff2ebdc7dbdc1186b2361f6383266199da69c1aa190", "return": "REJECTED_FUNDED WL_FUNDING_ZERO", "refund_value": 1000000000000000, "refund_on_acceptance": false, "net_balance_delta": 0},
-  "frontend": {"production_url": "https://witlock.vercel.app", "contract_configured": "0x8d90aE2C95E320Ea61774a797D92ef84F6831bC2", "deployment_url": "https://witlock-9delrdwhn-delealufejoel-4184s-projects.vercel.app", "current_address_browser_proof": "PUBLIC_ROUTE_AND_CURRENT_ADDRESS_RENDERED; WRONG_NETWORK_UI_OBSERVED; WALLET_WRITE_NOT_REPRODUCED"},
-  "browser": {"production_url": "https://witlock.vercel.app", "current_contract": "0x8d90aE2C95E320Ea61774a797D92ef84F6831bC2", "status": "CURRENT_ADDRESS_ROUTE_REPRODUCED_WRONG_NETWORK_UI_OBSERVED", "observed_routes": ["/verification", "/new"], "wallet_chain_observed": "0x1", "wrong_network_guard": "RENDERED_AND_SWITCH_ACTION_REMAINED_GUARDED", "window_ethereum_exposed_to_automation": false, "prior_session": {"account": "0x81301dd9c3605a7da743d87b803156d8445620b0", "old_contract": "0x8B6e64A6C5c5Bccc3a64Cba4Bd8982218381330d", "disconnect_reconnect": true, "wrong_network": false, "account_change": false, "signature_rejection": false, "pending_recovery": "not independently observed"}},
-  "ci": {"status": "SUCCESS", "run_id": 38452951307, "url": "https://github.com/ometere123/witlock/actions/runs/38452951307", "head_sha": "e4e67151df229b22e0cfa4bf51a06a81d3e63100", "jobs": ["policy", "frontend"]},
-  "limitations": ["Successful source-authentication transaction hash was not retained after RPC polling failure; authenticated state and duplicate rejection receipt are preserved.", "StudioNet does not expose gen_dbg_traceTransaction through the approved RPC.", "Current-address browser account-change, wrong-network, signature-rejection, interrupted-write, and persisted-recovery paths remain to be reproduced with an injected wallet."]
+  "status": "LIVE_CUSTODY_PROOF_COMPLETE_FRONTEND_READY_CI_PENDING",
+  "network": {
+    "name": "GenLayer StudioNet stable",
+    "chain_id": 61999,
+    "chain_hex": "0xF22F",
+    "rpc": "https://studio.genlayer.com/api",
+    "explorer": "https://explorer-studio.genlayer.com",
+    "cli": "0.39.1",
+    "genlayer_js": "1.1.8"
+  },
+  "source": {
+    "path": "contracts/Witlock.py",
+    "bytes": 72967,
+    "sha256": "caea7d3d630581256f679010b946cad4204fac7f9f3148d639b73899b65a41eb",
+    "exact_deployed_match": true,
+    "deployed_contract": "0xC2523f90a89B0A989a15BE81fA124b435f0190cF",
+    "deployment_transaction": "0x68238f2d8b195d8f753a0a1ca4d9934bbded309d5b2cd7480e64ab34da13938f",
+    "schema": {"methods": 37, "view_methods": 13, "write_methods": 24, "constructor_params": 0}
+  },
+  "receipt_profile": {
+    "deployment_status": "FINALIZED",
+    "consensus_result": "MAJORITY_AGREE",
+    "leader_execution": "SUCCESS",
+    "quorum_cancellation": "Explicit post-quorum idle records accepted only when the cancellation marker is present"
+  },
+  "live_cases": {
+    "approved": {"file": "approved.json", "key": "live-approved-1791927477837", "result": "APPROVED", "finalize_transaction": "0xd1a58a1adfc169e47c8f8a86228cdeefcf9d836423279a22b9c84e9badc2bf05", "payment_transaction": "0x4f6388b631a79fd0427b204f7ee402a1601f05ca168ddabfd0f7f38bb57c98eb", "provider_entitlement": "100000000000000", "requester_entitlement": "0", "recipient_delta": "100000000000000", "contract_delta": "-100000000000000"},
+    "partial": {"file": "partial.json", "key": "partial-1791928102021", "result": "PARTIAL", "finalize_transaction": "0xd16b17cbe191fa6f36400f18101da10a55b7d28cfb9e1ca728baeac7ec8dd497", "provider_payment_transaction": "0x2c5d45047e47adce198799198554cfa94541535f8ee2d24cd24d16bd26ed5b96", "requester_payment_transaction": "0xac0b01e2dafe869eef5aae1264c7b72482c516d95a18e8d991287ebadacd3328", "provider_entitlement": "50000000000000", "requester_entitlement": "50000000000000", "provider_delta": "50000000000000", "requester_delta": "50000000000000"},
+    "rejected": {"file": "rejected.json", "key": "rejected-1791929685702", "result": "REJECTED", "finalize_transaction": "0xf4fd5c017c50e07145741f5d872074844d1d97ada8109ef61e218092000dacb8", "payment_transaction": "0xf1241c40c7293169f357aa35ab7ca9545642d07a1eb4191737fe86afef3c95dd", "provider_entitlement": "0", "requester_entitlement": "100000000000000", "recipient_delta": "100000000000000", "contract_delta": "-100000000000000"},
+    "draft_recovery": {"file": "draft-recovery.json", "key": "live-draft-recovery-1791928120240", "recover_transaction": "0x811894ef142d1e028c7069e34bd6f82a488097f61a0897a569d04b7e85cb994b", "status": "EXPIRED", "funding_refund_attempt": 1, "funding_refund_in_flight": "100000000000000", "requester_delta": "100000000000000"}
+  },
+  "frontend": {"production_url": "https://witlock.vercel.app", "deployment_id": "dpl_PfPcoQk1w5koNhF5AoLLrKyhsrEM", "inspect_url": "https://vercel.com/delealufejoel-4184s-projects/witlock/PfPcoQk1w5koNhF5AoLLrKyhsrEM", "contract_configured": "0xC2523f90a89B0A989a15BE81fA124b435f0190cF", "status": "READY"},
+  "browser": {"status": "OBSERVED_PUBLIC_UI_AND_INJECTED_WALLET_SESSION", "observed": ["public routes returned 200", "current contract rendered", "four-criterion creation copy rendered", "wrong-network guard", "switch from chain 0x1 to 61999", "injected wallet connect", "disconnect", "reconnect", "real zero-value create_agreement signing attempt", "settlement route with Start or fund an agreement"], "unverified": ["account change", "explicit signature rejection", "interrupted-write persistence recovery"]},
+  "checks": {"direct_tests": 41, "frontend_receipt_tests": 13, "mutation_killed": "3/3", "typecheck": "passed", "production_build": "passed", "dependency_audit": "0 moderate-or-higher vulnerabilities", "preflight": "passed", "genvm_lint": "passed", "genvm_check": "passed", "schema": "37 methods / 13 views / 24 writes", "compileall": "passed"},
+  "ci": {"status": "PENDING_PUSH_AND_ACTIONS_RUN"},
+  "limitations": ["Child GEN delivery and ambiguous native delivery remain externally observed states.", "No on-chain GitHub Actions attestation is claimed; GitHub commit provenance is recorded.", "Account-change, explicit rejection, and persisted browser recovery were not independently reproduced in the available injected-wallet surface."]
 }

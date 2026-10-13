@@ -81,6 +81,7 @@ def create(
     key="agreement-1",
     terms_value=None,
     funding_amount=0,
+    inconclusive_provider_bps=0,
 ):
     direct_vm.sender = requester
     agreement.create_agreement(
@@ -93,6 +94,7 @@ def create(
         BASE_TIMESTAMP + 300,
         funding_amount,
         0,
+        inconclusive_provider_bps,
     )
 
 
@@ -691,6 +693,141 @@ def test_inconclusive_appeal_expires_into_bounded_terminal_state(
 
 
 @pytest.mark.direct
+def test_funded_draft_recovery_is_exact_one_use_and_bounded(
+    direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, direct_dana
+):
+    agreement = direct_deploy("contracts/Witlock.py", sdk_version=SDK_VERSION)
+    direct_vm.warp("2026-01-01T00:00:00Z")
+    create(
+        direct_vm,
+        agreement,
+        direct_alice,
+        direct_bob,
+        direct_charlie,
+        direct_dana,
+        funding_amount=100,
+    )
+    direct_vm.value = 100
+    with direct_vm.prank(direct_alice):
+        assert agreement.fund_agreement("agreement-1") == "FUNDED"
+    direct_vm.value = 0
+
+    with direct_vm.expect_revert("WL_DRAFT_RECOVERY_EARLY"):
+        with direct_vm.prank(direct_alice):
+            agreement.recover_expired_funding("agreement-1")
+    direct_vm.warp("2026-01-01T00:01:41Z")
+    with direct_vm.expect_revert("WL_DRAFT_FUNDED_RECOVERY_REQUIRED"):
+        agreement.expire_draft("agreement-1")
+    with direct_vm.expect_revert("WL_DRAFT_RECOVERY_UNAUTHORIZED"):
+        with direct_vm.prank(direct_bob):
+            agreement.recover_expired_funding("agreement-1")
+
+    with direct_vm.prank(direct_alice):
+        assert agreement.recover_expired_funding("agreement-1") == "REFUND_DISPATCHED"
+    state = json.loads(agreement.get_agreement("agreement-1"))
+    assert state["status"] == "EXPIRED"
+    assert state["settlement_status"] == "REFUND_PENDING_DELIVERY"
+    assert state["funding_refund_status"] == "DISPATCHED"
+    assert state["funding_refund_in_flight"] == 100
+    assert state["funding_refund_deadline"] == BASE_TIMESTAMP + 101 + 7 * 24 * 60 * 60
+    with direct_vm.expect_revert("WL_DRAFT_RECOVERY_EARLY"):
+        with direct_vm.prank(direct_alice):
+            agreement.recover_expired_funding("agreement-1")
+    with direct_vm.expect_revert("WL_ACCEPT_UNAUTHORIZED"):
+        with direct_vm.prank(direct_bob):
+            agreement.accept_agreement("agreement-1")
+
+    accounting = json.loads(agreement.get_accounting("agreement-1"))
+    assert accounting["refund_in_flight"] == 100
+    assert accounting["remaining"] == 0
+    assert accounting["contract_refund_in_flight"] == 100
+    assert accounting["contract_remaining"] == 0
+
+    with direct_vm.expect_revert("WL_DRAFT_REFUND_AMBIGUOUS_EARLY"):
+        agreement.mark_funding_refund_ambiguous("agreement-1", "d" * 64)
+    direct_vm.warp("2026-01-08T00:01:42Z")
+    agreement.mark_funding_refund_ambiguous("agreement-1", "d" * 64)
+    state = json.loads(agreement.get_agreement("agreement-1"))
+    assert state["funding_refund_status"] == "AMBIGUOUS"
+    assert state["unresolved"] == 100
+    assert state["settlement_status"] == "UNRESOLVED_PAYMENT"
+    accounting = json.loads(agreement.get_accounting("agreement-1"))
+    assert accounting["contract_refund_in_flight"] == 0
+    assert accounting["contract_unresolved"] == 100
+    assert accounting["contract_remaining"] == 0
+
+
+@pytest.mark.direct
+def test_funded_inconclusive_uses_frozen_split_and_terminal_latches(
+    direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, direct_dana
+):
+    agreement = direct_deploy("contracts/Witlock.py", sdk_version=SDK_VERSION)
+    direct_vm.warp("2026-01-01T00:00:00Z")
+    create(
+        direct_vm,
+        agreement,
+        direct_alice,
+        direct_bob,
+        direct_charlie,
+        direct_dana,
+        funding_amount=100,
+        inconclusive_provider_bps=2500,
+    )
+    direct_vm.value = 100
+    with direct_vm.prank(direct_alice):
+        agreement.fund_agreement("agreement-1")
+    direct_vm.value = 0
+    activate(direct_vm, agreement, direct_bob)
+    direct_vm.warp("2026-01-01T00:03:21Z")
+    agreement.timeout_delivery("agreement-1")
+    agreement.finalize_inconclusive("agreement-1")
+    decision = json.loads(agreement.get_decision("agreement-1"))
+    assert decision["result"] == "INCONCLUSIVE"
+    assert decision["provider_entitlement"] == 25
+    assert decision["requester_entitlement"] == 75
+    assert decision["economic_rule"] == "pre-agreed inconclusive recovery split; provider_bps=2500"
+    state = json.loads(agreement.get_agreement("agreement-1"))
+    assert state["settlement_status"] == "FUNDED"
+    direct_vm.warp("2026-01-01T00:18:21Z")
+    agreement.finalize_decision("agreement-1")
+    assert json.loads(agreement.get_agreement("agreement-1"))["settlement_status"] == "PAYABLE"
+    with direct_vm.prank(direct_bob):
+        assert agreement.begin_payment("agreement-1", "PROVIDER") == "DISPATCHED"
+        with direct_vm.expect_revert("WL_PAYMENT_NOT_IDEMPOTENT"):
+            agreement.begin_payment("agreement-1", "PROVIDER")
+    with direct_vm.prank(direct_alice):
+        assert agreement.begin_payment("agreement-1", "REQUESTER") == "DISPATCHED"
+    state = json.loads(agreement.get_agreement("agreement-1"))
+    assert state["in_flight"] == 100
+    assert state["provider_payment_status"] == "DISPATCHED"
+    assert state["requester_payment_status"] == "DISPATCHED"
+    accounting = json.loads(agreement.get_accounting("agreement-1"))
+    assert accounting["contract_funded"] == 100
+    assert accounting["contract_payment_in_flight"] == 100
+    assert accounting["contract_remaining"] == 0
+    assert accounting["actual_contract_balance"] == 0
+    assert accounting["balance_matches_bookkeeping"] is True
+
+
+@pytest.mark.direct
+def test_inconclusive_policy_rejects_out_of_bounds_bps(
+    direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, direct_dana
+):
+    agreement = direct_deploy("contracts/Witlock.py", sdk_version=SDK_VERSION)
+    direct_vm.warp("2026-01-01T00:00:00Z")
+    with direct_vm.expect_revert("WL_INCONCLUSIVE_POLICY"):
+        create(
+            direct_vm,
+            agreement,
+            direct_alice,
+            direct_bob,
+            direct_charlie,
+            direct_dana,
+            inconclusive_provider_bps=10001,
+        )
+
+
+@pytest.mark.direct
 def test_draft_expiration_is_permissionless_and_terminal(
     direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, direct_dana
 ):
@@ -813,6 +950,7 @@ def test_four_criteria_can_produce_a_partial_ruling(
     partial_terms = terms(address_hex(direct_charlie), address_hex(direct_dana), 4)
     for task in partial_terms["tasks"]:
         task["critical"] = False
+        task["question"] = "Q" * 240
     create(
         direct_vm,
         agreement,
@@ -895,14 +1033,17 @@ def test_funded_refusal_and_terminal_payment_replay_are_safe(
         agreement.accept_agreement("funded")
     assert agreement.custody_enabled() is True
 
-    state = json.loads(agreement.get_agreement("funded"))
-    state["status"] = "FINAL_DECISION"
-    state["settlement_status"] = "PAYABLE"
-    state["result"] = "APPROVED"
-    state["provider_entitlement"] = 100
-    state["requester_entitlement"] = 0
-    state["decision_version"] = 1
-    agreement.agreements["funded"] = json.dumps(state, sort_keys=True)
+    publish_and_verify(direct_vm, agreement, direct_charlie, direct_dana, key="funded")
+    submit_and_authenticate(direct_vm, agreement, direct_alice, direct_charlie, key="funded")
+    with direct_vm.prank(direct_alice):
+        agreement.acknowledge_delivery("funded")
+        agreement.seal_agreement("funded")
+    direct_vm.mock_llm("Classify each frozen criterion", json.dumps({"answers": {"source": "PASS"}}))
+    agreement.adjudicate("funded")
+    ruled = json.loads(agreement.get_agreement("funded"))
+    direct_vm.warp("2026-01-01T00:15:01Z")
+    agreement.finalize_decision("funded")
+    assert json.loads(agreement.get_agreement("funded"))["status"] == "FINAL_DECISION"
     with direct_vm.prank(direct_bob):
         assert agreement.begin_payment("funded", "PROVIDER") == "DISPATCHED"
         with direct_vm.expect_revert("WL_PAYMENT_NOT_IDEMPOTENT"):
