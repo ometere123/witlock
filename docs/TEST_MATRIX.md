@@ -17,6 +17,6 @@
 
 | Mutation smoke | `npm run test:mutation` | 3/3 targeted mutants killed |
 
-GitHub Actions final recorded run: [quality-gates 38481131144](https://github.com/ometere123/witlock/actions/runs/38481131144), commit `0a67d5f4c652f48dbe3ec74ab5eb3c636acbc408`; `policy` and `frontend` passed.
+GitHub Actions source-validation run: [quality-gates 38481361248](https://github.com/ometere123/witlock/actions/runs/38481361248), commit `8900def89ff1257b48ba9eaf3a5285bc1b5b662b`; `policy` and `frontend` passed.
 
 Direct Mode covers issuer/verifier independence, source-byte hashing, prompt injection, missing evidence, malformed answers, four-criteria partial outcomes, delayed adjudication, late appeals, expiry boundaries, appeal replay, state-transition replay, terminal idempotency, accounting conservation, and adversarial receipt fixtures. The live evidence is deliberately stronger for transfer/refund than the mocked Direct Mode environment.

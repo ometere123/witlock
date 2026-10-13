@@ -41,6 +41,6 @@ Account switching, explicit signature rejection, and persisted recovery after th
 ## CI and limitations
 
 - Local checks: 41 Direct Mode tests, 13 frontend tests, mutation smoke 3/3 killed, TypeScript, production build, dependency audit, preflight, GenVM lint/check/schema, and Python compileall.
-- GitHub Actions: [quality-gates run 38481131144](https://github.com/ometere123/witlock/actions/runs/38481131144), commit `0a67d5f4c652f48dbe3ec74ab5eb3c636acbc408`; both `policy` and `frontend` jobs passed.
+- GitHub Actions: [quality-gates run 38481361248](https://github.com/ometere123/witlock/actions/runs/38481361248), commit `8900def89ff1257b48ba9eaf3a5285bc1b5b662b`; both `policy` and `frontend` jobs passed.
 - No on-chain GitHub Actions attestation is claimed; repository commit provenance and source hashes are recorded.
 - StudioNet native child delivery and ambiguous delivery remain externally observed states; custody is not presented as settled until the child outcome is known.
