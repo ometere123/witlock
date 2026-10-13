@@ -8,6 +8,7 @@
   "failed_live_attempts": [{"case_id": "live-final-7ce-2", "transaction": "0x7855c772ef772cdd53386604d344c65d4736100777856dba63796da84c924ec5", "status": "FINALIZED", "consensus_result": "MAJORITY_AGREE", "execution": "ERROR", "error_code": "WL_APPEAL_NOT_AUTHENTICATED", "reason": "GITHUB_COMMIT_NOT_FOUND for an invalid appeal revision; preserved as failure evidence."}],
   "browser": {"production_url": "https://witlock.vercel.app", "account": "0x81301dd9c3605a7da743d87b803156d8445620b0", "chain_hex": "0xF22F", "browser_transaction": "0xbdd7bea2be10198d7a426d9712591f35fa7302f5775932e0c7adf98d20e0f051", "browser_case": "browser-wrong-network", "browser_receipt": "FINALIZED / MAJORITY_AGREE", "disconnect_reconnect": "observed", "interrupted_write": "waiting UI observed; reload returned to form", "pending_recovery": "not independently observed after browser write finalized", "wrong_network": "not reproduced; wallet remained on approved chain", "account_change": "not reproduced", "signature_rejection": "not reproduced", "automated_receipt_tests": 11},
   "custody": {"enabled": false, "real_transfer_proof": "NOT_ATTEMPTED", "recipient_delivery_proof": "NOT_ATTEMPTED", "ambiguous_transfer_recovery": "NOT_ATTEMPTED"},
-  "ci": null,
+  "ci": {"workflow": "quality-gates", "run_id": 38386507863, "url": "https://github.com/ometere123/witlock/actions/runs/38386507863", "head_sha": "d930cb028716ac5bcbd5a623d8916662410f7aad", "status": "success", "jobs": {"policy": "success", "frontend": "success"}},
   "frontend": {"alias": "https://witlock.vercel.app", "deployment_id": "dpl_8a146cUK4yvfsSzACK6RApz1r79g", "deployment_url": "https://witlock-5kzj58036-delealufejoel-4184s-projects.vercel.app", "status": "READY"}
 }
+

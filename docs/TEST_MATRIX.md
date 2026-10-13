@@ -19,3 +19,4 @@
 | Production deployment | Vercel Production | READY at [witlock.vercel.app](https://witlock.vercel.app) |
 
 The Direct Mode negative suite covers unauthorized parties, issuer substitution, correlated issuer/verifier nomination, missing independent verification, altered source bytes, mutable branches, prompt injection, malformed answers and receipts, appeal replay, delayed adjudication, late appeal attempts, exact deadline boundaries, terminal-state idempotency, and accounting conservation.
+

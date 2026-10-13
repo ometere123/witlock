@@ -60,6 +60,7 @@ An interrupted browser write visibly entered `Waiting for finality…`; after re
 - Frontend receipt tests: 11 passed.
 - GenVM check: 37 methods, 13 views, 24 writes, zero constructor parameters.
 - Python compileall, frontend typecheck, production build, StudioNet preflight, and `npm audit --audit-level=moderate`: passed; audit reported 0 vulnerabilities.
-- Final GitHub Actions URL is added to this document after the release commit is pushed and the exact `quality-gates` run is verified.
+- GitHub Actions `quality-gates` passed for release commit `d930cb028716ac5bcbd5a623d8916662410f7aad`: [run 38386507863](https://github.com/ometere123/witlock/actions/runs/38386507863), with `frontend` and `policy` successful.
 
 StudioNet does not implement `gen_dbg_traceTransaction`; trace output is therefore unavailable. Native GEN escrow, successful payment, recipient delivery, and payment recovery remain intentionally unclaimed.
+

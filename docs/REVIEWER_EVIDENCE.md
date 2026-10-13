@@ -33,6 +33,7 @@ The current source observation used `docs/source-fixtures/pass.txt` at commit `7
 ## CI and limitations
 
 - Local: 37 Python tests, 11 frontend receipt tests, typecheck, production build, GenVM check, compileall, preflight, and 0 dependency audit vulnerabilities passed.
-- Exact GitHub Actions quality-gates URL is recorded after push in the release evidence update.
+- GitHub Actions `quality-gates` passed for release commit `d930cb028716ac5bcbd5a623d8916662410f7aad`: [run 38386507863](https://github.com/ometere123/witlock/actions/runs/38386507863), with `frontend` and `policy` successful.
 - `gen_dbg_traceTransaction` is unavailable on the approved RPC.
 - Custody is permanently disabled; no operational GEN escrow or successful payment is claimed.
+
