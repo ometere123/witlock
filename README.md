@@ -24,7 +24,7 @@ Native GEN dispatch is enabled only after `FINAL_DECISION`. Funding must match t
 
 The current candidate contract is [`0x8d90aE2C95E320Ea61774a797D92ef84F6831bC2`](https://explorer-studio.genlayer.com/address/0x8d90aE2C95E320Ea61774a797D92ef84F6831bC2). Its deployment transaction is [`0xd38499ccb036e6188428a47707e5cdb71f289cd3e9dc47af7c3dc30e061cfe68`](https://explorer-studio.genlayer.com/tx/0xd38499ccb036e6188428a47707e5cdb71f289cd3e9dc47af7c3dc30e061cfe68). The deployed source is 64,862 bytes with SHA-256 `93de46c2c0749f9016cd4297658679b0f25f12e0bce91ab6fe867d328835dff9`, and the readback source matches the candidate byte-for-byte. The schema is 35 methods, 13 views, 22 writes, and zero constructor parameters.
 
-The production frontend is [witlock.vercel.app](https://witlock.vercel.app). Its public configuration targets the current address, StudioNet 61999, and the approved RPC. Exact lifecycle receipts and state readbacks are in [docs/LIVE_PROOF.md](docs/LIVE_PROOF.md), [artifacts/live-61999/cases.json](artifacts/live-61999/cases.json), and [artifacts/live-61999/manifest.json](artifacts/live-61999/manifest.json).
+The production frontend is [witlock.vercel.app](https://witlock.vercel.app). Its public configuration targets the current address, StudioNet 61999, and the approved RPC. Exact lifecycle receipts and state readbacks are in [docs/LIVE_PROOF.md](docs/LIVE_PROOF.md), [docs/WITLOCK_MORE_INFO_CLOSEOUT.md](docs/WITLOCK_MORE_INFO_CLOSEOUT.md), [artifacts/live-61999/cases.json](artifacts/live-61999/cases.json), and [artifacts/live-61999/manifest.json](artifacts/live-61999/manifest.json).
 
 ## Frontend route map
 
