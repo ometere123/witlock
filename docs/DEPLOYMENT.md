@@ -1,13 +1,14 @@
 # StudioNet 61999 deployment protocol
 
-1. Use the repository-local GenLayer CLI `0.39.1`.
-2. Assert stable StudioNet chain `61999`, hex `0xF22F`, RPC `https://studio.genlayer.com/api`, and explorer `https://explorer-studio.genlayer.com`.
-3. Run contract, Direct Mode, frontend, typecheck, production build, preflight, and dependency checks at the release SHA.
-4. Hash `contracts/Witlock.py` and compare normalized deployed source bytes and schema with the local source. Never record key material.
-5. Deploy only the single `contracts/Witlock.py` monolith. Treat `ACCEPTED`, `FINALIZED`, consensus result, and contract execution result as separate fields.
-6. Use distinct requester, provider, issuer, and independent verifier accounts for lifecycle proof. Keep funding and payment calls blocked while custody is false.
-7. Preserve failed or contradictory receipts as failures; accept a lifecycle step only when final consensus and execution evidence support it.
+1. Use the repository-local GenLayer CLI `0.39.1` and confirm stable StudioNet chain `61999` (`0xF22F`) at `https://studio.genlayer.com/api`.
+2. Run the contract check, Direct Mode suite, policy suite, frontend receipt tests, TypeScript, production build, preflight, compileall, and dependency audit against the candidate.
+3. Deploy only `contracts/Witlock.py`. Do not add a second contract, switch networks, or use the CLI's fee flag as application funding.
+4. Read the deployed source with `gen_getContractCode`, compare exact UTF-8 bytes and SHA-256, and compare the schema with the local linter output.
+5. Prove payable rejection before production use: an invalid funded call must finalize with successful execution, an explicit `REJECTED_FUNDED` return, and a value-bearing refund message.
+6. Prove a distinct requester, provider, issuer, and independent verifier through source publication, immutable source verification, evidence authentication, adjudication, appeal, terminal finalization, and role-bound native dispatch.
+7. Treat `FINALIZED`, `MAJORITY_AGREE`, execution result, leader execution, validator results, and value-bearing child messages as separate facts. Preserve failed receipts as failures.
+8. Update every public frontend contract configuration only after the new contract passes the live proof. Verify the production URL after the deployment completes.
 
-The current production frontend is `https://witlock.vercel.app`. Public configuration is StudioNet 61999, RPC `https://studio.genlayer.com/api`, and contract `0x8B6e64A6C5c5Bccc3a64Cba4Bd8982218381330d`. Wallet credentials and hosting tokens are never committed.
+The current contract is `0x8d90aE2C95E320Ea61774a797D92ef84F6831bC2`, deployed by transaction `0xd38499ccb036e6188428a47707e5cdb71f289cd3e9dc47af7c3dc30e061cfe68`. The deployed source is 64,862 bytes and SHA-256 `93de46c2c0749f9016cd4297658679b0f25f12e0bce91ab6fe867d328835dff9`. The current Vercel public contract configuration is the same address. No keys or tokens belong in the repository.
 
-Current deployment and lifecycle evidence: [docs/LIVE_PROOF.md](LIVE_PROOF.md) and [the sanitized manifest](../artifacts/live-61999/manifest.json).
+Full receipts, source parity, browser status, and remaining limitations are recorded in [LIVE_PROOF.md](LIVE_PROOF.md) and [REVIEWER_EVIDENCE.md](REVIEWER_EVIDENCE.md).

@@ -16,7 +16,7 @@ export default function Home() {
         <h1>WORK DESERVES <span className="accent">PROOF.</span><br />PAYMENT DESERVES CERTAINTY.</h1>
         <p className="muted">WITLOCK freezes agreements, verifies external evidence, and records bounded decisions on GenLayer StudioNet. Open a route for the job you need; every case surface reads the actual state before presenting the next action.</p>
         <div className="row landing-actions"><Link className="button" href="/new">Create an agreement <ArrowRight size={16} /></Link><Link className="button alt" href="/explore">Explore a case</Link></div>
-        <p className="mono muted">STUDIONET · 61999 · ZERO-VALUE AGREEMENTS · CUSTODY DISABLED</p>
+        <p className="mono muted">STUDIONET · 61999 · FUNDED AGREEMENTS · INJECTED EIP-1193</p>
       </div>
       <aside className="panel landing-proof">
         <div className="line"><span className="label">WITLOCK ROUTES</span><span className="label">READ THE STATE</span></div>
@@ -39,7 +39,7 @@ export default function Home() {
       <div className="grid">
         <article className="card"><div className="label">WHAT IS FROZEN</div><h3>Terms and provenance</h3><p className="muted">The canonical contract owns agreement state, issuer attestations, source observations, decisions, appeal history, and deterministic allocation calculations.</p></article>
         <article className="card"><div className="label">WHAT IS READ</div><h3>Finalized chain state</h3><p className="muted">Empty, unavailable, or failed reads stay visible as those states. The interface does not insert sample cases or demo transactions.</p></article>
-        <article className="card"><div className="label">WHAT STAYS CLOSED</div><h3>Native custody</h3><p className="muted">WITLOCK reports decisions and allocations while payment custody remains disabled. No route claims that an allocation delivered GEN.</p></article>
+        <article className="card"><div className="label">WHAT STAYS GUARDED</div><h3>Native settlement</h3><p className="muted">Only frozen role-derived entitlements can dispatch after terminal finalization. Delivery remains an externally observed balance fact until independently read.</p></article>
       </div>
     </section>
   </main>;

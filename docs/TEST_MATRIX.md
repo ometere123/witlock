@@ -2,21 +2,17 @@
 
 | Area | Command or evidence | Result |
 | --- | --- | --- |
-| Policy, invariants, and adversarial Direct Mode | `python -m pytest -q tests` | 37 passed |
+| Contract and policy Direct Mode | `python -m pytest -q tests` | 38 passed |
 | Python syntax | `python -m compileall -q contracts policy` | Passed |
-| GenVM lint and semantic check | `python scripts/genvm_lint.py check contracts/Witlock.py --json` | Passed; 37 methods, 13 views, 24 writes, zero constructor parameters |
-| Network preflight | `npm run cli:version`; `npm run preflight` | Passed; repository CLI 0.39.1, StudioNet 61999 |
+| GenVM check | `python scripts/genvm_lint.py check contracts/Witlock.py --json` | Passed; 35 methods, 13 views, 22 writes, zero constructor parameters |
+| Network preflight | `npm run cli:version`; `npm run preflight` | Passed; CLI 0.39.1, StudioNet 61999 |
 | Dependency security | `npm audit --audit-level=moderate` | Passed; 0 vulnerabilities |
-| Frontend receipt tests | `npm run web:test` | 11 passed |
-| Frontend | `npm run web:typecheck`; `npm run web:build` | Passed |
-| Production routes | HTTP and Chrome route smoke | Public `/`, `/verification`, and dynamic live-case route rendered without application error |
-| Source parity | StudioNet `code` plus normalized SHA-256 comparison | Proven; 64,131-byte exact match, SHA-256 `04352A02F6BFBD7BEF7C5C00BE93FD5779ABD5BC340941C62863BF2ABB1E8C79` |
-| Deployment | StudioNet receipt | `0x298e3e7eed4ec8ad25017600f87f49608cdc5bfb94b5d7eadf0cb0dbfabace1`, FINALIZED, MAJORITY_AGREE, successful leader |
-| Live lifecycle | Sanitized live ledger and authoritative readbacks | Delayed adjudication, guaranteed appeal window, authenticated appeal, resolution, terminal finalization, and idempotency recorded in `docs/LIVE_PROOF.md` |
-| Browser wallet | Chrome injected EIP-1193 session | Real StudioNet account/chain detection plus disconnect/reconnect observed; signing interruption and route recovery recorded with exact limitations |
-| Custody | Contract and live readbacks | Permanently disabled; no GEN escrow or successful payment claim |
-| Release CI | GitHub Actions `quality-gates` | Final run recorded in `docs/LIVE_PROOF.md` after this release commit is pushed |
-| Production deployment | Vercel Production | READY at [witlock.vercel.app](https://witlock.vercel.app) |
+| Receipt classification | `npm run web:test` | 13 passed |
+| Frontend type and production build | `npm run web:typecheck`; `npm run web:build` | Passed |
+| Source parity | `gen_getContractCode` plus exact SHA-256 | Passed; 64,862 bytes, `93de46c2c0749f9016cd4297658679b0f25f12e0bce91ab6fe867d328835dff9` |
+| Deployment | StudioNet deployment receipt | `0xd38499ccb036e6188428a47707e5cdb71f289cd3e9dc47af7c3dc30e061cfe68`, FINALIZED, MAJORITY_AGREE, successful leader |
+| Payable refusal | Live refund probe | `0x3b66251ea887766e97839ff2ebdc7dbdc1186b2361f6383266199da69c1aa190`, explicit `REJECTED_FUNDED`, value-bearing refund, zero net balance delta |
+| Live settlement | Sanitized live ledger and readbacks | Delayed ruling, authenticated appeal, terminal finalization, idempotent replay, and native dispatch recorded |
+| Browser wallet | Production route and injected EIP-1193 evidence | Public route and existing wallet route evidence recorded; new-address account-change, wrong-network, and signature-rejection paths remain untested |
 
-The Direct Mode negative suite covers unauthorized parties, issuer substitution, correlated issuer/verifier nomination, missing independent verification, altered source bytes, mutable branches, prompt injection, malformed answers and receipts, appeal replay, delayed adjudication, late appeal attempts, exact deadline boundaries, terminal-state idempotency, and accounting conservation.
-
+Direct Mode covers issuer/verifier independence, source-byte hashing, prompt injection, missing evidence, malformed answers, four-criteria partial outcomes, delayed adjudication, late appeals, expiry boundaries, appeal replay, state-transition replay, terminal idempotency, accounting conservation, and adversarial receipt fixtures. The live evidence is deliberately stronger for transfer/refund than the mocked Direct Mode environment.

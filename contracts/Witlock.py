@@ -1,13 +1,12 @@
 # { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
-"""WITLOCK's canonical proof-bound agreement and settlement ledger.
+"""WITLOCK's proof-bound agreement and settlement ledger.
 
-The contract intentionally keeps policy, evidence authority, adjudication,
-appeals, decision history, and settlement accounting in one state machine.
-Native GEN custody is a hard capability gate: the current stable StudioNet
-transfer lifecycle has not been proven end to end, so every non-zero funding
-and payout path is rejected. Zero-value agreements remain fully usable for
-evidence and adjudication, and their final economic state is reconciled with
-zero liabilities rather than being presented as a payment.
+The contract keeps policy, evidence authority, adjudication, appeals,
+decision history, and native GEN settlement in one state machine. A transfer
+is recorded as dispatched only after final decision and the appeal window;
+delivery remains an independently observed fact because StudioNet exposes the
+outgoing child message and recipient balance outside the contract, not as an
+authenticated in-contract receipt.
 """
 
 from genlayer import *
@@ -16,9 +15,9 @@ from datetime import datetime
 import json
 
 
-MAX_TASKS = 2
+MAX_TASKS = 4
 MAX_SOURCE_BYTES = 2048
-MAX_DOSSIER_CHARS = 16000
+MAX_DOSSIER_CHARS = 28000
 MAX_SOURCE_COORDINATE_CHARS = 240
 MAX_SOURCE_PATH_CHARS = 160
 MAX_SOURCE_REVISION_CHARS = 64
@@ -27,6 +26,16 @@ MAX_CLAIM_CHARS = 400
 MAX_APPEAL_BASIS_CHARS = 400
 MAX_APPEAL_JSON_CHARS = 3500
 MIN_APPEAL_WINDOW_SECONDS = 15 * 60
+MAX_FUNDING_WEI = 10**21
+
+
+@gl.evm.contract_interface
+class _Payee:
+    class View:
+        pass
+
+    class Write:
+        pass
 
 
 class Witlock(gl.Contract):
@@ -104,6 +113,11 @@ class Witlock(gl.Contract):
         if hasattr(value, "as_hex"):
             return value.as_hex
         return ""
+
+    def _pay(self, recipient: str, amount: u256) -> None:
+        if int(amount) <= 0:
+            return
+        _Payee(Address(recipient)).emit_transfer(value=u256(amount))
 
     def _bounded(self, value: str, minimum: int, maximum: int) -> bool:
         return isinstance(value, str) and minimum <= len(value) <= maximum
@@ -460,7 +474,7 @@ class Witlock(gl.Contract):
             "provider_entitlement": provider_amount,
             "requester_entitlement": requester_amount,
             "economic_rule": "provider=floor(funded*score/100); requester=residual",
-            "payment_status": "CUSTODY_DISABLED",
+            "payment_status": "PROVISIONAL_UNTIL_FINAL",
             "consensus_status": "AGREED",
         }
 
@@ -566,10 +580,22 @@ class Witlock(gl.Contract):
     def _set_final_settlement_state(self, agreement: dict) -> None:
         if agreement["result"] == "INCONCLUSIVE":
             agreement["settlement_status"] = "BLOCKED_INCONCLUSIVE"
-        elif not self.custody_enabled():
-            agreement["settlement_status"] = "RECONCILED_NO_CUSTODY"
         elif int(agreement["funding_received"]) == 0:
             agreement["settlement_status"] = "RECONCILED_ZERO"
+        else:
+            agreement["settlement_status"] = "PAYABLE"
+
+    def _refresh_settlement_state(self, agreement: dict) -> None:
+        if agreement["result"] == "INCONCLUSIVE":
+            agreement["settlement_status"] = "BLOCKED_INCONCLUSIVE"
+        elif int(agreement["funding_received"]) == 0:
+            agreement["settlement_status"] = "RECONCILED_ZERO"
+        elif int(agreement["unresolved"]) > 0:
+            agreement["settlement_status"] = "UNRESOLVED_PAYMENT"
+        elif int(agreement["in_flight"]) > 0:
+            agreement["settlement_status"] = "DISPATCHED_PENDING_DELIVERY"
+        elif int(agreement["paid"]) >= int(agreement["funding_received"]):
+            agreement["settlement_status"] = "RECONCILED_DELIVERED"
         else:
             agreement["settlement_status"] = "PAYABLE"
 
@@ -635,8 +661,10 @@ class Witlock(gl.Contract):
             if task["verifier"].lower() in (sender, provider, task["issuer"].lower()):
                 self._reject("VERIFIER_NOT_INDEPENDENT")
 
-        if int(funding_amount) != 0 or int(operator_bond) != 0:
-            self._reject("CUSTODY_DISABLED")
+        if int(funding_amount) < 0 or int(funding_amount) > MAX_FUNDING_WEI:
+            self._reject("FUNDING_BOUNDS")
+        if int(operator_bond) != 0:
+            self._reject("BOND_UNSUPPORTED")
         now = self._now()
         accept_at = int(accept_deadline)
         delivery_at = int(delivery_deadline)
@@ -673,6 +701,10 @@ class Witlock(gl.Contract):
             "in_flight": 0,
             "unresolved": 0,
             "payment_attempt": 0,
+            "provider_payment_attempt": 0,
+            "requester_payment_attempt": 0,
+            "provider_payment_status": "NOT_STARTED",
+            "requester_payment_status": "NOT_STARTED",
             "appeal_count": 0,
             "appeal_status": "NONE",
             "appeal_grounds": "",
@@ -690,33 +722,37 @@ class Witlock(gl.Contract):
         self.agreement_count = u256(int(self.agreement_count) + 1)
 
     @gl.public.write.payable
-    def fund_agreement(self, key: str) -> None:
-        """Exact funding entry point, permanently guarded by custody capability."""
-        if not self.custody_enabled():
-            self._reject("CUSTODY_DISABLED")
-        agreement = self._load(key)
-        if agreement["status"] != "DRAFT" or self._party() != agreement["requester"]:
-            self._reject("FUNDING_STATE")
-        if int(gl.message.value) != int(agreement["funding_required"]):
-            self._reject("FUNDING_EXACT")
-        agreement["funding_received"] = int(gl.message.value)
+    def fund_agreement(self, key: str) -> str:
+        """Fund exactly one draft, refunding every caller error without reverting.
+
+        StudioNet credits incoming value before GenVM execution and does not
+        roll it back when execution fails. A funded refusal therefore has to
+        finish successfully with an explicit outgoing transfer.
+        """
+        amount = u256(gl.message.value)
+        try:
+            agreement = self._load(key)
+            if agreement["status"] != "DRAFT" or self._party() != agreement["requester"]:
+                self._reject("FUNDING_STATE")
+            if int(agreement["funding_required"]) <= 0:
+                self._reject("FUNDING_ZERO")
+            if int(amount) != int(agreement["funding_required"]):
+                self._reject("FUNDING_EXACT")
+        except Exception as exc:
+            self._pay(self._party(), amount)
+            return "REJECTED_FUNDED " + str(exc)
+        agreement["funding_received"] = int(amount)
         agreement["funding_status"] = "FUNDED"
         agreement["settlement_status"] = "FUNDED"
         self._append_history(key, agreement, "FUNDED", self._party())
         self._save(key, agreement)
+        return "FUNDED"
 
     @gl.public.write.payable
-    def post_operator_bond(self, key: str) -> None:
-        if not self.custody_enabled():
-            self._reject("CUSTODY_DISABLED")
-        agreement = self._load(key)
-        if agreement["status"] != "DRAFT" or self._party() != agreement["provider"]:
-            self._reject("BOND_STATE")
-        if int(gl.message.value) != int(agreement["bond_required"]):
-            self._reject("BOND_EXACT")
-        agreement["bond_received"] = int(gl.message.value)
-        self._append_history(key, agreement, "BOND_POSTED", self._party())
-        self._save(key, agreement)
+    def post_operator_bond(self, key: str) -> str:
+        amount = u256(gl.message.value)
+        self._pay(self._party(), amount)
+        return "REJECTED_FUNDED WL_BOND_UNSUPPORTED"
 
     @gl.public.write
     def accept_agreement(self, key: str) -> None:
@@ -1225,25 +1261,38 @@ class Witlock(gl.Contract):
         self._save(key, agreement)
 
     @gl.public.write
-    def begin_payment(self, key: str, beneficiary_role: str) -> None:
-        """Guarded settlement entry point; remains unavailable until proof exists."""
-        if not self.custody_enabled():
-            self._reject("CUSTODY_DISABLED")
+    def begin_payment(self, key: str, beneficiary_role: str) -> str:
+        """Dispatch one frozen entitlement after terminal decision.
+
+        The payment record is deliberately ``DISPATCHED`` rather than paid.
+        StudioNet exposes the native child message and the recipient balance to
+        an external observer, but the contract cannot authenticate that receipt
+        on-chain. No retry or client-supplied hash can turn an unresolved
+        dispatch into a second payout.
+        """
         agreement = self._load(key)
-        if agreement["status"] != "FINAL_DECISION" or agreement["settlement_status"] != "PAYABLE":
+        if agreement["status"] != "FINAL_DECISION" or agreement["settlement_status"] not in (
+            "PAYABLE", "DISPATCHED_PENDING_DELIVERY"
+        ):
             self._reject("PAYMENT_STATE")
         if beneficiary_role not in ("PROVIDER", "REQUESTER"):
             self._reject("PAYMENT_ARGUMENT")
         attempt_field = "provider_payment_attempt" if beneficiary_role == "PROVIDER" else "requester_payment_attempt"
-        if int(agreement[attempt_field]) != 0:
+        status_field = "provider_payment_status" if beneficiary_role == "PROVIDER" else "requester_payment_status"
+        if agreement[status_field] != "NOT_STARTED":
             self._reject("PAYMENT_NOT_IDEMPOTENT")
         recipient = agreement["provider"] if beneficiary_role == "PROVIDER" else agreement["requester"]
         amount = int(agreement["provider_entitlement"] if beneficiary_role == "PROVIDER" else agreement["requester_entitlement"])
         if amount <= 0:
-            self._reject("PAYMENT_ZERO")
+            agreement[status_field] = "NOT_DUE"
+            self._append_history(key, agreement, "PAYMENT_NOT_DUE_" + beneficiary_role, self._party())
+            self._refresh_settlement_state(agreement)
+            self._save(key, agreement)
+            return "NOT_DUE"
         attempt = int(agreement["payment_attempt"]) + 1
         agreement["payment_attempt"] = attempt
         agreement[attempt_field] = attempt
+        agreement[status_field] = "DISPATCHED"
         agreement["in_flight"] = int(agreement["in_flight"]) + amount
         self.payments[key + ":" + str(attempt)] = json.dumps(
             {
@@ -1252,70 +1301,39 @@ class Witlock(gl.Contract):
                 "beneficiary_role": beneficiary_role,
                 "recipient": recipient,
                 "amount": amount,
-                "status": "IN_FLIGHT",
+                "status": "DISPATCHED",
+                "delivery_status": "EXTERNAL_OBSERVATION_REQUIRED",
                 "deadline": self._now() + 7 * 24 * 60 * 60,
             },
             sort_keys=True,
         )
+        self._refresh_settlement_state(agreement)
         self._save(key, agreement)
-
-    @gl.public.write
-    def confirm_payment_delivery(
-        self,
-        key: str,
-        attempt: u256,
-        receipt_hash: str,
-        delivery_evidence_hash: str,
-    ) -> None:
-        if not self.custody_enabled():
-            self._reject("CUSTODY_DISABLED")
-        agreement = self._load(key)
-        payment = self._parse(self.payments.get(key + ":" + str(int(attempt)), ""), "PAYMENT_UNKNOWN")
-        if payment["status"] != "IN_FLIGHT" or self._party() != payment["recipient"]:
-            self._reject("PAYMENT_DELIVERY_AUTHORITY")
-        if not self._digest(receipt_hash) or not self._digest(delivery_evidence_hash):
-            self._reject("PAYMENT_RECONCILIATION")
-        payment["receipt_hash"] = receipt_hash
-        payment["delivery_evidence_hash"] = delivery_evidence_hash
-        payment["delivery_attested_by"] = self._party()
-        payment["status"] = "DELIVERY_ATTESTED"
-        self.payments[key + ":" + str(int(attempt))] = json.dumps(payment, sort_keys=True)
-        self._save(key, agreement)
-
-    @gl.public.write
-    def reconcile_payment(self, key: str, attempt: u256, receipt_hash: str) -> None:
-        if not self.custody_enabled():
-            self._reject("CUSTODY_DISABLED")
-        agreement = self._load(key)
-        payment = self._parse(self.payments.get(key + ":" + str(int(attempt)), ""), "PAYMENT_UNKNOWN")
-        if payment["status"] != "DELIVERY_ATTESTED" or payment["receipt_hash"] != receipt_hash:
-            self._reject("PAYMENT_RECONCILIATION")
-        payment["status"] = "CONFIRMED_PAID"
-        agreement["paid"] = int(agreement["paid"]) + int(payment["amount"])
-        agreement["in_flight"] = int(agreement["in_flight"]) - int(payment["amount"])
-        self.payments[key + ":" + str(int(attempt))] = json.dumps(payment, sort_keys=True)
-        self._save(key, agreement)
+        self._pay(recipient, u256(amount))
+        return "DISPATCHED"
 
     @gl.public.write
     def mark_payment_ambiguous(self, key: str, attempt: u256, incident_hash: str) -> None:
-        if not self.custody_enabled():
-            self._reject("CUSTODY_DISABLED")
         agreement = self._load(key)
         payment = self._parse(self.payments.get(key + ":" + str(int(attempt)), ""), "PAYMENT_UNKNOWN")
-        if payment["status"] != "IN_FLIGHT" or self._now() <= int(payment["deadline"]):
+        if payment["status"] != "DISPATCHED" or self._now() <= int(payment["deadline"]):
             self._reject("PAYMENT_AMBIGUOUS_EARLY")
         if not self._digest(incident_hash):
             self._reject("PAYMENT_INCIDENT")
         payment["status"] = "AMBIGUOUS"
+        payment["delivery_status"] = "UNRESOLVED"
         payment["incident_hash"] = incident_hash
         agreement["unresolved"] = int(agreement["unresolved"]) + int(payment["amount"])
         agreement["in_flight"] = int(agreement["in_flight"]) - int(payment["amount"])
+        status_field = "provider_payment_status" if payment["beneficiary_role"] == "PROVIDER" else "requester_payment_status"
+        agreement[status_field] = "AMBIGUOUS"
         self.payments[key + ":" + str(int(attempt))] = json.dumps(payment, sort_keys=True)
+        self._refresh_settlement_state(agreement)
         self._save(key, agreement)
 
     @gl.public.view
     def custody_enabled(self) -> bool:
-        return False
+        return True
 
     @gl.public.view
     def get_contract_info(self) -> str:
@@ -1325,8 +1343,8 @@ class Witlock(gl.Contract):
                 "version": "monolith",
                 "network": "StudioNet",
                 "chain_id": 61999,
-                "custody_enabled": False,
-                "economic_claim": "decision allocation only; no transfer proof",
+                "custody_enabled": True,
+                "economic_claim": "finalized decision dispatches frozen native GEN entitlements; delivery remains externally observed",
                 "appeal_model": "frozen grounds plus independent verifier authentication",
                 "source_model": "immutable GitHub commit retrieval plus issuer authentication",
             },
@@ -1385,6 +1403,9 @@ class Witlock(gl.Contract):
                 "in_flight": agreement["in_flight"],
                 "unresolved": agreement["unresolved"],
                 "payment_attempt": agreement["payment_attempt"],
+                "provider_payment_status": agreement["provider_payment_status"],
+                "requester_payment_status": agreement["requester_payment_status"],
+                "delivery_model": "external_balance_observation_required",
             },
             sort_keys=True,
         )

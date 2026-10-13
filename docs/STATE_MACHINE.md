@@ -2,8 +2,9 @@
 
 | From | Method | Caller | Guards | To |
 | --- | --- | --- | --- | --- |
-| none | `create_agreement` | requester | strict terms, distinct provider/issuer/verifier, ordered deadlines, zero value while custody is closed | `DRAFT` |
-| `DRAFT` | `accept_agreement` | provider | correct provider, acceptance deadline, exact zero-value requirements | `ACTIVE` |
+| none | `create_agreement` | requester | strict terms, distinct provider/issuer/verifier, ordered deadlines, funding bounds, zero operator bond | `DRAFT` |
+| `DRAFT` | `fund_agreement` | requester | exact required value; every rejection returns funded value | `DRAFT` funded |
+| `DRAFT` | `accept_agreement` | provider | correct provider and acceptance deadline | `ACTIVE` |
 | `DRAFT` | `expire_draft` | permissionless | acceptance deadline elapsed and no value received | `EXPIRED` terminal |
 | `ACTIVE` / `DELIVERED` / `REVIEW` | `publish_attestation` | nominated issuer | frozen task, immutable ID, bounded source/revision/claim, valid retrieval metadata | evidence registry |
 | evidence registry | `verify_attestation_source` | independent verifier | frozen verifier, exact digest and provenance hash | source verified |
@@ -20,9 +21,7 @@
 | `APPEALED` | `resolve_appeal` | permissionless | authenticated appeal and bounded consensus | `APPEAL_WINDOW`, decision version +1, appeal `RESOLVED` |
 | `APPEALED` | `expire_appeal` | permissionless | appeal resolution deadline elapsed | `FINAL_DECISION`, prior ruling preserved, appeal `EXPIRED` |
 | `APPEAL_WINDOW` with appeal `NONE`/`RESOLVED` | `finalize_decision` | permissionless | appeal deadline elapsed | `FINAL_DECISION`, appeal `FINALIZED` |
-| `FINAL_DECISION` | `begin_payment` | permissionless | custody enabled, payable entitlement, frozen role-derived recipient and amount, idempotent attempt | `PAYMENT_PENDING` |
-| `PAYMENT_PENDING` | `confirm_payment_delivery` | permissionless | custody, recipient, receipt hash, and independent delivery evidence | delivery-attested payment |
-| `PAYMENT_PENDING` | `reconcile_payment` | permissionless | authenticated delivery evidence and matching receipt; no boolean caller claim | `RECONCILED` |
-| `PAYMENT_PENDING` | `mark_payment_ambiguous` | permissionless | transfer deadline elapsed and incident hash | `UNRESOLVED`, no re-credit or blind retry |
+| `FINAL_DECISION` | `begin_payment` | permissionless | payable entitlement, frozen role-derived recipient and amount, one-use role latch | `DISPATCHED_PENDING_DELIVERY` |
+| `DISPATCHED_PENDING_DELIVERY` | `mark_payment_ambiguous` | permissionless | transfer deadline elapsed and incident hash | `UNRESOLVED`, no re-credit or blind retry |
 
-The state transitions are covered by Direct Mode tests. The current-source live ledger records APPROVED, PARTIAL, REJECTED, and INCONCLUSIVE decisions, plus a resolved appeal that returns to APPEAL_WINDOW. Custody is disabled, so payment transitions are intentionally unreachable. No public method can change frozen recipients or policy.
+The state transitions are covered by Direct Mode tests. The current-source live ledger records a funded rejected ruling, a resolved appeal returning to `APPEAL_WINDOW`, terminal finalization, idempotent replay, and a native dispatch. No public method can change frozen recipients or policy.

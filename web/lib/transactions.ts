@@ -18,6 +18,7 @@ export type FinalizedTransaction = {
   status: string;
   execution: string;
   successful: boolean;
+  outcome?: 'SUCCESS' | 'REJECTED_REFUNDED' | 'EXECUTION_FAILED';
   explorer: string;
   receipt: Record<string, unknown>;
 };
@@ -26,7 +27,7 @@ export class TransactionExecutionError extends Error {
   readonly transaction: FinalizedTransaction;
 
   constructor(transaction: FinalizedTransaction) {
-    super(`Transaction ${transaction.hash} finalized with status ${transaction.status || 'UNKNOWN'} and execution ${transaction.execution || 'UNKNOWN'}.`);
+    super(`Transaction ${transaction.hash} finalized with status ${transaction.status || 'UNKNOWN'}, execution ${transaction.execution || 'UNKNOWN'}, and outcome ${transaction.outcome || 'EXECUTION_FAILED'}.`);
     this.name = 'TransactionExecutionError';
     this.transaction = transaction;
   }
@@ -118,6 +119,19 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
+function leaderReturnText(receipt: Record<string, unknown>): string {
+  const consensus = asRecord(receipt.consensus_data);
+  const leaders = consensus?.leader_receipt;
+  const leader = Array.isArray(leaders) ? asRecord(leaders[0]) : null;
+  const result = asRecord(leader?.result);
+  const payload = asRecord(result?.payload);
+  return String(payload?.readable || payload?.raw || result?.readable || result?.payload || '');
+}
+
+export function isRejectedFundedReceipt(receipt: Record<string, unknown>, method?: string): boolean {
+  return method === 'fund_agreement' && leaderReturnText(receipt).includes('REJECTED_FUNDED');
+}
+
 function isQuorumCancellation(record: Record<string, unknown>): boolean {
   if (record.mode !== 'validator' || record.vote !== 'idle' || record.execution_result !== 'ERROR') return false;
   const genvmResult = asRecord(record.genvm_result);
@@ -179,17 +193,37 @@ function hasSuccessfulStudioConsensus(receipt: Record<string, unknown>): boolean
   return true;
 }
 
-export function isSuccessfulFinalizedReceipt(receipt: Record<string, unknown>): boolean {
-  const statusState = receiptFieldState(receipt, 'statusName', 'status_name');
-  if (!statusState.present || !statusState.consistent || statusState.value !== TransactionStatus.FINALIZED) return false;
-
-  const executionState = receiptFieldState(
+function executionResultState(receipt: Record<string, unknown>): ReceiptField {
+  const state = receiptFieldState(
     receipt,
     'txExecutionResultName',
     'tx_execution_result_name',
     'executionResult',
     'execution_result',
   );
+  const numeric = receiptFieldState(receipt, 'txExecutionResult', 'tx_execution_result');
+  const normalize = (value: string): string => {
+    if (value === '0') return 'NOT_VOTED';
+    if (value === '1') return ExecutionResult.FINISHED_WITH_RETURN;
+    if (value === '2') return ExecutionResult.FINISHED_WITH_ERROR;
+    return value;
+  };
+  const values = [
+    ...(state.present ? [normalize(state.value)] : []),
+    ...(numeric.present ? [normalize(numeric.value)] : []),
+  ];
+  return {
+    present: values.length > 0,
+    value: values[0] || '',
+    consistent: state.consistent && numeric.consistent && values.every((value) => value === values[0]),
+  };
+}
+
+export function isSuccessfulFinalizedReceipt(receipt: Record<string, unknown>): boolean {
+  const statusState = receiptFieldState(receipt, 'statusName', 'status_name');
+  if (!statusState.present || !statusState.consistent || statusState.value !== TransactionStatus.FINALIZED) return false;
+
+  const executionState = executionResultState(receipt);
   if (!executionState.consistent) return false;
   if (executionState.present && executionState.value !== ExecutionResult.FINISHED_WITH_RETURN) return false;
 
@@ -230,13 +264,16 @@ export async function waitForFinalizedTransaction(
   const record = receipt as unknown as Record<string, unknown>;
   const status = receiptField(record, 'statusName', 'status_name');
   const execution = receiptField(record, 'txExecutionResultName', 'tx_execution_result_name');
+  const receiptSuccessful = isSuccessfulFinalizedReceipt(record);
+  const rejectedFunded = isRejectedFundedReceipt(record, method);
   const finalized: FinalizedTransaction = {
     hash,
     method,
     account,
     status,
     execution,
-    successful: isSuccessfulFinalizedReceipt(record),
+    successful: receiptSuccessful && !rejectedFunded,
+    outcome: rejectedFunded ? 'REJECTED_REFUNDED' : receiptSuccessful ? 'SUCCESS' : 'EXECUTION_FAILED',
     explorer: explorerTransaction(hash),
     receipt: record,
   };
@@ -246,7 +283,7 @@ export async function waitForFinalizedTransaction(
   return finalized;
 }
 
-export async function submitWrite(account: string, method: string, args: unknown[]): Promise<FinalizedTransaction> {
+export async function submitWrite(account: string, method: string, args: unknown[], value: bigint = 0n): Promise<FinalizedTransaction> {
   if (!CONTRACT) throw new Error('NEXT_PUBLIC_WITLOCK_CONTRACT is not configured.');
   await assertWallet(account);
   const injected = provider();
@@ -256,7 +293,7 @@ export async function submitWrite(account: string, method: string, args: unknown
     address: CONTRACT as Address,
     functionName: method,
     args: args as never[],
-    value: 0n,
+    value,
   })) as `0x${string}`;
   savePendingTransaction({ hash, method, account, chainId: CHAIN_ID, contract: CONTRACT, submittedAt: Date.now() });
   return waitForFinalizedTransaction(hash, method, account);

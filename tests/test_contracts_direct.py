@@ -71,7 +71,17 @@ def terms(issuer: str, verifier: str, count: int = 1) -> dict:
     return {"tasks": tasks}
 
 
-def create(direct_vm, agreement, requester, provider, issuer, verifier, key="agreement-1", terms_value=None):
+def create(
+    direct_vm,
+    agreement,
+    requester,
+    provider,
+    issuer,
+    verifier,
+    key="agreement-1",
+    terms_value=None,
+    funding_amount=0,
+):
     direct_vm.sender = requester
     agreement.create_agreement(
         key,
@@ -81,7 +91,7 @@ def create(direct_vm, agreement, requester, provider, issuer, verifier, key="agr
         BASE_TIMESTAMP + 100,
         BASE_TIMESTAMP + 200,
         BASE_TIMESTAMP + 300,
-        0,
+        funding_amount,
         0,
     )
 
@@ -719,22 +729,23 @@ def test_consensus_failure_fails_closed_to_inconclusive(
 
 
 @pytest.mark.direct
-def test_task_limit_prevents_unreachable_dossier_combinations(
+def test_four_criteria_are_bounded_and_frozen(
     direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, direct_dana
 ):
     agreement = direct_deploy("contracts/Witlock.py", sdk_version=SDK_VERSION)
     direct_vm.warp("2026-01-01T00:00:00Z")
-    long_terms = terms(address_hex(direct_charlie), address_hex(direct_dana), 3)
-    with direct_vm.expect_revert("WL_TASKS"):
-        create(
-            direct_vm,
-            agreement,
-            direct_alice,
-            direct_bob,
-            direct_charlie,
-            direct_dana,
-            terms_value=long_terms,
-        )
+    four_terms = terms(address_hex(direct_charlie), address_hex(direct_dana), 4)
+    create(
+        direct_vm,
+        agreement,
+        direct_alice,
+        direct_bob,
+        direct_charlie,
+        direct_dana,
+        terms_value=four_terms,
+    )
+    state = json.loads(agreement.get_agreement("agreement-1"))
+    assert len(state["terms"]["tasks"]) == 4
 
 
 @pytest.mark.direct
@@ -794,20 +805,109 @@ def test_maximum_permitted_case_reaches_seal_and_judgment(
 
 
 @pytest.mark.direct
-def test_custody_gate_rejects_arbitrary_payment_arguments_and_boolean_reconciliation(
+def test_four_criteria_can_produce_a_partial_ruling(
     direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, direct_dana
 ):
     agreement = direct_deploy("contracts/Witlock.py", sdk_version=SDK_VERSION)
     direct_vm.warp("2026-01-01T00:00:00Z")
-    create(direct_vm, agreement, direct_alice, direct_bob, direct_charlie, direct_dana, "zero")
+    partial_terms = terms(address_hex(direct_charlie), address_hex(direct_dana), 4)
+    for task in partial_terms["tasks"]:
+        task["critical"] = False
+    create(
+        direct_vm,
+        agreement,
+        direct_alice,
+        direct_bob,
+        direct_charlie,
+        direct_dana,
+        terms_value=partial_terms,
+    )
+    activate(direct_vm, agreement, direct_bob)
+    for index in range(4):
+        publish_and_verify(
+            direct_vm,
+            agreement,
+            direct_charlie,
+            direct_dana,
+            task_id=f"source{index}",
+            attestation_id=f"att-{index}",
+        )
+        submit_and_authenticate(
+            direct_vm,
+            agreement,
+            direct_alice,
+            direct_charlie,
+            task_id=f"source{index}",
+            attestation_id=f"att-{index}",
+        )
+    with direct_vm.prank(direct_alice):
+        agreement.acknowledge_delivery("agreement-1")
+        agreement.seal_agreement("agreement-1")
+    direct_vm.mock_llm(
+        "Classify each frozen criterion",
+        json.dumps({
+            "answers": {
+                "source0": "PASS",
+                "source1": "PASS",
+                "source2": "PASS",
+                "source3": "FAIL",
+            }
+        }),
+    )
+    agreement.adjudicate("agreement-1")
+    state = json.loads(agreement.get_agreement("agreement-1"))
+    decision = json.loads(agreement.get_decision("agreement-1"))
+    assert state["status"] == "APPEAL_WINDOW"
+    assert decision["result"] == "PARTIAL"
+    assert decision["score"] == 75
+
+
+@pytest.mark.direct
+def test_funded_refusal_and_terminal_payment_replay_are_safe(
+    direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, direct_dana
+):
+    agreement = direct_deploy("contracts/Witlock.py", sdk_version=SDK_VERSION)
+    direct_vm.warp("2026-01-01T00:00:00Z")
+    create(
+        direct_vm,
+        agreement,
+        direct_alice,
+        direct_bob,
+        direct_charlie,
+        direct_dana,
+        "funded",
+        funding_amount=100,
+    )
     direct_vm.value = 1
-    with direct_vm.expect_revert("WL_CUSTODY_DISABLED"):
-        agreement.fund_agreement("zero")
+    with direct_vm.prank(direct_alice):
+        result = agreement.fund_agreement("funded")
     direct_vm.value = 0
-    assert agreement.custody_enabled() is False
-    with direct_vm.expect_revert("WL_CUSTODY_DISABLED"):
-        agreement.begin_payment("zero", "PROVIDER")
-    with direct_vm.expect_revert("WL_CUSTODY_DISABLED"):
-        agreement.confirm_payment_delivery("zero", 1, "a" * 64, "b" * 64)
-    with direct_vm.expect_revert("WL_CUSTODY_DISABLED"):
-        agreement.reconcile_payment("zero", 1, "a" * 64)
+    assert result.startswith("REJECTED_FUNDED")
+    state = json.loads(agreement.get_agreement("funded"))
+    assert state["funding_received"] == 0
+    assert state["status"] == "DRAFT"
+
+    direct_vm.value = 100
+    with direct_vm.prank(direct_alice):
+        assert agreement.fund_agreement("funded") == "FUNDED"
+    direct_vm.value = 0
+    with direct_vm.prank(direct_bob):
+        agreement.accept_agreement("funded")
+    assert agreement.custody_enabled() is True
+
+    state = json.loads(agreement.get_agreement("funded"))
+    state["status"] = "FINAL_DECISION"
+    state["settlement_status"] = "PAYABLE"
+    state["result"] = "APPROVED"
+    state["provider_entitlement"] = 100
+    state["requester_entitlement"] = 0
+    state["decision_version"] = 1
+    agreement.agreements["funded"] = json.dumps(state, sort_keys=True)
+    with direct_vm.prank(direct_bob):
+        assert agreement.begin_payment("funded", "PROVIDER") == "DISPATCHED"
+        with direct_vm.expect_revert("WL_PAYMENT_NOT_IDEMPOTENT"):
+            agreement.begin_payment("funded", "PROVIDER")
+    accounting = json.loads(agreement.get_accounting("funded"))
+    assert accounting["funded"] == 100
+    assert accounting["in_flight"] == 100
+    assert accounting["remaining"] == 0

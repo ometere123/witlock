@@ -10,9 +10,15 @@ import json
 
 STATUSES = {
     "DRAFT", "FUNDED", "ACTIVE", "DELIVERED", "REVIEW", "SEALED", "DECIDED",
-    "APPEAL_WINDOW", "APPEALED", "FINAL_DECISION", "PAYMENT_PENDING",
-    "RECONCILED", "EXPIRED", "INCONCLUSIVE", "BLOCKED",
+    "APPEAL_WINDOW", "APPEALED", "FINAL_DECISION", "EXPIRED",
+    "INCONCLUSIVE", "BLOCKED",
 }
+
+MAX_TASKS = 4
+MAX_TASK_QUESTION = 240
+MAX_SOURCE_COORDINATE = 240
+MAX_SOURCE_REVISION = 64
+MAX_CLAIM = 400
 
 
 def canonical(value):
@@ -44,8 +50,8 @@ def validate_terms(terms):
     if not isinstance(terms, dict):
         raise ValueError("terms object required")
     tasks = terms.get("tasks")
-    if not isinstance(tasks, list) or not 1 <= len(tasks) <= 8:
-        raise ValueError("1..8 tasks required")
+    if not isinstance(tasks, list) or not 1 <= len(tasks) <= MAX_TASKS:
+        raise ValueError("1..4 tasks required")
     if any(not isinstance(task, dict) for task in tasks):
         raise ValueError("schema")
     if sum(t.get("weight", 0) for t in tasks) != 100:
@@ -61,7 +67,7 @@ def validate_terms(terms):
             raise ValueError("weight")
         if type(task["critical"]) is not bool:
             raise ValueError("critical")
-        if not isinstance(task["question"], str) or not 20 <= len(task["question"]) <= 400:
+        if not isinstance(task["question"], str) or not 20 <= len(task["question"]) <= MAX_TASK_QUESTION:
             raise ValueError("question")
         if not _address(task["issuer"]):
             raise ValueError("issuer")
@@ -93,14 +99,14 @@ def validate_attestation(attestation, task, parties, expected_subject):
             raise ValueError("digest")
     if (
         not isinstance(attestation["source"], str)
-        or not 1 <= len(attestation["source"]) <= 400
+        or not 1 <= len(attestation["source"]) <= MAX_SOURCE_COORDINATE
         or " " in attestation["source"]
         or not attestation["source"].startswith(("https://", "ipfs://", "chain://"))
     ):
         raise ValueError("source")
-    if not isinstance(attestation["source_revision"], str) or not 1 <= len(attestation["source_revision"]) <= 160:
+    if not isinstance(attestation["source_revision"], str) or not 1 <= len(attestation["source_revision"]) <= MAX_SOURCE_REVISION:
         raise ValueError("source revision")
-    if not isinstance(attestation["claim"], str) or not 1 <= len(attestation["claim"]) <= 1200:
+    if not isinstance(attestation["claim"], str) or not 1 <= len(attestation["claim"]) <= MAX_CLAIM:
         raise ValueError("claim")
     if attestation["retrieval_method"] not in ("HTTPS_GET", "IPFS_GET", "CHAIN_READ"):
         raise ValueError("retrieval method")

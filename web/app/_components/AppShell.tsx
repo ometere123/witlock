@@ -43,7 +43,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
       {message && <div className="shell-notice wrap" role="status">{message}</div>}
     </header>
     {children}
-    <footer className="site-footer wrap"><span>WITLOCK · provenance before economic finality</span><span>INJECTED WALLET ONLY · CUSTODY DISABLED</span></footer>
+    <footer className="site-footer wrap"><span>WITLOCK · provenance before economic finality</span><span>INJECTED WALLET ONLY · NATIVE DISPATCH GUARDED</span></footer>
   </div>;
 }
 

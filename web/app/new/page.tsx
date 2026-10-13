@@ -3,7 +3,7 @@ import AgreementCreator from '@/app/_components/AgreementCreator';
 import Link from 'next/link';
 
 export default function NewAgreementPage() {
-  return <RouteShell eyebrow="Creation desk" title="Freeze the terms before the work begins." intro="Create a zero-value agreement with bounded criteria, distinct parties, independent verifiers, and ordered deadlines."
+  return <RouteShell eyebrow="Creation desk" title="Freeze the terms before the work begins." intro="Create a funded or zero-value agreement with bounded criteria, distinct parties, independent verifiers, and ordered deadlines."
   >
     <section className="route-grid">
       <RouteCard title="Creation sequence">
@@ -15,7 +15,7 @@ export default function NewAgreementPage() {
       </RouteCard>
       <RouteCard title="Before submitting">
         <p className="muted">The terms digest is a commitment to the full agreement document. The contract freezes the criterion set and does not allow later edits.</p>
-        <p className="muted">A successful submission creates a case. It does not fund custody or authorize a payment.</p>
+        <p className="muted">Positive funding is sent in a separate exact-value transaction. Finalized role entitlements can be dispatched only after the appeal window closes.</p>
       </RouteCard>
     </section>
     <AgreementCreator />

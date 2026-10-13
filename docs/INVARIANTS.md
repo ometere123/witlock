@@ -12,8 +12,8 @@
 10. Append-only history: every transition and decision version receives a new audit key.
 11. Appeal safety: structured grounds are frozen, independently authenticated, resolved appeals return to the same window, and expiry preserves the prior ruling.
 12. Receipt safety: contradictory top-level execution/consensus metadata, explicit execution errors, unknown execution, NO_MAJORITY, inconsistent validators, and malformed fields fail closed; post-quorum idle cancellation is accepted only with its explicit cancellation marker.
-13. Custody containment: `custody_enabled()` is false; non-zero funding and outbound payment paths reject.
+13. Custody containment: `custody_enabled()` is true only for exact requester funding and terminal role-derived dispatch; operator bonds and arbitrary recipients remain unsupported.
 14. Accounting conservation: funded = confirmed_paid + in_flight + unresolved + remaining, with no negative component.
 15. No ambiguous retry: an unresolved payment attempt cannot be silently retried or marked paid.
 
-Direct Mode and current StudioNet readbacks cover issuer/verifier independence, immutable GitHub provenance and byte hashing, prompt injection, missing evidence, malformed answers, delayed adjudication, late appeals, expiry boundaries, appeal replay, state-transition replay, terminal idempotency, adversarial receipt fixtures, and accounting conservation. Native-token transfer and recovery remain outside the release because custody is disabled.
+Direct Mode and current StudioNet readbacks cover issuer/verifier independence, immutable GitHub provenance and byte hashing, prompt injection, missing evidence, malformed answers, delayed adjudication, late appeals, expiry boundaries, appeal replay, state-transition replay, terminal idempotency, adversarial receipt fixtures, funded refusal refunds, native dispatch, and accounting conservation. Recipient delivery remains an external observation and ambiguous-transfer recovery is bounded rather than caller-confirmed.

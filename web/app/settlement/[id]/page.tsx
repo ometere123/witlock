@@ -3,12 +3,12 @@ import CaseConsole from '@/app/_components/CaseConsole';
 
 export default async function SettlementPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return <RouteShell eyebrow={`Settlement guard · ${id}`} title="Economic certainty starts with a real receipt." intro="This surface reports the custody gate honestly. Decision status and payment status are separate records.">
+  return <RouteShell eyebrow={`Settlement guard · ${id}`} title="Economic certainty starts with a real receipt." intro="This surface reports frozen entitlements, native dispatch, and external delivery observation separately.">
     <section className="route-grid">
       <RouteCard title="Current gate">
         <StatusRow label="Decision" value="May be approved independently" />
-        <StatusRow label="Custody" value="Disabled" />
-        <StatusRow label="Payment" value="No transfer claimed" />
+        <StatusRow label="Native dispatch" value="Finalized decision only" ok />
+        <StatusRow label="Delivery" value="External balance observation required" />
         <DisabledAction>Deposit unavailable</DisabledAction>
       </RouteCard>
       <RouteCard title="Why it stays closed" tone="warning">

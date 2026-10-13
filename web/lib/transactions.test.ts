@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ExecutionResult, TransactionStatus } from 'genlayer-js/types';
 
 const mocks = vi.hoisted(() => {
-  process.env.NEXT_PUBLIC_WITLOCK_CONTRACT = '0x8B6e64A6C5c5Bccc3a64Cba4Bd8982218381330d';
+  process.env.NEXT_PUBLIC_WITLOCK_CONTRACT = '0x8d90aE2C95E320Ea61774a797D92ef84F6831bC2';
   return {
     provider: vi.fn(),
     readClient: vi.fn(),
@@ -69,6 +69,15 @@ describe('GenLayer receipt classification', () => {
     expect(isSuccessfulFinalizedReceipt({
       statusName: TransactionStatus.FINALIZED,
       txExecutionResultName: ExecutionResult.FINISHED_WITH_RETURN,
+    })).toBe(true);
+  });
+
+  it('accepts the GenLayer JS simplified numeric execution field', () => {
+    expect(isSuccessfulFinalizedReceipt({
+      status_name: TransactionStatus.FINALIZED,
+      result_name: 'MAJORITY_AGREE',
+      tx_execution_result: 1,
+      consensus_data: majorityConsensus(),
     })).toBe(true);
   });
 
@@ -164,6 +173,13 @@ describe('GenLayer receipt classification', () => {
       consensus_result: 'NO_MAJORITY',
       consensus_data: majorityConsensus(),
     })).toBe(false);
+    expect(isSuccessfulFinalizedReceipt({
+      status_name: TransactionStatus.FINALIZED,
+      tx_execution_result: 1,
+      tx_execution_result_name: ExecutionResult.FINISHED_WITH_ERROR,
+      result_name: 'MAJORITY_AGREE',
+      consensus_data: majorityConsensus(),
+    })).toBe(false);
   });
 
   it('rejects NO_MAJORITY even when an SDK return enum is present', () => {
@@ -215,7 +231,7 @@ describe('pending transaction persistence', () => {
 
   it('recovers a pending transaction and clears it after successful finality', async () => {
     values.set('witlock.pending.transactions.v2', JSON.stringify([
-      { hash: '0xabc', method: 'create_agreement', account: '0x1', chainId: 61999, contract: '0x8B6e64A6C5c5Bccc3a64Cba4Bd8982218381330d', submittedAt: 1 },
+      { hash: '0xabc', method: 'create_agreement', account: '0x1', chainId: 61999, contract: '0x8d90aE2C95E320Ea61774a797D92ef84F6831bC2', submittedAt: 1 },
     ]));
     const waitForTransactionReceipt = vi.fn().mockResolvedValue({
       status_name: TransactionStatus.FINALIZED,
@@ -245,6 +261,49 @@ describe('pending transaction persistence', () => {
 
     await expect(submitWrite(account, 'create_agreement', [])).rejects.toMatchObject({ code: 4001 });
     expect(readPendingTransactions()).toHaveLength(0);
+  });
+
+  it('passes native funding value and classifies a finalized funded refusal as refunded rejection', async () => {
+    const account = '0x2222222222222222222222222222222222222222';
+    const request = vi.fn(async ({ method }: { method: string }) => {
+      if (method === 'eth_accounts') return [account];
+      if (method === 'eth_chainId') return '0xF22F';
+      return null;
+    });
+    const writeContract = vi.fn().mockResolvedValue('0xfeed');
+    mocks.provider.mockReturnValue({ request });
+    mocks.writeClient.mockReturnValue({ writeContract });
+    mocks.readClient.mockReturnValue({
+      waitForTransactionReceipt: vi.fn().mockResolvedValue({
+        status_name: TransactionStatus.FINALIZED,
+        tx_execution_result_name: ExecutionResult.FINISHED_WITH_RETURN,
+        result_name: 'MAJORITY_AGREE',
+        consensus_data: {
+          validators: [
+            { mode: 'validator', vote: 'agree', execution_result: 'SUCCESS', genvm_result: successfulReceipt() },
+          ],
+          leader_receipt: [
+            {
+              mode: 'leader',
+              execution_result: 'SUCCESS',
+              genvm_result: successfulReceipt(),
+              result: { payload: { readable: 'REJECTED_FUNDED WL_FUNDING_REQUIRED' } },
+            },
+          ],
+        },
+      }),
+    });
+
+    const error = await submitWrite(account, 'fund_agreement', ['funded'], 100n).catch((value) => value);
+
+    expect(writeContract).toHaveBeenCalledWith(expect.objectContaining({
+      functionName: 'fund_agreement',
+      value: 100n,
+    }));
+    expect(error).toMatchObject({
+      name: 'TransactionExecutionError',
+      transaction: { successful: false, outcome: 'REJECTED_REFUNDED' },
+    });
   });
 });
 

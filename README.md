@@ -1,14 +1,14 @@
 # WITLOCK
 
-WITLOCK is a proof-bound agreement and adjudication monolith for GenLayer StudioNet. It freezes weighted acceptance criteria, nominated issuers, independent source verifiers, provenance coordinates, deadlines, appeals, and an auditable decision history in one deployable `contracts/Witlock.py` contract.
+WITLOCK is a single GenLayer StudioNet contract for proof-bound agreements. It freezes weighted criteria, nominated issuers, independent source verifiers, immutable GitHub provenance, deadlines, appeals, terminal decisions, and native GEN settlement accounting in `contracts/Witlock.py`.
 
-The core path is:
+The workflow is:
 
-`create_agreement` → `accept_agreement` → issuer `publish_attestation` → independent verifier `verify_attestation_source` → party `submit_evidence` → issuer `authenticate_evidence` → delivery/dispute → `seal_agreement` → GenLayer adjudication → structured appeal → independent appeal authentication → appeal resolution → final decision.
+`create_agreement` → optional exact-value `fund_agreement` → `accept_agreement` → issuer `publish_attestation` → independent verifier `verify_attestation_source` → party `submit_evidence` → issuer `authenticate_evidence` → delivery or timeout → `seal_agreement` → adjudication → appeal → independent appeal authentication → resolution → `finalize_decision` → role-bound payment dispatch.
 
-Consensus returns only `PASS`, `FAIL`, or `INCONCLUSIVE` per criterion. Contract code validates the schema and computes the result and integer allocation. A digest proves bytes, an issuer transaction proves publication, and an independent verifier transaction proves source-observation agreement; none alone proves factual truth or human independence.
+Consensus returns only `PASS`, `FAIL`, or `INCONCLUSIVE` for each frozen criterion. The contract calculates the verdict, integer score, and entitlements. Source bytes are retrieved and hashed from immutable GitHub commit URLs. A source observation proves the committed bytes were retrieved; it does not prove the claim is true or that a wallet owner is a human.
 
-Native GEN custody is permanently disabled in this release. `custody_enabled() == False`, non-zero funding/bond/payment paths remain guarded, and live agreements are zero-value evidence and adjudication records. WITLOCK makes no operational escrow or payment-delivery claim.
+Native GEN dispatch is enabled only after `FINAL_DECISION`. Funding must match the agreement exactly. Any funded rejection returns the incoming value through an explicit value-bearing message and reports `REJECTED_FUNDED`. Each beneficiary role has one dispatch latch, and the contract records `DISPATCHED` until an external observer confirms the child transfer and recipient balance. Operator bonds remain unsupported and are refunded.
 
 ## Approved stack
 
@@ -17,32 +17,29 @@ Native GEN custody is permanently disabled in this release. `custody_enabled() =
 - Explorer `https://explorer-studio.genlayer.com`
 - repository-local GenLayer CLI `0.39.1`
 - `genlayer-js` `1.1.8`
-- Next.js App Router and injected EIP-1193 wallet
+- Next.js App Router and injected EIP-1193 wallets only
+- one deployable monolith: `contracts/Witlock.py`
+
+## Current deployment
+
+The current candidate contract is [`0x8d90aE2C95E320Ea61774a797D92ef84F6831bC2`](https://explorer-studio.genlayer.com/address/0x8d90aE2C95E320Ea61774a797D92ef84F6831bC2). Its deployment transaction is [`0xd38499ccb036e6188428a47707e5cdb71f289cd3e9dc47af7c3dc30e061cfe68`](https://explorer-studio.genlayer.com/tx/0xd38499ccb036e6188428a47707e5cdb71f289cd3e9dc47af7c3dc30e061cfe68). The deployed source is 64,862 bytes with SHA-256 `93de46c2c0749f9016cd4297658679b0f25f12e0bce91ab6fe867d328835dff9`, and the readback source matches the candidate byte-for-byte. The schema is 35 methods, 13 views, 22 writes, and zero constructor parameters.
+
+The production frontend is [witlock.vercel.app](https://witlock.vercel.app). Its public configuration targets the current address, StudioNet 61999, and the approved RPC. Exact lifecycle receipts and state readbacks are in [docs/LIVE_PROOF.md](docs/LIVE_PROOF.md), [artifacts/live-61999/cases.json](artifacts/live-61999/cases.json), and [artifacts/live-61999/manifest.json](artifacts/live-61999/manifest.json).
 
 ## Frontend route map
 
-The frontend uses addressable workflow pages behind one shared navigation shell:
-
 - `/` — product entry point and route map
-- `/new` — guided zero-value agreement creation
+- `/new` — funded or zero-value agreement creation
 - `/explore` — exact-key agreement lookup
 - `/workspace` — role-aware case entry point
 - `/agreement/:id` — agreement state and party actions
 - `/evidence/:id` — publication, source verification, and evidence admission
 - `/review/:id` — sealing, adjudication, appeal, and decision history
-- `/settlement/:id` — allocation readback and custody boundary
+- `/settlement/:id` — entitlement dispatch and external delivery observation
 - `/activity` — persisted pending and finalized transaction receipts
 - `/verification` and `/guide` — deployment checks and protocol guidance
 
-Wallet account, chain, disconnect, and message state are owned by one shared provider. Writes require the injected provider, the connected account, StudioNet 61999, and a finalized successful receipt.
-
-## Current StudioNet deployment
-
-The current source is deployed at [`0x8B6e64A6C5c5Bccc3a64Cba4Bd8982218381330d`](https://explorer-studio.genlayer.com/address/0x8B6e64A6C5c5Bccc3a64Cba4Bd8982218381330d) from release commit `7ce1517d82e711aa12604177ddadaa644c1691e8`. `contracts/Witlock.py` is 64,131 bytes with SHA-256 `04352A02F6BFBD7BEF7C5C00BE93FD5779ABD5BC340941C62863BF2ABB1E8C79`; normalized deployed bytes match exactly. Deployment transaction: [`0x298e3e7eed4ec8ad25017600f87f49608cdc5bfb94b5d7eadf0cb0dbfabace1`](https://explorer-studio.genlayer.com/tx/0x298e3e7eed4ec8ad25017600f87f49608cdc5bfb94b5d7eadf0cb0dbfabace1), finalized with `MAJORITY_AGREE` and successful leader execution.
-
-The release adds a minimum first appeal window of 900 seconds when adjudication occurs after the original deadline. The effective deadline is captured once at the first ruling and reused by `open_appeal()` and `finalize_decision()`; replay cannot extend it. Receipt validation fails closed for contradictory top-level execution/consensus metadata and accepts idle validators only for explicit post-quorum cancellation.
-
-Live proof, exact transaction hashes, state readbacks, source parity, browser observations, and limitations are maintained in [docs/LIVE_PROOF.md](docs/LIVE_PROOF.md), [artifacts/live-61999/cases.json](artifacts/live-61999/cases.json), and the sanitized [deployment manifest](artifacts/live-61999/manifest.json).
+Wallet account, chain, disconnect, and message state are shared across the route shell. Every write requires an injected provider, the connected account, StudioNet 61999, and a finalized receipt with consistent execution and consensus metadata.
 
 ## Local verification
 
@@ -61,4 +58,4 @@ npm run web:typecheck
 npm run web:build
 ```
 
-Deployment and evidence rules are in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). The current live proof status is [docs/LIVE_PROOF.md](docs/LIVE_PROOF.md).
+Deployment and source-parity rules are in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). The custody state machine and recovery model are in [docs/CUSTODY_AND_RECOVERY.md](docs/CUSTODY_AND_RECOVERY.md). Security limitations are in [docs/SECURITY.md](docs/SECURITY.md).
