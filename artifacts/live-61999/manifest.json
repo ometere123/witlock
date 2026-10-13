@@ -245,5 +245,52 @@
         "action": "FINAL_DECISION"
       }
     }
+  },
+  "ci": {
+    "workflow": "quality-gates",
+    "run_id": 38331421267,
+    "url": "https://github.com/ometere123/witlock/actions/runs/38331421267",
+    "head_sha": "90473e0b24da995ef2ebbdf0a6cc44062a8686ff",
+    "status": "success",
+    "jobs": {
+      "policy": "success",
+      "frontend": "success"
+    }
+  },
+  "frontend": {
+    "production_url": "https://witlock.vercel.app",
+    "deployment_url": "https://witlock-kdi3vw10g-delealufejoel-4184s-projects.vercel.app",
+    "deployment_id": "dpl_9PKFCgE4qi88MrkaNMNubanNKnLS",
+    "inspector_url": "https://vercel.com/delealufejoel-4184s-projects/witlock/9PKFCgE4qi88MrkaNMNubanNKnLS",
+    "status": "READY",
+    "public_route_status": {
+      "static": [
+        "/",
+        "/explore",
+        "/new",
+        "/workspace",
+        "/activity",
+        "/verification",
+        "/guide"
+      ],
+      "dynamic": [
+        "/agreement/final-proof-20261013",
+        "/evidence/final-proof-20261013",
+        "/review/final-proof-20261013",
+        "/settlement/final-proof-20261013"
+      ],
+      "http_status": 200,
+      "error_text": false
+    },
+    "production_config": {
+      "contract": "0x825478432dFECd321C5E5C193829Ad1bAd88043a",
+      "rpc": "https://studio.genlayer.com/api",
+      "chain_id": 61999,
+      "not_configured": false
+    },
+    "wallet_evidence": {
+      "current_session": "public routes only; debugger disconnected during reconnect",
+      "prior_injected_wallet": "browser-proof-20261012 on 0xF22F"
+    }
   }
 }
